@@ -36,6 +36,10 @@ public class RegisterUserMapper {
         // Keep token expired until an explicit reset flow issues a valid one.
         user.setPasswordResetTokenExpiresAt(new Date(0L));
 
+        // Email verification token valid for 24 hours.
+        user.setEmailVerificationToken(UUID.randomUUID().toString());
+        user.setEmailVerificationTokenExpiresAt(new Date(System.currentTimeMillis() + 86_400_000L));
+
         return user;
     }
 }

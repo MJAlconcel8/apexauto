@@ -106,6 +106,18 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Date passwordResetTokenExpiresAt;
 
+    // A token used for email verification.
+    @Getter
+    @Setter
+    @Column
+    private String emailVerificationToken;
+
+    // The expiration date and time for the email verification token.
+    @Getter
+    @Setter
+    @Column
+    private Date emailVerificationTokenExpiresAt;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
