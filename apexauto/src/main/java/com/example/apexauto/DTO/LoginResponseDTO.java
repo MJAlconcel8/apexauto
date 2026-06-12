@@ -9,6 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
+// This DTO is used to represent the response sent back to the client after a successful login, including the JWT token and any relevant messages.
 public class LoginResponseDTO {
 
     private String token;

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.UUID;
 
+// This class is responsible for mapping the RegisterUserDTO to a User entity. It also handles password encoding and setting default values for the new user.
+
 @Component
 public class RegisterUserMapper {
     private static final String DEFAULT_ROLE = "USER";

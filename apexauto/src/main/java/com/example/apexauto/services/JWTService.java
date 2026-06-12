@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 // This is the JWTService class that provides methods for generating and validating JSON Web Tokens (JWTs) for user authentication and authorization in the application.
 @Service
 public class JWTService {
-    @Value("${security.jwt.secret-key:3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}")
+    @Value("${security.jwt.secret-key}")
     private String secretKey;
 
     @Value("${security.jwt.expiration-time:3600000}")

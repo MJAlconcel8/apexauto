@@ -13,15 +13,29 @@ import java.util.Date;
 import java.util.UUID;
 
 @Service
+
+// This class is responsible for handling authentication-related operations, such as registering new users and authenticating existing users. It interacts with the UserRepository to manage user data and uses the JwtService to generate JWT tokens for authenticated users.
 public class AuthenticationService {
+
+    // This variable is used to interact with the UserRepository, which provides methods for accessing and managing user data in the database.
     private static final int MAX_FAILED_LOGIN_ATTEMPTS = 3;
 
+    // This variable creates an object of UserRepository, which is used to perform database operations related to the User entity, such as saving new users and retrieving existing users based on their email or tokens.
     private final UserRepository userRepository;
+
+    // This variable creates an object of AuthenticationManager, which is used to authenticate user credentials during the login process.
     private final AuthenticationManager authenticationManager;
+
+    // This variable creates a RegisterUserMapper, which is responsible for mapping the RegisterUserDTO to a User entity, including handling password encoding and setting default values for new users.
     private final RegisterUserMapper registerUserMapper;
+
+    // This variable creates a LoginUserMapper, which is responsible for mapping the LoginUserDTO to a UsernamePasswordAuthenticationToken, which is used by Spring Security to perform authentication.
     private final LoginUserMapper loginUserMapper;
+
+    // This variable creates a JwtService, which is responsible for generating JWT tokens for authenticated users, allowing them to access protected resources in the application.
     private final BCryptPasswordEncoder passwordEncoder;
 
+    // This is the constructor for the AuthenticationService class, which initializes all the required dependencies through constructor injection.
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
@@ -36,10 +50,12 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // This method is responsible for registering a new user. It takes a RegisterUserDTO as input, maps it to a User entity, and saves it to the database. It also handles password encoding and sets default values for the new user.
     public User signup(RegisterUserDTO input) {
         return userRepository.save(registerUserMapper.toUser(input));
     }
 
+    // This method is responsible for authenticating an existing user. It takes a LoginUserDTO as input, maps it to a UsernamePasswordAuthenticationToken, and uses the AuthenticationManager to authenticate the user's credentials. If authentication is successful, it generates a JWT token for the user.
     public User authenticate(LoginUserDTO input) {
         User user = userRepository.findByEmail(input.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

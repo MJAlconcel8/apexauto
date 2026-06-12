@@ -9,6 +9,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
+// This DTO is used to represent the data required for a user to request a password reset, including their email address.
+
 public class ForgotPasswordDTO {
 
     private String email;
