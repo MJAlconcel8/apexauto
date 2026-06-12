@@ -13,8 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Configuration
 public class ApplicationConfiguration {
+
+    // This variable holds the UserRepository bean that will be used to access user data from the database
     private final UserRepository userRepository;
 
+    // This is a constructor that takes a UserRepository as a parameter and assigns it to the userRepository field
     public ApplicationConfiguration(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
