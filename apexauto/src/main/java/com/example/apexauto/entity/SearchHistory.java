@@ -22,6 +22,8 @@ public class SearchHistory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @Setter
+    @Getter
     private User user;
 
 }
