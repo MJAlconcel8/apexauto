@@ -35,7 +35,7 @@ public class SearchHistoryService {
     @Transactional(readOnly = true)
     public SearchHistory getSearchHistoryEntryByIdForUser(int userId, int searchHistoryId) {
         validateUserExists(userId);
-        return searchHistoryRepository.findBySearchHistoryIdAndUserId(searchHistoryId, userId)
+        return searchHistoryRepository.findBySearchHistoryIdAndUserUserId(searchHistoryId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Search history not found"));
     }
 

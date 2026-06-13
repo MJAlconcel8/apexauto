@@ -13,7 +13,7 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistory, In
 	List<SearchHistory> findByUserUserIdOrderBySearchHistoryIdDesc(int userId);
 
 	// This method allows you to find a specific search history entry by its ID and the associated user ID, which can be useful for retrieving or managing individual search history records.
-	Optional<SearchHistory> findBySearchHistoryIdAndUserId(int searchHistoryId, int userId);
+	Optional<SearchHistory> findBySearchHistoryIdAndUserUserId(int searchHistoryId, int userId);
 
 	// This method allows you to delete all search history entries associated with a specific user ID, which can be useful for account deletion or data cleanup.
 	void deleteByUserUserId(int userId);
