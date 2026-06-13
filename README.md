@@ -14,7 +14,7 @@ The backend loads environment values from a local `.env` file before Spring Boot
 Place the file next to `pom.xml` in this directory:
 
 ```bash
-cd /Users/markalconcel/Documents/GitHub/apexauto/apexauto
+cd /Users/{path-to-apex-auto}/apexauto/apexauto
 cp env.example .env
 ```
 
