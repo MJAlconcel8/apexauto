@@ -14,7 +14,7 @@ The backend loads environment values from a local `.env` file before Spring Boot
 Place the file next to `pom.xml` in this directory:
 
 ```bash
-cd /Users/markalconcel/Documents/GitHub/apexauto/apexauto
+cd /Users/{path-to-apex-auto}/apexauto/apexauto
 cp env.example .env
 ```
 
@@ -88,6 +88,25 @@ If you want to run the backend tests:
 - The application checks for `.env` in this directory, the workspace root, and a few related paths.
 - If a value is already present as an OS environment variable or JVM system property, it takes precedence over `.env`.
 - `JWT_EXPIRATION_TIME` is in milliseconds; the default fallback is `3600000` (1 hour).
+
+## Endpoints
+
+### Authentication
+
+- `POST /auth/register` — register a new user
+- `POST /auth/login` — log in and receive a JWT
+- `GET /auth/verify-email?token=...` — verify a user's email address
+- `GET /auth/account-status?email=...` — check whether an account is enabled, verified, or locked
+- `POST /auth/forgot-password` — generate a password reset token
+- `POST /auth/reset-password` — reset a password using a token
+
+### Search History
+
+- `GET /users/{userId}/search-history` — list all search history entries for a user
+- `GET /users/{userId}/search-history/{searchHistoryId}` — get one search history entry for a user
+- `POST /users/{userId}/search-history` — create a new search history entry for a user
+- `DELETE /users/{userId}/search-history/{searchHistoryId}` — delete one search history entry for a user
+- `DELETE /users/{userId}/search-history` — delete all search history entries for a user
 
 
 # React + TypeScript + Vite
