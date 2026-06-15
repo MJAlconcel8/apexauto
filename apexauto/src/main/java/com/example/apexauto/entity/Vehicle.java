@@ -47,46 +47,55 @@ public class Vehicle {
     @Column(nullable = false)
     private int year;
 
+    // This is the color of the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private String color;
 
+    // The number of doors the vehicle has, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private int doors;
 
+    // The number of seats in the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private int seats;
 
+    // The emission score of the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private double emissionScore;
 
+    // The fuel usage of the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private double fuelUsage;
 
+    // The mileage of the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private double millage;
 
+    // A boolean field indicating whether the vehicle is currently on sale, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private boolean isOnSale;
 
+    // A boolean field indicating whether the vehicle is currently in stock, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
     private boolean isInStock;
 
+    // The price of the vehicle, which is a required field.
     @Getter
     @Setter
     @Column(nullable = false)
