@@ -8,7 +8,6 @@ import lombok.Setter;
 
 @Setter
 @Getter
-@AllArgsConstructor
 @Table(name = "searchHistory")
 @Entity
 public class SearchHistory {
@@ -26,5 +25,4 @@ public class SearchHistory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
 }
