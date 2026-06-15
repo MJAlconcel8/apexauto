@@ -12,14 +12,18 @@ import java.util.UUID;
 
 @Component
 public class RegisterUserMapper {
+    // The variable DefaultRole is a constant that defines the default role assigned to a new user when they register. In this case
     private static final String DEFAULT_ROLE = "USER";
 
+    //This variable creates an object of BCryptPasswordEncoder, which is used to encode the user's password before saving it to the database. This ensures that the password is stored securely and cannot be easily retrieved in plain text.
     private final BCryptPasswordEncoder passwordEncoder;
 
+    // This is the constructor for the RegisterUserMapper class, which initializes the BCryptPasswordEncoder through constructor injection.
     public RegisterUserMapper(BCryptPasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // This method takes a RegisterUserDTO as input and maps it to a User entity. It encodes the user's password using BCryptPasswordEncoder and sets default values for the new user, such as the default role and the account creation date.
     public User toUser(RegisterUserDTO registerUserDTO) {
         User user = new User();
 
