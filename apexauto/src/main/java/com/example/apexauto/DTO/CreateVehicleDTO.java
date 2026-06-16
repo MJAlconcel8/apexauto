@@ -22,6 +22,7 @@ public class CreateVehicleDTO {
     private double millage;
     private boolean isOnSale;
     private boolean isInStock;
+    private Integer amountInStock;
     private double price;
 }
 

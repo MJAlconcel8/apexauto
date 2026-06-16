@@ -37,6 +37,7 @@ public class VehicleService {
     // Persists a new vehicle entity to the database.
     @Transactional
     public Vehicle createVehicle(Vehicle vehicle) {
+        vehicle.setInStock(vehicle.getAmountInStock() > 0);
         validateVehicle(vehicle);
         return vehicleRepository.save(vehicle);
     }
@@ -58,7 +59,8 @@ public class VehicleService {
         vehicle.setFuelUsage(incoming.getFuelUsage());
         vehicle.setMillage(incoming.getMillage());
         vehicle.setOnSale(incoming.isOnSale());
-        vehicle.setInStock(incoming.isInStock());
+        vehicle.setAmountInStock(incoming.getAmountInStock());
+        vehicle.setInStock(incoming.getAmountInStock() > 0);
         vehicle.setPrice(incoming.getPrice());
 
         return vehicleRepository.save(vehicle);
@@ -151,6 +153,9 @@ public class VehicleService {
         }
         if (vehicle.getPrice() < 0) {
             throw new IllegalArgumentException("Vehicle price must not be negative");
+        }
+        if (vehicle.getAmountInStock() < 0) {
+            throw new IllegalArgumentException("Vehicle amount in stock must not be negative");
         }
     }
 

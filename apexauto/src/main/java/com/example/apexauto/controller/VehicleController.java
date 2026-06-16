@@ -111,12 +111,17 @@ public class VehicleController {
                 vehicle.getMillage(),
                 vehicle.isOnSale(),
                 vehicle.isInStock(),
+                vehicle.getAmountInStock(),
                 vehicle.getPrice()
         );
     }
 
     // Maps a CreateVehicleDTO to a new Vehicle entity (vehicleId set to 0 for auto-generation).
     private Vehicle toEntity(CreateVehicleDTO dto) {
+        int amountInStock = dto.getAmountInStock() != null
+                ? dto.getAmountInStock()
+                : (dto.isInStock() ? 1 : 0);
+
         return new Vehicle(
                 0,
                 dto.getBrand(),
@@ -130,7 +135,8 @@ public class VehicleController {
                 dto.getFuelUsage(),
                 dto.getMillage(),
                 dto.isOnSale(),
-                dto.isInStock(),
+                amountInStock > 0,
+                amountInStock,
                 dto.getPrice()
         );
     }
