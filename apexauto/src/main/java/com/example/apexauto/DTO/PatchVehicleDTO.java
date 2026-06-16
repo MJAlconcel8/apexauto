@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 // This DTO carries only fields that should be partially updated for a vehicle.
 @Getter
 @Setter
@@ -23,6 +25,6 @@ public class PatchVehicleDTO {
     private Boolean isOnSale;
     private Boolean isInStock;
     private Integer amountInStock;
-    private Double price;
+    private BigDecimal price;
 }
 

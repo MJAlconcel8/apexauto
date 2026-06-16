@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 // This DTO represents the data returned in response to requests for vehicle information.
 @Getter
 @Setter
@@ -26,6 +28,6 @@ public class VehicleResponseDTO {
     private boolean isOnSale;
     private boolean isInStock;
     private int amountInStock;
-    private double price;
+    private BigDecimal price;
 }
 

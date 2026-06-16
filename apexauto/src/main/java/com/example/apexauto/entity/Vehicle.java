@@ -5,11 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.*;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.*;
+import java.math.BigDecimal;
+
 
 @Table(name = "vehicles")
 @Entity
@@ -107,5 +105,5 @@ public class Vehicle {
     @Getter
     @Setter
     @Column(nullable = false)
-    private double price;
+    private BigDecimal price;
 }

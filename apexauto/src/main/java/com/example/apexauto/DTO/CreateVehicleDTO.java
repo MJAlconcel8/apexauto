@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 // This DTO is used to carry the data required when creating or updating a vehicle.
 @Getter
 @Setter
@@ -23,6 +25,6 @@ public class CreateVehicleDTO {
     private boolean isOnSale;
     private boolean isInStock;
     private Integer amountInStock;
-    private double price;
+    private BigDecimal price;
 }
 

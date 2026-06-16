@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -139,7 +140,7 @@ public class VehicleService {
             }
         }
         if (patch.getPrice() != null) {
-            if (patch.getPrice() < 0) {
+            if (patch.getPrice().compareTo(BigDecimal.ZERO) < 0) {
                 throw new IllegalArgumentException("Vehicle price must not be negative");
             }
             vehicle.setPrice(patch.getPrice());
@@ -193,10 +194,10 @@ public class VehicleService {
                 }
             }
             if (filter.getMinPrice() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), filter.getMinPrice()));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price").as(BigDecimal.class), filter.getMinPrice()));
             }
             if (filter.getMaxPrice() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("price"), filter.getMaxPrice()));
+                predicates.add(cb.lessThanOrEqualTo(root.get("price").as(BigDecimal.class), filter.getMaxPrice()));
             }
             if (filter.getIsOnSale() != null) {
                 predicates.add(cb.equal(root.get("isOnSale"), filter.getIsOnSale()));
@@ -234,7 +235,7 @@ public class VehicleService {
         if (vehicle.getColor() == null || vehicle.getColor().isBlank()) {
             throw new IllegalArgumentException("Vehicle color must not be blank");
         }
-        if (vehicle.getPrice() < 0) {
+        if (vehicle.getPrice() == null || vehicle.getPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Vehicle price must not be negative");
         }
         if (vehicle.getAmountInStock() < 0) {

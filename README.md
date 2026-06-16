@@ -108,6 +108,24 @@ If you want to run the backend tests:
 - `DELETE /users/{userId}/search-history/{searchHistoryId}` — delete one search history entry for a user
 - `DELETE /users/{userId}/search-history` — delete all search history entries for a user
 
+### Vehicle Endpoints
+
+- `GET /vehicles` — list all vehicles
+- `GET /vehicles/{vehicleId}` — get one vehicle by ID
+- `POST /vehicles` — create a new vehicle
+- `PUT /vehicles/{vehicleId}` — fully update an existing vehicle (send all fields)
+- `PATCH /vehicles/{vehicleId}` — partially update an existing vehicle (send only changed fields)
+- `DELETE /vehicles/{vehicleId}` — delete a vehicle by ID
+- `GET /vehicles/filter` — filter vehicles by query parameters
+
+Common filter query parameters for `GET /vehicles/filter`:
+
+- `brand`, `make`, `model`, `color`
+- `year` (exact match)
+- `minYear`, `maxYear` (range; ignored when `year` is provided)
+- `minPrice`, `maxPrice`
+- `isOnSale`, `isInStock`
+
 
 # React + TypeScript + Vite
 
