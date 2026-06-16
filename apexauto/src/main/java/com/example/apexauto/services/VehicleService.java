@@ -1,5 +1,6 @@
 package com.example.apexauto.services;
 
+import com.example.apexauto.DTO.PatchVehicleDTO;
 import com.example.apexauto.DTO.VehicleFilterDTO;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.repository.VehicleRepository;
@@ -63,6 +64,88 @@ public class VehicleService {
         vehicle.setInStock(incoming.getAmountInStock() > 0);
         vehicle.setPrice(incoming.getPrice());
 
+        return vehicleRepository.save(vehicle);
+    }
+
+    // Partially updates an existing vehicle; only non-null fields from patch are applied.
+    @Transactional
+    public Vehicle patchVehicle(int vehicleId, PatchVehicleDTO patch) {
+        Vehicle vehicle = findVehicleOrThrow(vehicleId);
+
+        if (patch.getBrand() != null) {
+            if (patch.getBrand().isBlank()) {
+                throw new IllegalArgumentException("Vehicle brand must not be blank");
+            }
+            vehicle.setBrand(patch.getBrand());
+        }
+        if (patch.getMake() != null) {
+            if (patch.getMake().isBlank()) {
+                throw new IllegalArgumentException("Vehicle make must not be blank");
+            }
+            vehicle.setMake(patch.getMake());
+        }
+        if (patch.getModel() != null) {
+            if (patch.getModel().isBlank()) {
+                throw new IllegalArgumentException("Vehicle model must not be blank");
+            }
+            vehicle.setModel(patch.getModel());
+        }
+        if (patch.getYear() != null) {
+            if (patch.getYear() <= 0) {
+                throw new IllegalArgumentException("Vehicle year must be a positive value");
+            }
+            vehicle.setYear(patch.getYear());
+        }
+        if (patch.getColor() != null) {
+            if (patch.getColor().isBlank()) {
+                throw new IllegalArgumentException("Vehicle color must not be blank");
+            }
+            vehicle.setColor(patch.getColor());
+        }
+        if (patch.getDoors() != null) {
+            vehicle.setDoors(patch.getDoors());
+        }
+        if (patch.getSeats() != null) {
+            vehicle.setSeats(patch.getSeats());
+        }
+        if (patch.getEmissionScore() != null) {
+            vehicle.setEmissionScore(patch.getEmissionScore());
+        }
+        if (patch.getFuelUsage() != null) {
+            vehicle.setFuelUsage(patch.getFuelUsage());
+        }
+        if (patch.getMillage() != null) {
+            vehicle.setMillage(patch.getMillage());
+        }
+        if (patch.getIsOnSale() != null) {
+            vehicle.setOnSale(patch.getIsOnSale());
+        }
+        if (patch.getAmountInStock() != null) {
+            if (patch.getAmountInStock() < 0) {
+                throw new IllegalArgumentException("Vehicle amount in stock must not be negative");
+            }
+            vehicle.setAmountInStock(patch.getAmountInStock());
+            vehicle.setInStock(patch.getAmountInStock() > 0);
+        } else if (patch.getIsInStock() != null) {
+            // Keep amount and inStock consistent when only stock status is patched.
+            if (!patch.getIsInStock()) {
+                vehicle.setAmountInStock(0);
+                vehicle.setInStock(false);
+            } else {
+                if (vehicle.getAmountInStock() == 0) {
+                    vehicle.setAmountInStock(1);
+                }
+                vehicle.setInStock(true);
+            }
+        }
+        if (patch.getPrice() != null) {
+            if (patch.getPrice() < 0) {
+                throw new IllegalArgumentException("Vehicle price must not be negative");
+            }
+            vehicle.setPrice(patch.getPrice());
+        }
+
+        validateVehicle(vehicle);
         return vehicleRepository.save(vehicle);
     }
 

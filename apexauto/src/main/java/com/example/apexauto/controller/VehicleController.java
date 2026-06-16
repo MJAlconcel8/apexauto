@@ -1,6 +1,7 @@
 package com.example.apexauto.controller;
 
 import com.example.apexauto.DTO.CreateVehicleDTO;
+import com.example.apexauto.DTO.PatchVehicleDTO;
 import com.example.apexauto.DTO.VehicleFilterDTO;
 import com.example.apexauto.DTO.VehicleResponseDTO;
 import com.example.apexauto.entity.Vehicle;
@@ -62,6 +63,20 @@ public class VehicleController {
     ) {
         try {
             Vehicle vehicle = vehicleService.updateVehicle(vehicleId, toEntity(dto));
+            return ResponseEntity.ok(toResponseDTO(vehicle));
+        } catch (IllegalArgumentException ex) {
+            throw toHttpException(ex);
+        }
+    }
+
+    // PATCH /vehicles/{vehicleId} — partially updates an existing vehicle
+    @PatchMapping("/{vehicleId}")
+    public ResponseEntity<VehicleResponseDTO> patchVehicle(
+            @PathVariable int vehicleId,
+            @RequestBody PatchVehicleDTO dto
+    ) {
+        try {
+            Vehicle vehicle = vehicleService.patchVehicle(vehicleId, dto);
             return ResponseEntity.ok(toResponseDTO(vehicle));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
