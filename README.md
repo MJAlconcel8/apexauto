@@ -133,8 +133,10 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `POST /users/{userId}/vehicle-history` — create a new vehicle history entry for a user
 - `DELETE /users/{userId}/vehicle-history/{vehicleHistoryId}` — delete one vehicle history entry for a user
 - `DELETE /users/{userId}/vehicle-history` — delete all vehicle history entries for a user
-- `DELETE /users/{userId}/vehicle-history/vehicles/{vehicleId}/history` — delete all vehicle history entries for a specific vehicle
-- `DELETE /users/{userId}/vehicle-history/vehicles/history/all` — delete all vehicle history entries from the database
+- `GET /vehicle-history` — list all vehicle history entries across all users and vehicles
+- `GET /vehicle-history/vehicles/{vehicleId}` — list all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history/vehicles/{vehicleId}` — delete all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history` — delete all vehicle history entries from the database
 
 
 # React + TypeScript + Vite

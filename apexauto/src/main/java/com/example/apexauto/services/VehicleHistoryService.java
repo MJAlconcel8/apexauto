@@ -35,16 +35,11 @@ public class VehicleHistoryService {
         return vehicleHistoryRepository.findByUserUserIdOrderByVehicleHistoryIdDesc(userId);
     }
 
-    // This method retrieves all vehicle history comments for a specific vehicle across all users (newest first).
+    // This method retrieves all vehicle history entries for a specific vehicle across all users (newest first).
     @Transactional(readOnly = true)
-    public List<String> getVehicleHistoryCommentsByVehicleId(int vehicleId) {
+    public List<VehicleHistory> getVehicleHistoryEntriesByVehicleId(int vehicleId) {
         validateVehicleExists(vehicleId);
-
-        return vehicleHistoryRepository
-                .findByVehicleVehicleIdOrderByVehicleHistoryIdDesc(vehicleId)
-                .stream()
-                .map(VehicleHistory::getVehicleHistoryComments)
-                .toList();
+        return vehicleHistoryRepository.findByVehicleVehicleIdOrderByVehicleHistoryIdDesc(vehicleId);
     }
 
     // This method retrieves all vehicle history entries in the system, ordered by the most recent entry first. It uses the VehicleHistoryRepository to find all vehicle history entries and order them by their ID in descending order.
