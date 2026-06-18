@@ -18,7 +18,7 @@ public class VehicleHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
-    private int historyId;
+    private int vehicleHistoryId;
 
     // The foreign key that references the user associated with this vehicle history entry. It is a required field.
     @ManyToOne(fetch = FetchType.LAZY)
