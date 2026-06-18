@@ -38,6 +38,5 @@ public class VehicleHistory {
     @Getter
     @Setter
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private String vehicleHistoryComments;
 }
