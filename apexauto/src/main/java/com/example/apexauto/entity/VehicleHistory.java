@@ -20,6 +20,13 @@ public class VehicleHistory {
     @Column(nullable = false)
     private int historyId;
 
+    // The foreign key that references the user associated with this vehicle history entry. It is a required field.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @Getter
+    @Setter
+    private User user;
+
     // The foreign key relationship to the Vehicle entity, indicating which vehicle this history entry is associated with.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
