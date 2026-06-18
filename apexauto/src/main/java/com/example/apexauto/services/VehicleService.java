@@ -1,0 +1,258 @@
+package com.example.apexauto.services;
+
+import com.example.apexauto.DTO.PatchVehicleDTO;
+import com.example.apexauto.DTO.VehicleFilterDTO;
+import com.example.apexauto.entity.Vehicle;
+import com.example.apexauto.repository.VehicleRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class VehicleService {
+
+    // This variable holds the VehicleRepository bean used to access vehicle data from the database.
+    private final VehicleRepository vehicleRepository;
+
+    // Constructor that injects the VehicleRepository dependency.
+    public VehicleService(VehicleRepository vehicleRepository) {
+        this.vehicleRepository = vehicleRepository;
+    }
+
+    // Retrieves all vehicles from the database.
+    @Transactional(readOnly = true)
+    public List<Vehicle> getAllVehicles() {
+        return vehicleRepository.findAll();
+    }
+
+    // Retrieves a single vehicle by its ID. Throws an exception if the vehicle is not found.
+    @Transactional(readOnly = true)
+    public Vehicle getVehicleById(int vehicleId) {
+        return findVehicleOrThrow(vehicleId);
+    }
+
+    // Persists a new vehicle entity to the database.
+    @Transactional
+    public Vehicle createVehicle(Vehicle vehicle) {
+        vehicle.setInStock(vehicle.getAmountInStock() > 0);
+        validateVehicle(vehicle);
+        return vehicleRepository.save(vehicle);
+    }
+
+    // Updates an existing vehicle identified by vehicleId with the data from the provided Vehicle entity.
+    @Transactional
+    public Vehicle updateVehicle(int vehicleId, Vehicle incoming) {
+        validateVehicle(incoming);
+        Vehicle vehicle = findVehicleOrThrow(vehicleId);
+
+        vehicle.setBrand(incoming.getBrand());
+        vehicle.setMake(incoming.getMake());
+        vehicle.setModel(incoming.getModel());
+        vehicle.setYear(incoming.getYear());
+        vehicle.setColor(incoming.getColor());
+        vehicle.setDoors(incoming.getDoors());
+        vehicle.setSeats(incoming.getSeats());
+        vehicle.setEmissionScore(incoming.getEmissionScore());
+        vehicle.setFuelUsage(incoming.getFuelUsage());
+        vehicle.setMillage(incoming.getMillage());
+        vehicle.setOnSale(incoming.isOnSale());
+        vehicle.setAmountInStock(incoming.getAmountInStock());
+        vehicle.setInStock(incoming.getAmountInStock() > 0);
+        vehicle.setPrice(incoming.getPrice());
+
+        return vehicleRepository.save(vehicle);
+    }
+
+    // Partially updates an existing vehicle; only non-null fields from patch are applied.
+    @Transactional
+    public Vehicle patchVehicle(int vehicleId, PatchVehicleDTO patch) {
+        Vehicle vehicle = findVehicleOrThrow(vehicleId);
+
+        if (patch.getBrand() != null) {
+            if (patch.getBrand().isBlank()) {
+                throw new IllegalArgumentException("Vehicle brand must not be blank");
+            }
+            vehicle.setBrand(patch.getBrand());
+        }
+        if (patch.getMake() != null) {
+            if (patch.getMake().isBlank()) {
+                throw new IllegalArgumentException("Vehicle make must not be blank");
+            }
+            vehicle.setMake(patch.getMake());
+        }
+        if (patch.getModel() != null) {
+            if (patch.getModel().isBlank()) {
+                throw new IllegalArgumentException("Vehicle model must not be blank");
+            }
+            vehicle.setModel(patch.getModel());
+        }
+        if (patch.getYear() != null) {
+            if (patch.getYear() <= 0) {
+                throw new IllegalArgumentException("Vehicle year must be a positive value");
+            }
+            vehicle.setYear(patch.getYear());
+        }
+        if (patch.getColor() != null) {
+            if (patch.getColor().isBlank()) {
+                throw new IllegalArgumentException("Vehicle color must not be blank");
+            }
+            vehicle.setColor(patch.getColor());
+        }
+        if (patch.getDoors() != null) {
+            vehicle.setDoors(patch.getDoors());
+        }
+        if (patch.getSeats() != null) {
+            vehicle.setSeats(patch.getSeats());
+        }
+        if (patch.getEmissionScore() != null) {
+            vehicle.setEmissionScore(patch.getEmissionScore());
+        }
+        if (patch.getFuelUsage() != null) {
+            vehicle.setFuelUsage(patch.getFuelUsage());
+        }
+        if (patch.getMillage() != null) {
+            vehicle.setMillage(patch.getMillage());
+        }
+        if (patch.getIsOnSale() != null) {
+            vehicle.setOnSale(patch.getIsOnSale());
+        }
+        if (patch.getAmountInStock() != null) {
+            if (patch.getAmountInStock() < 0) {
+                throw new IllegalArgumentException("Vehicle amount in stock must not be negative");
+            }
+            vehicle.setAmountInStock(patch.getAmountInStock());
+            vehicle.setInStock(patch.getAmountInStock() > 0);
+        } else if (patch.getIsInStock() != null) {
+            // Keep amount and inStock consistent when only stock status is patched.
+            if (!patch.getIsInStock()) {
+                vehicle.setAmountInStock(0);
+                vehicle.setInStock(false);
+            } else {
+                if (vehicle.getAmountInStock() == 0) {
+                    vehicle.setAmountInStock(1);
+                }
+                vehicle.setInStock(true);
+            }
+        }
+        if (patch.getPrice() != null) {
+            if (patch.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Vehicle price must not be negative");
+            }
+            vehicle.setPrice(patch.getPrice());
+        }
+
+        validateVehicle(vehicle);
+        return vehicleRepository.save(vehicle);
+    }
+
+    // Deletes the vehicle identified by the given vehicleId. Throws an exception if the vehicle is not found.
+    @Transactional
+    public void deleteVehicle(int vehicleId) {
+        Vehicle vehicle = findVehicleOrThrow(vehicleId);
+        vehicleRepository.delete(vehicle);
+    }
+
+    // Matches all specified filter criteria and returns a list of matching Vehicle entities.
+    @Transactional(readOnly = true)
+    public List<Vehicle> filterVehicles(VehicleFilterDTO filter) {
+        if (filter.getMinYear() != null && filter.getMaxYear() != null) {
+            validateRange(filter.getMinYear(), filter.getMaxYear(), "year");
+        }
+        if (filter.getMinPrice() != null && filter.getMaxPrice() != null) {
+            validateRange(filter.getMinPrice(), filter.getMaxPrice(), "price");
+        }
+
+        Specification<Vehicle> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (filter.getBrand() != null && !filter.getBrand().isBlank()) {
+                predicates.add(cb.equal(cb.lower(root.get("brand")), filter.getBrand().toLowerCase()));
+            }
+            if (filter.getMake() != null && !filter.getMake().isBlank()) {
+                predicates.add(cb.equal(cb.lower(root.get("make")), filter.getMake().toLowerCase()));
+            }
+            if (filter.getModel() != null && !filter.getModel().isBlank()) {
+                predicates.add(cb.equal(cb.lower(root.get("model")), filter.getModel().toLowerCase()));
+            }
+            if (filter.getColor() != null && !filter.getColor().isBlank()) {
+                predicates.add(cb.equal(cb.lower(root.get("color")), filter.getColor().toLowerCase()));
+            }
+            // Exact year takes priority; otherwise use minYear / maxYear range
+            if (filter.getYear() != null) {
+                predicates.add(cb.equal(root.get("year"), filter.getYear()));
+            } else {
+                if (filter.getMinYear() != null) {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("year"), filter.getMinYear()));
+                }
+                if (filter.getMaxYear() != null) {
+                    predicates.add(cb.lessThanOrEqualTo(root.get("year"), filter.getMaxYear()));
+                }
+            }
+            if (filter.getMinPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price").as(BigDecimal.class), filter.getMinPrice()));
+            }
+            if (filter.getMaxPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price").as(BigDecimal.class), filter.getMaxPrice()));
+            }
+            if (filter.getIsOnSale() != null) {
+                predicates.add(cb.equal(root.get("isOnSale"), filter.getIsOnSale()));
+            }
+            if (filter.getIsInStock() != null) {
+                predicates.add(cb.equal(root.get("isInStock"), filter.getIsInStock()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return vehicleRepository.findAll(spec);
+    }
+
+    // Private helper that retrieves a Vehicle entity by ID or throws an IllegalArgumentException if not found.
+    private Vehicle findVehicleOrThrow(int vehicleId) {
+        return vehicleRepository.findById(vehicleId)
+                .orElseThrow(() -> new IllegalArgumentException("Vehicle with ID " + vehicleId + " not found"));
+    }
+
+    // Private helper that validates a Vehicle entity, throwing an IllegalArgumentException if any required field is invalid.
+    private void validateVehicle(Vehicle vehicle) {
+        if (vehicle.getBrand() == null || vehicle.getBrand().isBlank()) {
+            throw new IllegalArgumentException("Vehicle brand must not be blank");
+        }
+        if (vehicle.getMake() == null || vehicle.getMake().isBlank()) {
+            throw new IllegalArgumentException("Vehicle make must not be blank");
+        }
+        if (vehicle.getModel() == null || vehicle.getModel().isBlank()) {
+            throw new IllegalArgumentException("Vehicle model must not be blank");
+        }
+        if (vehicle.getYear() <= 0) {
+            throw new IllegalArgumentException("Vehicle year must be a positive value");
+        }
+        if (vehicle.getColor() == null || vehicle.getColor().isBlank()) {
+            throw new IllegalArgumentException("Vehicle color must not be blank");
+        }
+        if (vehicle.getPrice() == null || vehicle.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Vehicle price must not be negative");
+        }
+        if (vehicle.getAmountInStock() < 0) {
+            throw new IllegalArgumentException("Vehicle amount in stock must not be negative");
+        }
+    }
+
+    // Private helper that validates a numeric range, throwing an IllegalArgumentException if min exceeds max.
+    private void validateRange(Number min, Number max, String fieldName) {
+        double minValue = min.doubleValue();
+        double maxValue = max.doubleValue();
+
+        if (minValue > maxValue) {
+            throw new IllegalArgumentException(
+                    "Minimum " + fieldName + " (" + min + ") must not exceed maximum " + fieldName + " (" + max + ")"
+            );
+        }
+    }
+}
+
