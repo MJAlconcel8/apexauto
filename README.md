@@ -126,6 +126,18 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `minPrice`, `maxPrice`
 - `isOnSale`, `isInStock`
 
+### Vehicle History
+
+- `GET /users/{userId}/vehicle-history` — list all vehicle history entries for a user
+- `GET /users/{userId}/vehicle-history/{vehicleHistoryId}` — get one vehicle history entry for a user
+- `POST /users/{userId}/vehicle-history` — create a new vehicle history entry for a user
+- `DELETE /users/{userId}/vehicle-history/{vehicleHistoryId}` — delete one vehicle history entry for a user
+- `DELETE /users/{userId}/vehicle-history` — delete all vehicle history entries for a user
+- `GET /vehicle-history` — list all vehicle history entries across all users and vehicles
+- `GET /vehicle-history/vehicles/{vehicleId}` — list all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history/vehicles/{vehicleId}` — delete all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history` — delete all vehicle history entries from the database
+
 
 # React + TypeScript + Vite
 
