@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// This is the VehicleHistory entity class that represents the history of vehicles in the application. It contains fields for vehicle history information and a relationship to the Vehicle entity.
 @Table(name = "vehicleHistory")
 @Entity
 @AllArgsConstructor
