@@ -138,6 +138,19 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `DELETE /vehicle-history/vehicles/{vehicleId}` — delete all vehicle history entries for a specific vehicle
 - `DELETE /vehicle-history` — delete all vehicle history entries from the database
 
+### Review
+
+- `GET /users/{userId}/reviews` — list all reviews created by a specific user (newest first)
+- `GET /users/{userId}/reviews/{reviewId}` — get one specific review for a user
+- `POST /users/{userId}/reviews` — create a new review for a vehicle by a user
+- `PATCH /users/{userId}/reviews/{reviewId}` — update the comments for a specific review
+- `DELETE /users/{userId}/reviews/{reviewId}` — delete one specific review for a user
+- `DELETE /users/{userId}/reviews` — delete all reviews created by a specific user
+- `GET /reviews` — list all reviews across all vehicles and users (newest first)
+- `GET /reviews/vehicles/{vehicleId}` — list all reviews for a specific vehicle (newest first)
+- `DELETE /reviews` — delete all reviews across all vehicles and users
+- `DELETE /reviews/vehicles/{vehicleId}` — delete all reviews for a specific vehicle
+
 
 # React + TypeScript + Vite
 
