@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+// This class is a service layer component in a Spring application that manages vehicle history related operations. It interacts with the VehicleHistoryRepository, UserRepository, and VehicleRepository to perform CRUD operations on vehicle history data.
 @Service
 public class VehicleHistoryService {
 

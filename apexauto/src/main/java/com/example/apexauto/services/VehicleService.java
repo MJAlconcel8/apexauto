@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+// This class is responsible for handling the business logic related to vehicles, including retrieving, updating, and filtering vehicle data. It interacts with the VehicleRepository to perform database operations and uses specifications to implement dynamic filtering based on various criteria.
 @Service
 public class VehicleService {
 
