@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+// This class is a service layer component in a Spring application that manages search history related operations. It interacts with the SearchHistoryRepository and UserRepository to perform CRUD operations on search history data.
 @Service
 public class SearchHistoryService {
     

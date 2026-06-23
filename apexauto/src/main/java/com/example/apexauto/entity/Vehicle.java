@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 
+// This is the Vehicle entity class that represents the vehicles in the application. It contains fields for vehicle information and a relationship to the User entity.
 @Table(name = "vehicles")
 @Entity
 @AllArgsConstructor

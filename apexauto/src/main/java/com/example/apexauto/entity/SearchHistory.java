@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
+// This is the SearchHistory entity class that represents the search history of users in the application. It contains fields for search history information and a relationship to the User entity.
 @Table(name = "searchHistory")
 @Entity
 @AllArgsConstructor

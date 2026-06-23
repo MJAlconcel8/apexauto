@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+// This is the VehicleHistoryRepository interface that extends JpaRepository to provide basic CRUD operations for the VehicleHistory entity. It also includes custom methods to find vehicle history entries by user ID, vehicle ID, and to delete entries based on user ID or vehicle ID.
 public interface VehicleHistoryRepository extends JpaRepository<VehicleHistory, Integer> {
 
     // This method retrieves all vehicle history entries from the database and orders them by their ID in descending order, which means the most recent entries will be returned first.
