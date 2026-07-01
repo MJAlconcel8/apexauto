@@ -151,6 +151,13 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `DELETE /reviews` — delete all reviews across all vehicles and users
 - `DELETE /reviews/vehicles/{vehicleId}` — delete all reviews for a specific vehicle
 
+### Favourites
+
+- `GET /users/{userId}/favourites` — list all favourite vehicles for a user (newest first)
+- `GET /users/{userId}/favourites/{vehicleId}` — get one specific favourite vehicle for a user
+- `POST /users/{userId}/favourites` — add a vehicle to a user's favourites
+- `DELETE /users/{userId}/favourites/{vehicleId}` — remove a vehicle from a user's favourites
+
 
 # React + TypeScript + Vite
 
