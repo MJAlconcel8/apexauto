@@ -1,4 +1,5 @@
-import {useState} from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Login() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -87,9 +88,9 @@ export default function Login() {
 
               {/* Forgot password */}
               <div className="flex justify-end mb-5">
-                <a href="/forgot-password" className="text-xs text-blue-400 hover:underline">
+                <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline">
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Message */}

@@ -51,11 +51,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(new AccountStatusDTO(user.isEmailVerified(), user.isAccountEnabled(), user.isAccountLocked()));
     }
 
-    // POST /auth/forgot-password — generates a reset token (you would email this to the user)
+    // POST /auth/forgot-password — generates a reset token and returns it
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
-        authenticationService.forgotPassword(forgotPasswordDTO.getEmail());
-        return ResponseEntity.ok("Password reset token generated");
+    public ResponseEntity<java.util.Map<String, String>> forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+        String token = authenticationService.forgotPassword(forgotPasswordDTO.getEmail());
+        return ResponseEntity.ok(java.util.Map.of("token", token));
     }
 
     // POST /auth/reset-password — resets the password using the token

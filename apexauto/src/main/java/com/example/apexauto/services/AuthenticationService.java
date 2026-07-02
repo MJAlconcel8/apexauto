@@ -112,14 +112,16 @@ public class AuthenticationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
-    // Generates a password reset token valid for 1 hour.
-    public void forgotPassword(String email) {
+    // Generates a password reset token valid for 1 hour and returns it.
+    public String forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        user.setPasswordResetToken(UUID.randomUUID().toString());
+        String token = UUID.randomUUID().toString();
+        user.setPasswordResetToken(token);
         user.setPasswordResetTokenExpiresAt(new Date(System.currentTimeMillis() + 3_600_000L));
         userRepository.save(user);
+        return token;
     }
 
     // Resets the user's password if the token is valid and not expired.
