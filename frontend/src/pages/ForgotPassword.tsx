@@ -152,7 +152,7 @@ export default function ForgotPassword() {
 
         {/* Back to login */}
         {step !== 'done' && (
-          <p className="text-center text-sm text-gray-400 mt-5">
+          <p className="text-center text-sm text-[#7a9cc0] mt-5">
             Remember your password?{' '}
             <Link to="/login" className="text-blue-400 font-bold hover:underline">Sign in</Link>
           </p>
