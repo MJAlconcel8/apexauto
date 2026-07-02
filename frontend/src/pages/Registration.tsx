@@ -1,4 +1,5 @@
-import { useState} from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Registration() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -66,7 +67,7 @@ export default function Registration() {
           {/* Header */}
           <div className="flex flex-col items-center mb-6">
             <h1 className="text-2xl font-bold text-white mb-1">Create Account</h1>
-            <p className="text-sm text-gray-400">Join the Apex community</p>
+            <p className="text-sm text-[#7a9cc0]">Join the Apex community</p>
           </div>
 
           {/* Card */}
@@ -171,7 +172,7 @@ export default function Registration() {
           {/* Sign in link */}
           <p className="text-center text-sm text-gray-400 mt-4">
             Already have an account?{' '}
-            <a href="/login" className="text-blue-400 font-semibold hover:underline">Sign in</a>
+            <Link to="/login" className="text-blue-400 font-semibold hover:underline">Sign in</Link>
           </p>
         </div>
       )}
