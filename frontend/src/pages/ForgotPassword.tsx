@@ -61,22 +61,6 @@ export default function ForgotPassword() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1b2e] px-4">
       <div className="w-full max-w-sm">
-        {/* Logo + Header */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M13 2L4.5 13.5H11L9 22L19.5 10H13L13 2Z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-1">
-            {step === 'done' ? 'Password Reset' : 'Forgot Password'}
-          </h1>
-          <p className="text-sm text-gray-400 text-center">
-            {step === 'email' && 'Enter your email to get started'}
-            {step === 'reset' && `Setting new password for ${email}`}
-            {step === 'done' && 'Your password has been updated'}
-          </p>
-        </div>
 
         {/* Card */}
         <div className="bg-[#0f2035] border border-[#1e3a5f] rounded-2xl p-6">
@@ -106,7 +90,6 @@ export default function ForgotPassword() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
                   required
                   className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -129,7 +112,6 @@ export default function ForgotPassword() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
                   required
                   className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -142,7 +124,6 @@ export default function ForgotPassword() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
                   required
                   className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
