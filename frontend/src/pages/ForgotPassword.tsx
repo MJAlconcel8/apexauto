@@ -66,7 +66,7 @@ export default function ForgotPassword() {
           <h1 className="text-2xl font-bold text-white mb-1">
             {step === 'done' ? 'Password Reset' : 'Forgot Password'}
           </h1>
-          <p className="text-sm text-gray-400 text-center">
+          <p className="text-sm text-[#7a9cc0] text-center">
             {step === 'email' && 'Enter your email to get started'}
             {step === 'reset' && `Setting new password for ${email}`}
             {step === 'done' && 'Your password has been updated'}
