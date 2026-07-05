@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function Registration() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -13,6 +11,7 @@ export default function Registration() {
   })
 
   const [message, setMessage] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -41,14 +40,7 @@ export default function Registration() {
       const data = await response.json()
 
       if (response.ok) {
-        const token = data.emailVerificationToken
-        const verifyResponse = await fetch(`http://localhost:8080/auth/verify-email?token=${encodeURIComponent(token)}`)
-        if (verifyResponse.ok) {
-          setIsLoggedIn(true)
-          setMessage('Registration successful! Your account is now active.')
-        } else {
-          setMessage('Registered, but email verification failed. Please try again.')
-        }
+        setIsSuccess(true)
       } else {
         setMessage(data.error || 'Registration failed. Please try again.')
       }
@@ -60,11 +52,31 @@ export default function Registration() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1b2e] px-4">
-      {isLoggedIn ? (
-        <p className="text-green-400">You are already logged in.</p>
-      ) : (
-        <div className="w-full max-w-sm">
-          {/* Header */}
+      <div className="w-full max-w-sm">
+        {isSuccess ? (
+          <>
+            <div className="flex flex-col items-center mb-8">
+              <h1 className="text-2xl font-bold text-white mb-1">Check Your Email</h1>
+              <p className="text-sm text-[#7a9cc0] text-center">A verification token has been sent to your inbox</p>
+            </div>
+            <div className="bg-[#0f2035] border border-[#1e3a5f] rounded-2xl p-6 flex flex-col items-center gap-3">
+              <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-white font-semibold text-center">Account created!</p>
+              <p className="text-sm text-gray-400 text-center">Copy the token from your email and paste it into the verification page.</p>
+              <Link
+                to="/verify-email"
+                className="mt-2 w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
+              >
+                Verify Email
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
           <div className="flex flex-col items-center mb-6">
             <h1 className="text-2xl font-bold text-white mb-1">Create Account</h1>
             <p className="text-sm text-[#7a9cc0]">Join the Apex community</p>
@@ -174,8 +186,9 @@ export default function Registration() {
             Already have an account?{' '}
             <Link to="/login" className="text-blue-400 font-semibold hover:underline">Sign in</Link>
           </p>
-        </div>
-      )}
+        </>
+        )}
+      </div>
     </div>
   )
 }

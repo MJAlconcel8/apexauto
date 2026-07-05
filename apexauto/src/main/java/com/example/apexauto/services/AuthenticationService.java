@@ -35,24 +35,30 @@ public class AuthenticationService {
     // This variable creates a JwtService, which is responsible for generating JWT tokens for authenticated users, allowing them to access protected resources in the application.
     private final BCryptPasswordEncoder passwordEncoder;
 
+    private final EmailService emailService;
+
     // This is the constructor for the AuthenticationService class, which initializes all the required dependencies through constructor injection.
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
             RegisterUserMapper registerUserMapper,
             LoginUserMapper loginUserMapper,
-            BCryptPasswordEncoder passwordEncoder
+            BCryptPasswordEncoder passwordEncoder,
+            EmailService emailService
     ) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.registerUserMapper = registerUserMapper;
         this.loginUserMapper = loginUserMapper;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     // This method is responsible for registering a new user. It takes a RegisterUserDTO as input, maps it to a User entity, and saves it to the database. It also handles password encoding and sets default values for the new user.
     public User signup(RegisterUserDTO input) {
-        return userRepository.save(registerUserMapper.toUser(input));
+        User user = userRepository.save(registerUserMapper.toUser(input));
+        emailService.sendEmailVerification(user.getEmail(), user.getEmailVerificationToken());
+        return user;
     }
 
     // This method is responsible for authenticating an existing user. It takes a LoginUserDTO as input, maps it to a UsernamePasswordAuthenticationToken, and uses the AuthenticationManager to authenticate the user's credentials. If authentication is successful, it generates a JWT token for the user.
@@ -112,16 +118,15 @@ public class AuthenticationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
-    // Generates a password reset token valid for 1 hour and returns it.
-    public String forgotPassword(String email) {
+    // Generates a password reset token valid for 1 hour.
+    public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        String token = UUID.randomUUID().toString();
-        user.setPasswordResetToken(token);
+        user.setPasswordResetToken(UUID.randomUUID().toString());
         user.setPasswordResetTokenExpiresAt(new Date(System.currentTimeMillis() + 3_600_000L));
         userRepository.save(user);
-        return token;
+        emailService.sendPasswordReset(email, user.getPasswordResetToken());
     }
 
     // Resets the user's password if the token is valid and not expired.

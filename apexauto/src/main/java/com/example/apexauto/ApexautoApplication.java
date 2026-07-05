@@ -35,11 +35,15 @@ public class ApexautoApplication {
 					.ignoreIfMissing()
 					.load();
 
-			applyIfMissing(dotenv, "SPRING_DATASOURCE_URL");
-			applyIfMissing(dotenv, "SPRING_DATASOURCE_USERNAME");
-			applyIfMissing(dotenv, "SPRING_DATASOURCE_PASSWORD");
-			applyIfMissing(dotenv, "JWT_SECRET_KEY");
-			applyIfMissing(dotenv, "JWT_EXPIRATION_TIME");
+		applyIfMissing(dotenv, "SPRING_DATASOURCE_URL");
+		applyIfMissing(dotenv, "SPRING_DATASOURCE_USERNAME");
+		applyIfMissing(dotenv, "SPRING_DATASOURCE_PASSWORD");
+		applyIfMissing(dotenv, "JWT_SECRET_KEY");
+		applyIfMissing(dotenv, "JWT_EXPIRATION_TIME");
+		applyIfMissing(dotenv, "MAIL_HOST");
+		applyIfMissing(dotenv, "MAIL_PORT");
+		applyIfMissing(dotenv, "MAIL_USERNAME");
+		applyIfMissing(dotenv, "MAIL_PASSWORD");
 			break;
 		}
 	}
