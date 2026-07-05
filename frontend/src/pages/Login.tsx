@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import Logo from '../components/Logo'
 
 export default function Login() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -44,23 +45,24 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1b2e] px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
       {isLoggedIn ? (
         <p className="text-green-400">You are already logged in.</p>
       ) : (
         <div className="w-full max-w-sm">
           {/* Logo + Header */}
           <div className="flex flex-col items-center mb-8">
-            <h1 className="text-2xl font-bold text-white mb-1">Sign In</h1>
-            <p className="text-sm text-[#7a9cc0]">Welcome back to ApexAuto</p>
+            <Logo />
+            <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">Sign In</h1>
+            <p className="text-sm text-muted-foreground">Welcome back to ApexAuto</p>
           </div>
 
           {/* Card */}
-          <div className="bg-[#0f2035] border border-[#1e3a5f] rounded-2xl p-6">
+          <div className="bg-card border border-card-border rounded-2xl p-6">
             <form onSubmit={handleSubmit}>
               {/* Email */}
               <div className="mb-4">
-                <label className="block text-xs font-semibold text-[#7a9cc0] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
                   Email Address
                 </label>
                 <input
@@ -68,13 +70,13 @@ export default function Login() {
                   name="email"
                   value={formData.email}
                   onChange={handleFormChange}
-                  className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
               {/* Password */}
               <div className="mb-2">
-                <label className="block text-xs font-semibold text-[#7a9cc0] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
                   Password
                 </label>
                 <input
@@ -82,7 +84,7 @@ export default function Login() {
                   name="password"
                   value={formData.password}
                   onChange={handleFormChange}
-                  className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
 
@@ -108,22 +110,22 @@ export default function Login() {
 
               {/* Divider */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-[#1e3a5f]" />
-                <span className="text-xs text-gray-500">or continue with</span>
-                <div className="flex-1 h-px bg-[#1e3a5f]" />
+                <div className="flex-1 h-px bg-card-border" />
+                <span className="text-xs text-muted-foreground">or continue with</span>
+                <div className="flex-1 h-px bg-card-border" />
               </div>
 
               {/* Social buttons */}
               <div className="flex flex-col gap-3">
                 <button
                   type="button"
-                  className="w-full border border-[#1e3a5f] text-gray-300 hover:bg-[#1a2a3f] font-medium py-2.5 rounded-lg text-sm transition-colors"
+                  className="w-full border border-card-border text-foreground hover:bg-secondary font-medium py-2.5 rounded-lg text-sm transition-colors"
                 >
                   Continue with Google
                 </button>
                 <button
                   type="button"
-                  className="w-full border border-[#1e3a5f] text-gray-300 hover:bg-[#1a2a3f] font-medium py-2.5 rounded-lg text-sm transition-colors"
+                  className="w-full border border-card-border text-foreground hover:bg-secondary font-medium py-2.5 rounded-lg text-sm transition-colors"
                 >
                   Continue with Apple
                 </button>
@@ -132,7 +134,7 @@ export default function Login() {
           </div>
 
           {/* Register link */}
-          <p className="text-center text-sm text-[#7a9cc0] mt-5">
+          <p className="text-center text-sm text-muted-foreground mt-5">
             New to ApexAuto?{' '}
             <a href="/register" className="text-blue-400 font-bold hover:underline">Create account</a>
           </p>

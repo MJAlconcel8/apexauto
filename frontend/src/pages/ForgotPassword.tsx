@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import Logo from '../components/Logo'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState<'email' | 'done'>('email')
@@ -28,21 +29,22 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1b2e] px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
       <div className="w-full max-w-sm">
         {/* Logo + Header */}
         <div className="flex flex-col items-center mb-8">
-          <h1 className="text-2xl font-bold text-white mb-1">
+          <Logo />
+          <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">
             {step === 'done' ? 'Check Your Email' : 'Forgot Password'}
           </h1>
-          <p className="text-sm text-[#7a9cc0] text-center">
+          <p className="text-sm text-muted-foreground text-center">
             {step === 'email' && 'Enter your email to get started'}
             {step === 'done' && `A reset token has been sent to ${email}`}
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#0f2035] border border-[#1e3a5f] rounded-2xl p-6">
+        <div className="bg-card border border-card-border rounded-2xl p-6">
           {step === 'done' ? (
             <div className="flex flex-col items-center py-4 gap-3">
               <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
@@ -50,8 +52,8 @@ export default function ForgotPassword() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-white font-semibold text-center">Email sent!</p>
-              <p className="text-sm text-gray-400 text-center">Copy the token from your email, then reset your password below.</p>
+              <p className="text-foreground font-semibold text-center">Email sent!</p>
+              <p className="text-sm text-muted-foreground text-center">Copy the token from your email, then reset your password below.</p>
               <Link
                 to="/reset-password"
                 className="mt-2 w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
@@ -62,7 +64,7 @@ export default function ForgotPassword() {
           ) : (
             <form onSubmit={handleEmailSubmit}>
               <div className="mb-5">
-                <label className="block text-xs font-semibold text-[#7a9cc0] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
                   Email Address
                 </label>
                 <input
@@ -70,7 +72,7 @@ export default function ForgotPassword() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-[#1a2a3f] text-white placeholder-gray-500 px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               {message && <p className="text-sm text-center mb-4 text-red-400">{message}</p>}
@@ -86,7 +88,7 @@ export default function ForgotPassword() {
 
         {/* Back to login */}
         {step !== 'done' && (
-          <p className="text-center text-sm text-[#7a9cc0] mt-5">
+          <p className="text-center text-sm text-muted-foreground mt-5">
             Remember your password?{' '}
             <Link to="/login" className="text-blue-400 font-bold hover:underline">Sign in</Link>
           </p>

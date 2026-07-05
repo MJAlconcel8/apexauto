@@ -1,1 +1,36 @@
+@import "./styles/fonts.css";
 @import "tailwindcss";
+
+@theme {
+  /* Backgrounds */
+  --color-background: #030c1a;
+  --color-card: #071428;
+  --color-sub-header: #040f20;
+  --color-secondary: #0d1f3c;
+  --color-muted: #0d1f3c;
+
+  /* Borders */
+  --color-card-border: #1e3a5f;
+
+  /* Foreground / Text */
+  --color-foreground: #dce8ff;
+  --color-muted-foreground: #4a6080;
+  --color-card-foreground: #dce8ff;
+
+  /* Fonts */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: "Rajdhani", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-foreground);
+    background-color: var(--color-background);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
