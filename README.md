@@ -158,6 +158,59 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `POST /users/{userId}/favourites` — add a vehicle to a user's favourites
 - `DELETE /users/{userId}/favourites/{vehicleId}` — remove a vehicle from a user's favourites
 
+### Orders
+
+- `GET /orders` - list all orders
+- `GET /orders/{orderId}` - get one order by ID
+- `GET /orders/status/{orderStatusId}` - list all orders with a specific order status
+- `POST /orders` - create a new order with one or more vehicles
+- `PUT /orders/{orderId}` - update editable order fields such as order status or delivery date
+- `PATCH /orders/{orderId}/status` - update only the order status
+- `DELETE /orders/{orderId}` - delete an order by ID
+
+### User Orders
+
+- `GET /users/{userId}/orders` - list all orders created by a specific user
+- `POST /users/{userId}/orders` - create a new order for a specific user
+
+### Order Lines
+
+- `GET /orders/{orderId}/order-lines` - list all vehicles attached to an order
+- `POST /orders/{orderId}/order-lines` - add a vehicle to an existing order
+- `DELETE /orders/{orderId}/order-lines/{vehicleId}` - remove a vehicle from an existing order
+
+### Order Statuses
+
+- `GET /order-statuses` - list all order statuses
+- `GET /order-statuses/{orderStatusId}` - get one order status by ID
+- `POST /order-statuses` - create a reusable order status such as PENDING, CONFIRMED, DELIVERED, or CANCELLED
+
+### Payments
+
+- `GET /payments` - list all payments
+- `GET /payments/{paymentId}` - get one payment by ID
+- `GET /payments/status/{paymentStatusId}` - list all payments with a specific payment status
+- `POST /payments` - create a new payment for an order
+- `PUT /payments/{paymentId}` - update editable payment fields
+- `PATCH /payments/{paymentId}/status` - update only the payment status
+- `DELETE /payments/{paymentId}` - delete a payment by ID
+
+### Order Payments
+
+- `GET /orders/{orderId}/payment` - get the payment attached to a specific order
+- `POST /orders/{orderId}/payment` - create a payment for a specific order
+- `DELETE /orders/{orderId}/payment` - delete the payment attached to a specific order
+
+### User Payments
+
+- `GET /users/{userId}/payments` - list all payments for orders owned by a specific user
+
+### Payment Statuses
+
+- `GET /payment-statuses` - list all payment statuses
+- `GET /payment-statuses/{paymentStatusId}` - get one payment status by ID
+- `POST /payment-statuses` - create a reusable payment status such as PENDING, PAID, FAILED, or REFUNDED
+
 # ApexAuto Frontend Local Development
 
 The frontend is a React + Vite + TypeScript app located in the `frontend/` directory.
