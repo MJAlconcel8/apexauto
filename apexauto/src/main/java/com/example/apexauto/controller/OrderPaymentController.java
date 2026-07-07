@@ -19,7 +19,7 @@ public class OrderPaymentController {
         this.paymentService = paymentService;
     }
 
-    // GET /orders/{orderId}/payment — returns the payment attached to an order.
+    // GET /orders/{orderId}/payment â€” returns the payment attached to an order.
     @GetMapping
     public ResponseEntity<PaymentResponseDTO> getPaymentByOrderId(@PathVariable int orderId) {
         try {
@@ -30,7 +30,7 @@ public class OrderPaymentController {
         }
     }
 
-    // POST /orders/{orderId}/payment — creates one payment for an order.
+    // POST /orders/{orderId}/payment â€” creates one payment for an order.
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> createPaymentForOrder(
             @PathVariable int orderId,
@@ -44,7 +44,7 @@ public class OrderPaymentController {
         }
     }
 
-    // DELETE /orders/{orderId}/payment — deletes the payment attached to an order.
+    // DELETE /orders/{orderId}/payment â€” deletes the payment attached to an order.
     @DeleteMapping
     public ResponseEntity<Void> deletePaymentByOrderId(@PathVariable int orderId) {
         try {

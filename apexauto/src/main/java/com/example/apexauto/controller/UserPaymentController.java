@@ -20,7 +20,7 @@ public class UserPaymentController {
         this.paymentService = paymentService;
     }
 
-    // GET /users/{userId}/payments — returns all payments for orders owned by a user.
+    // GET /users/{userId}/payments â€” returns all payments for orders owned by a user.
     @GetMapping
     public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByUserId(@PathVariable int userId) {
         try {
