@@ -21,7 +21,6 @@ public class PaymentStatusController {
         this.paymentStatusService = paymentStatusService;
     }
 
-    // GET /payment-statuses â€” returns all payment statuses.
     @GetMapping
     public ResponseEntity<List<PaymentStatusResponseDTO>> getAllPaymentStatuses() {
         try {
@@ -35,7 +34,6 @@ public class PaymentStatusController {
         }
     }
 
-    // GET /payment-statuses/{paymentStatusId} â€” returns one payment status.
     @GetMapping("/{paymentStatusId}")
     public ResponseEntity<PaymentStatusResponseDTO> getPaymentStatusById(@PathVariable int paymentStatusId) {
         try {
@@ -46,7 +44,6 @@ public class PaymentStatusController {
         }
     }
 
-    // POST /payment-statuses â€” creates a reusable payment status, such as PAID or FAILED.
     @PostMapping
     public ResponseEntity<PaymentStatusResponseDTO> createPaymentStatus(@RequestBody CreatePaymentStatusDTO request) {
         try {

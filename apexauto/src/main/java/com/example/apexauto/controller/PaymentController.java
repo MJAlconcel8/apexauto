@@ -23,7 +23,6 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    // GET /payments â€” returns all payments, newest first.
     @GetMapping
     public ResponseEntity<List<PaymentResponseDTO>> getAllPayments() {
         try {
@@ -37,7 +36,6 @@ public class PaymentController {
         }
     }
 
-    // GET /payments/status/{paymentStatusId} â€” returns all payments with a specific payment status.
     @GetMapping("/status/{paymentStatusId}")
     public ResponseEntity<List<PaymentResponseDTO>> getPaymentsByStatus(@PathVariable int paymentStatusId) {
         try {
@@ -51,7 +49,6 @@ public class PaymentController {
         }
     }
 
-    // GET /payments/{paymentId} â€” returns a specific payment.
     @GetMapping("/{paymentId}")
     public ResponseEntity<PaymentResponseDTO> getPaymentById(@PathVariable int paymentId) {
         try {
@@ -62,7 +59,6 @@ public class PaymentController {
         }
     }
 
-    // POST /payments â€” creates a payment using orderId from the request body.
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> createPayment(@RequestBody CreatePaymentDTO request) {
         try {
@@ -73,7 +69,6 @@ public class PaymentController {
         }
     }
 
-    // PUT /payments/{paymentId} â€” updates the editable fields for a payment.
     @PutMapping("/{paymentId}")
     public ResponseEntity<PaymentResponseDTO> updatePayment(
             @PathVariable int paymentId,
@@ -87,7 +82,6 @@ public class PaymentController {
         }
     }
 
-    // PATCH /payments/{paymentId}/status â€” updates only the payment status.
     @PatchMapping("/{paymentId}/status")
     public ResponseEntity<PaymentResponseDTO> updatePaymentStatus(
             @PathVariable int paymentId,
@@ -105,7 +99,6 @@ public class PaymentController {
         }
     }
 
-    // DELETE /payments/{paymentId} â€” deletes a payment.
     @DeleteMapping("/{paymentId}")
     public ResponseEntity<Void> deletePayment(@PathVariable int paymentId) {
         try {
