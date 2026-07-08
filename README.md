@@ -83,6 +83,38 @@ If you want to run the backend tests:
 ./mvnw test
 ```
 
+## 4) Run backend tests
+
+Backend tests are stored in:
+
+```text
+src/test/java/com/example/apexauto/
+```
+
+Service-level tests are stored in:
+
+```text
+src/test/java/com/example/apexauto/services/
+```
+
+Run all backend tests:
+
+```bash
+./mvnw test
+```
+
+### Current service test coverage
+
+#### `OrderServiceTest`
+
+- Creates an order with order lines and reduces vehicle stock
+- Rejects duplicate vehicle IDs in the same order
+- Blocks order-line changes after a payment exists
+
+#### `PaymentServiceTest`
+
+- Rejects duplicate payments for the same order
+
 ## Notes
 
 - The application checks for `.env` in this directory, the workspace root, and a few related paths.
