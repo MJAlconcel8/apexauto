@@ -1,6 +1,5 @@
 package com.example.apexauto.controller;
 
-import com.example.apexauto.DTO.CreateOrderDTO;
 import com.example.apexauto.DTO.OrderLineResponseDTO;
 import com.example.apexauto.DTO.OrderResponseDTO;
 import com.example.apexauto.entity.OrderLine;
@@ -38,19 +37,6 @@ public class UserOrderController {
         }
     }
 
-    // POST /users/{userId}/orders - creates an order for the user in the URL.
-    @PostMapping
-    public ResponseEntity<OrderResponseDTO> createOrderForUser(
-            @PathVariable int userId,
-            @RequestBody CreateOrderDTO request
-    ) {
-        try {
-            Orders saved = orderService.createOrderForUser(userId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(saved));
-        } catch (IllegalArgumentException ex) {
-            throw toHttpException(ex);
-        }
-    }
 
     private OrderResponseDTO toResponseDTO(Orders order) {
         List<OrderLineResponseDTO> orderLines = orderService.getOrderLines(order.getOrderId())

@@ -107,8 +107,6 @@ Run all backend tests:
 
 #### `OrderServiceTest`
 
-- Creates an order with order lines and reduces vehicle stock
-- Rejects duplicate vehicle IDs in the same order
 - Blocks order-line changes after a payment exists
 
 #### `PaymentServiceTest`
@@ -195,7 +193,7 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `GET /orders` - list all orders
 - `GET /orders/{orderId}` - get one order by ID
 - `GET /orders/status/{orderStatusId}` - list all orders with a specific order status
-- `POST /orders` - create a new order with one or more vehicles
+- `GET /orders/{orderId}/loan` - calculate loan financing details for an order (read-only, nothing saved); query params: `downPayment`, `annualRate`, `termMonths`
 - `PUT /orders/{orderId}` - update editable order fields such as order status or delivery date
 - `PATCH /orders/{orderId}/status` - update only the order status
 - `DELETE /orders/{orderId}` - delete an order by ID
@@ -203,7 +201,6 @@ Common filter query parameters for `GET /vehicles/filter`:
 ### User Orders
 
 - `GET /users/{userId}/orders` - list all orders created by a specific user
-- `POST /users/{userId}/orders` - create a new order for a specific user
 
 ### Order Lines
 
@@ -255,6 +252,7 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `GET /carts/{cartId}` — get one cart by ID
 - `GET /carts/status/{cartStatusId}` — list all carts with a specific cart status
 - `POST /carts` — create a new cart for a user, optionally with one or more vehicles
+- `POST /carts/{cartId}/checkout` — create an order directly from a cart (vehicles are pulled from cart lines automatically)
 - `PUT /carts/{cartId}` — update editable cart fields such as cart status
 - `DELETE /carts/{cartId}` — delete a cart by ID
 

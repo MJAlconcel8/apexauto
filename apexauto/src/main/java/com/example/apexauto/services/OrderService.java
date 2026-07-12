@@ -1,13 +1,16 @@
 package com.example.apexauto.services;
-
-import com.example.apexauto.DTO.CreateOrderDTO;
 import com.example.apexauto.DTO.UpdateOrderDTO;
+import com.example.apexauto.DTO.UpdateOrderStatusDTO;
+import com.example.apexauto.entity.CartLine;
+import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderLineId;
 import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
+import com.example.apexauto.repository.CartLineRepository;
+import com.example.apexauto.repository.CartsRepository;
 import com.example.apexauto.repository.OrderLineRepository;
 import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.OrdersRepository;
@@ -36,6 +39,8 @@ public class OrderService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final PaymentRepository paymentRepository;
+    private final CartLineRepository cartLineRepository;
+    private final CartsRepository cartsRepository;
 
     public OrderService(
             OrdersRepository ordersRepository,
@@ -43,7 +48,9 @@ public class OrderService {
             OrderLineRepository orderLineRepository,
             UserRepository userRepository,
             VehicleRepository vehicleRepository,
-            PaymentRepository paymentRepository
+            PaymentRepository paymentRepository,
+            CartLineRepository cartLineRepository,
+            CartsRepository cartsRepository
     ) {
         this.ordersRepository = ordersRepository;
         this.orderStatusRepository = orderStatusRepository;
@@ -51,24 +58,31 @@ public class OrderService {
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
         this.paymentRepository = paymentRepository;
+        this.cartLineRepository = cartLineRepository;
+        this.cartsRepository = cartsRepository;
     }
 
+
     @Transactional
-    public Orders createOrder(CreateOrderDTO request) {
-        if (request == null) {
-            throw new IllegalArgumentException("Order request must not be null");
+    public Orders createOrderFromCart(int cartId) {
+        Carts cart = validateCartExists(cartId);
+        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+
+        if (cartLines.isEmpty()) {
+            throw new IllegalArgumentException("Cart is empty");
         }
 
-        User user = validateUserExists(request.getUserId());
-        OrderStatus orderStatus = request.getOrderStatusId() == null
-                ? getOrCreateDefaultOrderStatus()
-                : validateOrderStatusExists(request.getOrderStatusId());
-        List<Vehicle> vehicles = validateVehiclesForNewOrder(request.getVehicleIds());
+        List<Vehicle> vehicles = cartLines.stream()
+                .map(CartLine::getVehicle)
+                .toList();
+
+        User user = cart.getUser();
+        OrderStatus orderStatus = getOrCreateDefaultOrderStatus();
 
         Orders order = new Orders();
         order.setUser(user);
         order.setOrderStatus(orderStatus);
-        order.setDeliveryDate(request.getDeliveryDate());
+        order.setDeliveryDate(null);
         order.setTotalAmount(calculateTotal(vehicles));
 
         Orders savedOrder = ordersRepository.save(order);
@@ -76,18 +90,6 @@ public class OrderService {
         reduceStock(vehicles);
 
         return ordersRepository.save(savedOrder);
-    }
-
-    @Transactional
-    public Orders createOrderForUser(int userId, CreateOrderDTO request) {
-        CreateOrderDTO safeRequest = request == null ? new CreateOrderDTO() : request;
-
-        if (safeRequest.getUserId() != 0 && safeRequest.getUserId() != userId) {
-            throw new IllegalArgumentException("Path userId does not match request body userId");
-        }
-
-        safeRequest.setUserId(userId);
-        return createOrder(safeRequest);
     }
 
     @Transactional(readOnly = true)
@@ -243,34 +245,6 @@ public class OrderService {
         }
     }
 
-    private List<Vehicle> validateVehiclesForNewOrder(List<Integer> vehicleIds) {
-        List<Integer> normalizedVehicleIds = normalizeVehicleIds(vehicleIds);
-        List<Vehicle> vehicles = new ArrayList<>();
-
-        for (Integer vehicleId : normalizedVehicleIds) {
-            vehicles.add(validateVehicleForOrderLine(vehicleId));
-        }
-
-        return vehicles;
-    }
-
-    private List<Integer> normalizeVehicleIds(List<Integer> vehicleIds) {
-        if (vehicleIds == null || vehicleIds.isEmpty()) {
-            throw new IllegalArgumentException("Order must contain at least one vehicle");
-        }
-
-        Set<Integer> uniqueVehicleIds = new LinkedHashSet<>();
-        for (Integer vehicleId : vehicleIds) {
-            if (vehicleId == null || vehicleId <= 0) {
-                throw new IllegalArgumentException("Vehicle ID must be a positive value");
-            }
-            if (!uniqueVehicleIds.add(vehicleId)) {
-                throw new IllegalArgumentException("Duplicate vehicles are not allowed in the same order");
-            }
-        }
-
-        return new ArrayList<>(uniqueVehicleIds);
-    }
 
     private Vehicle validateVehicleForOrderLine(int vehicleId) {
         Vehicle vehicle = validateVehicleExists(vehicleId);
@@ -329,5 +303,14 @@ public class OrderService {
                     orderStatus.setOrderStatusName(DEFAULT_ORDER_STATUS.toUpperCase(Locale.ROOT));
                     return orderStatusRepository.save(orderStatus);
                 });
+    }
+
+    private Carts validateCartExists(int cartId) {
+        if (cartId <= 0) {
+            throw new IllegalArgumentException("Cart ID must be a positive value");
+        }
+
+        return cartsRepository.findByCartId(cartId)
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
     }
 }
