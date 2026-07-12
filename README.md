@@ -243,6 +243,33 @@ Common filter query parameters for `GET /vehicles/filter`:
 - `GET /payment-statuses/{paymentStatusId}` - get one payment status by ID
 - `POST /payment-statuses` - create a reusable payment status such as PENDING, PAID, FAILED, or REFUNDED
 
+### Cart Statuses
+
+- `GET /cart-statuses` — list all cart statuses
+- `GET /cart-statuses/{cartStatusId}` — get one cart status by ID
+- `POST /cart-statuses` — create a reusable cart status such as ACTIVE, CHECKED_OUT, or ABANDONED
+
+### Carts
+
+- `GET /carts` — list all carts
+- `GET /carts/{cartId}` — get one cart by ID
+- `GET /carts/status/{cartStatusId}` — list all carts with a specific cart status
+- `POST /carts` — create a new cart for a user, optionally with one or more vehicles
+- `PUT /carts/{cartId}` — update editable cart fields such as cart status
+- `DELETE /carts/{cartId}` — delete a cart by ID
+
+### User Carts
+
+- `GET /users/{userId}/carts` — list all carts created by a specific user
+- `GET /users/{userId}/carts/active` — get the latest active cart for a specific user
+- `POST /users/{userId}/carts` — create a new cart for a specific user
+
+### Cart Lines
+
+- `GET /carts/{cartId}/cart-lines` — list all vehicles attached to a cart
+- `POST /carts/{cartId}/cart-lines` — add a vehicle to an existing cart
+- `DELETE /carts/{cartId}/cart-lines/{vehicleId}` — remove a vehicle from an existing cart
+
 # ApexAuto Frontend Local Development
 
 The frontend is a React + Vite + TypeScript app located in the `frontend/` directory.
