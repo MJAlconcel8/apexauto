@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Eye, ChevronRight,
@@ -6,7 +7,7 @@ import {
 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, SectionHead, Btn, Footer } from '../components'
-import type { Vehicle } from '../components'
+import type { Vehicle, GoFn, ViewParams } from '../components'
 
 const fmtUSD = (n: number) => '$' + n.toLocaleString('en-US')
 
@@ -125,8 +126,24 @@ const WHY_ITEMS = [
 ]
 
 
-export default function Home() {
+interface HomeProps { onNavigate?: GoFn }
+
+export default function Home({ onNavigate }: HomeProps) {
   const navigate = useNavigate()
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    navigate(view)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   return (
     <>
@@ -179,10 +196,10 @@ export default function Home() {
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
-                <Btn variant="primary" size="lg" icon={ArrowRight} onClick={() => navigate('/catalogue')}>
+                <Btn variant="primary" size="lg" icon={ArrowRight} onClick={() => go('/catalogue')}>
                   Browse Vehicles
                 </Btn>
-                <Btn variant="ghostDark" size="lg" icon={Eye} onClick={() => navigate('/vehicle/1')}>
+                <Btn variant="ghostDark" size="lg" icon={Eye} onClick={() => go('/vehicle/1')}>
                   View Nexus S
                 </Btn>
               </div>
@@ -194,8 +211,8 @@ export default function Home() {
               role="button"
               tabIndex={0}
               aria-label={`View ${HERO_VEHICLE.model} details`}
-              onClick={() => navigate('/vehicle/1')}
-              onKeyDown={(e) => e.key === 'Enter' && navigate('/vehicle/1')}
+              onClick={() => go('/vehicle/1')}
+              onKeyDown={(e) => e.key === 'Enter' && go('/vehicle/1')}
             >
               <div
                 className="relative rounded-2xl overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_80px_rgba(0,102,255,0.28)]"
@@ -264,7 +281,7 @@ export default function Home() {
               </h2>
             </div>
             <button
-              onClick={() => navigate('/catalogue')}
+              onClick={() => go('/catalogue')}
               className="inline-flex items-center gap-1 font-mono text-[12px] tracking-widest uppercase font-medium transition-colors duration-150 hover:text-white"
               style={{ color: 'rgba(126,179,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
@@ -276,7 +293,7 @@ export default function Home() {
             {CATEGORIES.map(({ name, count, Icon, color, bg, border }) => (
               <Reveal key={name}>
                 <button
-                  onClick={() => navigate('/catalogue')}
+                  onClick={() => go('/catalogue')}
                   className="av-cat group w-full flex flex-col items-center gap-3 p-5 rounded-xl text-center"
                   style={{
                     background: 'rgba(7,20,40,0.60)',
@@ -310,7 +327,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-8">
             <SectionHead eyebrow="Hand-Picked" title="Top Picks" dark />
             <button
-              onClick={() => navigate('/catalogue')}
+              onClick={() => go('/catalogue')}
               className="inline-flex items-center gap-1 font-mono text-[12px] tracking-widest uppercase font-medium transition-colors duration-150 hover:text-white"
               style={{ color: 'rgba(126,179,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
@@ -324,7 +341,7 @@ export default function Home() {
                 <VehicleCard
                   v={v}
                   dark
-                  onView={(vehicle) => navigate(`/vehicle/${vehicle.id}`)}
+                  onView={(vehicle) => go(`/vehicle/${vehicle.id}`)}
                   onCart={() => {}}
                 />
               </Reveal>
@@ -376,6 +393,12 @@ export default function Home() {
         <Footer />
 
       </main>
+
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
+        </div>
+      )}
     </>
   )
 }
