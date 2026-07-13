@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
+import { Btn } from '../components'
 
 export default function ResetPassword() {
   const [step, setStep] = useState<'reset' | 'done'>('reset')
@@ -64,7 +65,7 @@ export default function ResetPassword() {
               <p className="text-sm text-muted-foreground text-center">You can now sign in with your new password.</p>
               <Link
                 to="/login"
-                className="mt-2 w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 py-3.5 px-6.5 text-[15px] bg-apex-voltage hover:bg-apex-voltage-ink text-white border border-transparent"
               >
                 Sign In
               </Link>
@@ -109,12 +110,7 @@ export default function ResetPassword() {
                 />
               </div>
               {message && <p className="text-sm text-center mb-4 text-red-400">{message}</p>}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors"
-              >
-                Reset Password
-              </button>
+              <Btn type="submit" fullWidth size="lg">Reset Password</Btn>
             </form>
           )}
         </div>

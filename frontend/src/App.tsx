@@ -1,4 +1,3 @@
-import React from 'react'
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import ApexAutoLanding from './pages/ApexAutoLanding'
 import Registration from './pages/Registration'

@@ -1,15 +1,37 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import type { GoFn, ViewParams } from './types'
 
 const navLinks = [
-  { label: 'Home', href: '/' },
-  { label: 'Catalogue', href: '/catalogue' },
-  { label: 'Compare', href: '/compare' },
-  { label: 'Loan Calc', href: '/loan-calc' },
+  { label: 'Home', view: '/' },
+  { label: 'Catalogue', view: '/catalogue' },
+  { label: 'Compare', view: '/compare' },
+  { label: 'Loan Calc', view: '/loan-calc' },
 ]
 
-export default function Nav() {
+const adminLinks = [
+  { label: 'Dashboard', view: '/admin/dashboard' },
+  { label: 'Users', view: '/admin/users' },
+  { label: 'Listings', view: '/admin/listings' },
+]
+
+interface NavProps { onNavigate?: GoFn }
+
+export default function Nav({ onNavigate }: NavProps) {
   const [adminOpen, setAdminOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   return (
     <nav className="w-full bg-background text-muted-foreground">
@@ -17,17 +39,17 @@ export default function Nav() {
       <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
         {/* Left: Logo + Desktop Links */}
         <div className="flex items-center gap-8">
-          <a href="/" className="flex items-center gap-0.5 font-bold text-lg tracking-wide">
+          <button onClick={() => go('/')} className="flex items-center gap-0.5 font-bold text-lg tracking-wide">
             <span className="text-foreground">APEX</span>
             <span className="text-blue-400">AUTO</span>
-          </a>
+          </button>
           {/* Desktop nav links */}
           <ul className="hidden lg:flex items-center gap-6 text-sm font-medium">
             {navLinks.map((link) => (
               <li key={link.label}>
-                <a href={link.href} className="hover:text-white transition-colors">
+                <button onClick={() => go(link.view)} className="hover:text-white transition-colors">
                   {link.label}
-                </a>
+                </button>
               </li>
             ))}
           </ul>
@@ -58,9 +80,15 @@ export default function Nav() {
             </button>
             {adminOpen && (
               <div className="absolute right-0 mt-2 w-40 bg-card border border-card-border rounded shadow-lg z-50 text-sm">
-                <a href="/admin/dashboard" className="block px-4 py-2 hover:bg-secondary">Dashboard</a>
-                <a href="/admin/users" className="block px-4 py-2 hover:bg-secondary">Users</a>
-                <a href="/admin/listings" className="block px-4 py-2 hover:bg-secondary">Listings</a>
+                {adminLinks.map((link) => (
+                  <button
+                    key={link.label}
+                    onClick={() => { go(link.view); setAdminOpen(false) }}
+                    className="block w-full text-left px-4 py-2 hover:bg-secondary"
+                  >
+                    {link.label}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -102,22 +130,34 @@ export default function Nav() {
       {mobileOpen && (
         <div className="lg:hidden border-t border-card-border px-4 py-3 flex flex-col gap-1 text-sm">
           {navLinks.map((link) => (
-            <a
+            <button
               key={link.label}
-              href={link.href}
-              className="py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => { go(link.view); setMobileOpen(false) }}
+              className="py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors text-left"
             >
               {link.label}
-            </a>
+            </button>
           ))}
           {/* Admin section in mobile menu */}
           <div className="border-t border-card-border mt-2 pt-2">
             <p className="px-2 py-1 text-xs text-muted-foreground uppercase tracking-widest">Admin</p>
-            <a href="/admin/dashboard" className="block py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors" onClick={() => setMobileOpen(false)}>Dashboard</a>
-            <a href="/admin/users" className="block py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors" onClick={() => setMobileOpen(false)}>Users</a>
-            <a href="/admin/listings" className="block py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors" onClick={() => setMobileOpen(false)}>Listings</a>
+            {adminLinks.map((link) => (
+              <button
+                key={link.label}
+                onClick={() => { go(link.view); setMobileOpen(false) }}
+                className="block w-full text-left py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
         </div>
       )}
     </nav>
