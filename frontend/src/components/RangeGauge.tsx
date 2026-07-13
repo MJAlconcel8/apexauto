@@ -27,7 +27,7 @@ export function RangeGauge({ value, max = 560, size = 132, dark }: RangeGaugePro
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       role="img"
-      aria-label={`Estimated range ${value} kilometres`}
+      aria-label={`Estimated mileage ${value} kilometres`}
     >
       <path
         d={arc(startAngle, startAngle + sweep)}
@@ -59,7 +59,7 @@ export function RangeGauge({ value, max = 560, size = 132, dark }: RangeGaugePro
         fontSize={10}
         className={`font-mono tracking-[0.14em] ${dark ? "fill-apex-muted-ink" : "fill-apex-muted"}`}
       >
-        KM RANGE
+        MILEAGE
       </text>
     </svg>
   );

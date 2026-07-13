@@ -47,11 +47,11 @@ export function VehicleCard({ v, dark = false, onView, onCart }: VehicleCardProp
 
         <div className={`flex items-center gap-3.5 py-3 border-t border-b ${dark ? "border-card-border" : "border-apex-line"}`}>
           <div className="shrink-0">
-            <RangeGauge value={v.range} size={78} dark={dark} />
+            <RangeGauge value={v.mileage} size={78} dark={dark} />
           </div>
           <div className="grid grid-cols-3 gap-2.5 flex-1">
-            <SpecReadout label="Battery" value={v.battery} unit="kWh" dark={dark} />
-            <SpecReadout label="0–100" value={v.zero.toFixed(1)} unit="s" dark={dark} />
+            <SpecReadout label="Emission" value={v.emissionScore} unit="g/km" dark={dark} />
+            <SpecReadout label="Fuel Use" value={v.fuelUsage.toFixed(1)} unit="L/100" dark={dark} />
             <SpecReadout label="Seats" value={v.seats} dark={dark} />
           </div>
         </div>

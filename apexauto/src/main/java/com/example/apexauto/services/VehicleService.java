@@ -60,7 +60,7 @@ public class VehicleService {
         vehicle.setSeats(incoming.getSeats());
         vehicle.setEmissionScore(incoming.getEmissionScore());
         vehicle.setFuelUsage(incoming.getFuelUsage());
-        vehicle.setMillage(incoming.getMillage());
+        vehicle.setMileage(incoming.getMileage());
         vehicle.setOnSale(incoming.isOnSale());
         vehicle.setAmountInStock(incoming.getAmountInStock());
         vehicle.setInStock(incoming.getAmountInStock() > 0);
@@ -116,8 +116,8 @@ public class VehicleService {
         if (patch.getFuelUsage() != null) {
             vehicle.setFuelUsage(patch.getFuelUsage());
         }
-        if (patch.getMillage() != null) {
-            vehicle.setMillage(patch.getMillage());
+        if (patch.getMileage() != null) {
+            vehicle.setMileage(patch.getMileage());
         }
         if (patch.getIsOnSale() != null) {
             vehicle.setOnSale(patch.getIsOnSale());

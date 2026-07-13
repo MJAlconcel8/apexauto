@@ -20,10 +20,10 @@ export interface Vehicle {
   img: string;
   price: number;
   was?: number;
-  range: number;
-  battery: number;
+  mileage: number;
+  emissionScore: number;
   seats: number;
-  zero: number;
+  fuelUsage: number;
   stock: number;
   history: string;
   ext: string;
