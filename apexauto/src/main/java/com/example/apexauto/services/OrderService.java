@@ -1,6 +1,5 @@
 package com.example.apexauto.services;
 import com.example.apexauto.DTO.UpdateOrderDTO;
-import com.example.apexauto.DTO.UpdateOrderStatusDTO;
 import com.example.apexauto.entity.CartLine;
 import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
@@ -21,11 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 // This service contains order, order status, and order line business logic.
 @Service
@@ -72,10 +69,6 @@ public class OrderService {
             throw new IllegalArgumentException("Cart is empty");
         }
 
-        List<Vehicle> vehicles = cartLines.stream()
-                .map(CartLine::getVehicle)
-                .toList();
-
         User user = cart.getUser();
         OrderStatus orderStatus = getOrCreateDefaultOrderStatus();
 
@@ -83,11 +76,11 @@ public class OrderService {
         order.setUser(user);
         order.setOrderStatus(orderStatus);
         order.setDeliveryDate(null);
-        order.setTotalAmount(calculateTotal(vehicles));
+        order.setTotalAmount(calculateTotalFromCartLines(cartLines));
 
         Orders savedOrder = ordersRepository.save(order);
-        createOrderLines(savedOrder, vehicles);
-        reduceStock(vehicles);
+        createOrderLinesFromCartLines(savedOrder, cartLines);
+        reduceStock(cartLines.stream().map(CartLine::getVehicle).toList());
 
         return ordersRepository.save(savedOrder);
     }
@@ -160,6 +153,7 @@ public class OrderService {
         orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
         orderLine.setOrder(order);
         orderLine.setVehicle(vehicle);
+        applyCashPricing(orderLine, vehicle);
         orderLineRepository.save(orderLine);
 
         reduceStock(List.of(vehicle));
@@ -208,25 +202,53 @@ public class OrderService {
         }
     }
 
-    private void createOrderLines(Orders order, List<Vehicle> vehicles) {
-        for (Vehicle vehicle : vehicles) {
+    private void createOrderLinesFromCartLines(Orders order, List<CartLine> cartLines) {
+        for (CartLine cartLine : cartLines) {
+            Vehicle vehicle = cartLine.getVehicle();
             OrderLine orderLine = new OrderLine();
             orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
             orderLine.setOrder(order);
             orderLine.setVehicle(vehicle);
+            orderLine.setFinancingSelected(cartLine.isFinancingSelected());
+            orderLine.setDownPayment(cartLine.getDownPayment());
+            orderLine.setAnnualRatePercent(cartLine.getAnnualRatePercent());
+            orderLine.setTermMonths(cartLine.getTermMonths());
+            orderLine.setMonthlyPayment(cartLine.getMonthlyPayment());
+            orderLine.setLineTotalCost(resolveLineTotalCost(cartLine.getLineTotalCost(), vehicle.getPrice()));
+            orderLine.setTotalInterest(cartLine.getTotalInterest());
             orderLineRepository.save(orderLine);
         }
     }
 
     private BigDecimal recalculateTotalAmount(int orderId) {
         List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
-        return calculateTotal(orderLines.stream().map(OrderLine::getVehicle).toList());
+        return calculateTotalFromOrderLines(orderLines);
     }
 
-    private BigDecimal calculateTotal(List<Vehicle> vehicles) {
-        return vehicles.stream()
-                .map(Vehicle::getPrice)
+    private BigDecimal calculateTotalFromCartLines(List<CartLine> cartLines) {
+        return cartLines.stream()
+                .map(cartLine -> resolveLineTotalCost(cartLine.getLineTotalCost(), cartLine.getVehicle().getPrice()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateTotalFromOrderLines(List<OrderLine> orderLines) {
+        return orderLines.stream()
+                .map(orderLine -> resolveLineTotalCost(orderLine.getLineTotalCost(), orderLine.getVehicle().getPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal resolveLineTotalCost(BigDecimal lineTotalCost, BigDecimal vehiclePrice) {
+        return lineTotalCost != null ? lineTotalCost : vehiclePrice;
+    }
+
+    private void applyCashPricing(OrderLine orderLine, Vehicle vehicle) {
+        orderLine.setFinancingSelected(false);
+        orderLine.setDownPayment(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+        orderLine.setAnnualRatePercent(null);
+        orderLine.setTermMonths(null);
+        orderLine.setMonthlyPayment(null);
+        orderLine.setLineTotalCost(vehicle.getPrice().setScale(2, RoundingMode.HALF_UP));
+        orderLine.setTotalInterest(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void reduceStock(List<Vehicle> vehicles) {

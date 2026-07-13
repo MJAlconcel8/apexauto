@@ -64,7 +64,14 @@ public class UserOrderController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                orderLine.isFinancingSelected(),
+                orderLine.getDownPayment(),
+                orderLine.getAnnualRatePercent(),
+                orderLine.getTermMonths(),
+                orderLine.getMonthlyPayment(),
+                orderLine.getLineTotalCost(),
+                orderLine.getTotalInterest()
         );
     }
 

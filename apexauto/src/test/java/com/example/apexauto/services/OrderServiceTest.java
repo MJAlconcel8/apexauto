@@ -1,5 +1,7 @@
 package com.example.apexauto.services;
 
+import com.example.apexauto.entity.CartLine;
+import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Orders;
@@ -26,7 +28,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,6 +97,79 @@ class OrderServiceTest {
         verify(vehicleRepository, never()).findById(10);
         verify(orderLineRepository, never()).save(any(OrderLine.class));
         verify(vehicleRepository, never()).save(any(Vehicle.class));
+    }
+
+    @Test
+    void createOrderFromCart_usesFinancedLineTotalsAndCopiesFinancingSnapshot() {
+        User user = new User();
+        user.setUserId(77);
+
+        Carts cart = new Carts();
+        cart.setCartId(15);
+        cart.setUser(user);
+
+        Vehicle financedVehicle = vehicle(10, "20000.00", 3);
+        Vehicle cashVehicle = vehicle(11, "5000.00", 2);
+
+        CartLine financedCartLine = new CartLine();
+        financedCartLine.setCart(cart);
+        financedCartLine.setVehicle(financedVehicle);
+        financedCartLine.setFinancingSelected(true);
+        financedCartLine.setDownPayment(new BigDecimal("3000.00"));
+        financedCartLine.setAnnualRatePercent(6.5);
+        financedCartLine.setTermMonths(48);
+        financedCartLine.setMonthlyPayment(new BigDecimal("398.88"));
+        financedCartLine.setLineTotalCost(new BigDecimal("22146.24"));
+        financedCartLine.setTotalInterest(new BigDecimal("5146.24"));
+
+        CartLine cashCartLine = new CartLine();
+        cashCartLine.setCart(cart);
+        cashCartLine.setVehicle(cashVehicle);
+        cashCartLine.setFinancingSelected(false);
+        cashCartLine.setDownPayment(new BigDecimal("0.00"));
+        cashCartLine.setLineTotalCost(new BigDecimal("5000.00"));
+        cashCartLine.setTotalInterest(new BigDecimal("0.00"));
+
+        OrderStatus pending = new OrderStatus();
+        pending.setOrderStatusId(1);
+        pending.setOrderStatusName("PENDING");
+
+        when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(15))
+                .thenReturn(List.of(financedCartLine, cashCartLine));
+        when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
+        when(ordersRepository.save(any(Orders.class))).thenAnswer(invocation -> {
+            Orders savedOrder = invocation.getArgument(0);
+            if (savedOrder.getOrderId() == 0) {
+                savedOrder.setOrderId(900);
+            }
+            return savedOrder;
+        });
+
+        Orders created = orderService.createOrderFromCart(15);
+
+        assertEquals(new BigDecimal("27146.24"), created.getTotalAmount());
+        assertEquals(2, financedVehicle.getAmountInStock());
+        assertEquals(1, cashVehicle.getAmountInStock());
+
+        ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
+        verify(orderLineRepository, times(2)).save(orderLineCaptor.capture());
+
+        List<OrderLine> savedLines = orderLineCaptor.getAllValues();
+        OrderLine savedFinancedLine = savedLines.get(0);
+        OrderLine savedCashLine = savedLines.get(1);
+
+        assertTrue(savedFinancedLine.isFinancingSelected());
+        assertEquals(new BigDecimal("3000.00"), savedFinancedLine.getDownPayment());
+        assertEquals(6.5, savedFinancedLine.getAnnualRatePercent());
+        assertEquals(48, savedFinancedLine.getTermMonths());
+        assertEquals(new BigDecimal("398.88"), savedFinancedLine.getMonthlyPayment());
+        assertEquals(new BigDecimal("22146.24"), savedFinancedLine.getLineTotalCost());
+        assertEquals(new BigDecimal("5146.24"), savedFinancedLine.getTotalInterest());
+
+        assertFalse(savedCashLine.isFinancingSelected());
+        assertEquals(new BigDecimal("5000.00"), savedCashLine.getLineTotalCost());
+        assertEquals(new BigDecimal("0.00"), savedCashLine.getTotalInterest());
     }
 
     private Vehicle vehicle(int vehicleId, String price, int amountInStock) {

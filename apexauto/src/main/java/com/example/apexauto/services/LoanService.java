@@ -25,9 +25,26 @@ public class LoanService {
         Orders order = ordersRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        validateInputs(downPayment, annualRatePercent, termMonths, order.getTotalAmount());
+        LoanCalculationResponseDTO calculation = calculateLoanForAmount(
+                order.getTotalAmount(),
+                downPayment,
+                annualRatePercent,
+                termMonths
+        );
 
-        BigDecimal vehiclePrice = order.getTotalAmount();
+        calculation.setOrderId(orderId);
+        return calculation;
+    }
+
+    public LoanCalculationResponseDTO calculateLoanForAmount(
+            BigDecimal vehiclePrice,
+            BigDecimal downPayment,
+            double annualRatePercent,
+            int termMonths
+    ) {
+        validateVehiclePrice(vehiclePrice);
+
+        validateInputs(downPayment, annualRatePercent, termMonths, vehiclePrice);
         BigDecimal loanAmount = vehiclePrice.subtract(downPayment);
 
         BigDecimal monthlyPayment;
@@ -42,10 +59,10 @@ public class LoanService {
         } else {
             // Standard amortising loan formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
             double monthlyRate = annualRatePercent / 100.0 / 12.0;
-            double r = monthlyRate;
-            double n = termMonths;
-            double onePlusRtoN = Math.pow(1 + r, n);
-            double monthlyPaymentDouble = loanAmount.doubleValue() * (r * onePlusRtoN) / (onePlusRtoN - 1);
+            double onePlusRtoN = Math.pow(1 + monthlyRate, termMonths);
+            double monthlyPaymentDouble = loanAmount.doubleValue()
+                    * (monthlyRate * onePlusRtoN)
+                    / (onePlusRtoN - 1);
 
             monthlyPayment = BigDecimal.valueOf(monthlyPaymentDouble).setScale(2, RoundingMode.HALF_UP);
             BigDecimal totalLoanCost = monthlyPayment.multiply(BigDecimal.valueOf(termMonths));
@@ -54,7 +71,7 @@ public class LoanService {
         }
 
         return new LoanCalculationResponseDTO(
-                orderId,
+                0,
                 vehiclePrice.setScale(2, RoundingMode.HALF_UP),
                 downPayment.setScale(2, RoundingMode.HALF_UP),
                 loanAmount.setScale(2, RoundingMode.HALF_UP),
@@ -64,6 +81,16 @@ public class LoanService {
                 totalCost.setScale(2, RoundingMode.HALF_UP),
                 totalInterest
         );
+    }
+
+    private void validateVehiclePrice(BigDecimal vehiclePrice) {
+        if (vehiclePrice == null) {
+            throw new IllegalArgumentException("Vehicle price must not be null");
+        }
+
+        if (vehiclePrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Vehicle price must be greater than zero");
+        }
     }
 
     private void validateInputs(BigDecimal downPayment, double annualRatePercent, int termMonths, BigDecimal vehiclePrice) {

@@ -146,7 +146,14 @@ public class CartController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                cartLine.isFinancingSelected(),
+                cartLine.getDownPayment(),
+                cartLine.getAnnualRatePercent(),
+                cartLine.getTermMonths(),
+                cartLine.getMonthlyPayment(),
+                cartLine.getLineTotalCost(),
+                cartLine.getTotalInterest()
         );
     }
 
@@ -176,7 +183,14 @@ public class CartController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                orderLine.isFinancingSelected(),
+                orderLine.getDownPayment(),
+                orderLine.getAnnualRatePercent(),
+                orderLine.getTermMonths(),
+                orderLine.getMonthlyPayment(),
+                orderLine.getLineTotalCost(),
+                orderLine.getTotalInterest()
         );
     }
 
