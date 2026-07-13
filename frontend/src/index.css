@@ -2,25 +2,38 @@
 @import "tailwindcss";
 
 @theme {
-  /* Backgrounds */
+  /* ── Auth / global ─────────────────────────────────────── */
   --color-background: #030c1a;
   --color-card: #071428;
   --color-sub-header: #040f20;
   --color-secondary: #0d1f3c;
   --color-muted: #0d1f3c;
-
-  /* Borders */
   --color-card-border: #1e3a5f;
-
-  /* Foreground / Text */
   --color-foreground: #dce8ff;
   --color-muted-foreground: #4a6080;
   --color-card-foreground: #dce8ff;
 
-  /* Fonts */
+  /* ── ApexAuto brand colours ─────────────────────────────── */
+  --color-apex-ink: #12161c;
+  --color-apex-ink-2: #1a2029;
+  --color-apex-ink-3: #232b36;
+  --color-apex-voltage: #0e63ff;
+  --color-apex-voltage-ink: #0a49be;
+  --color-apex-voltage-soft: #e8f0ff;
+  --color-apex-paper: #f1f2ee;
+  --color-apex-line: #e1e3de;
+  --color-apex-muted: #6b7480;
+  --color-apex-muted-ink: #9aa6b2;
+  --color-apex-amber: #f5a623;
+  --color-apex-green: #12a26a;
+  --color-apex-red: #e23b3b;
+
+  /* ── Fonts ───────────────────────────────────────────────── */
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-heading: "Rajdhani", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 @layer base {
@@ -32,5 +45,48 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .av-focus:focus-visible {
+    outline: 2px solid var(--color-apex-voltage);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  .av-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .av-reveal[data-shown="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .av-cat {
+    transition: all 0.2s ease;
+  }
+
+  .av-cat:hover {
+    border-color: rgba(14, 99, 255, 0.4) !important;
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .av-reveal {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+    .av-cat,
+    .av-rise {
+      transition: none !important;
+    }
+    * {
+      scroll-behavior: auto !important;
+    }
   }
 }

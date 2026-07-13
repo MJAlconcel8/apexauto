@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Logo from '../components/Logo'
+import { Btn } from '../components'
 
 export default function Login() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -101,12 +102,9 @@ export default function Login() {
               )}
 
               {/* Submit */}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-lg transition-colors mb-5"
-              >
-                Sign In
-              </button>
+              <div className="mb-5">
+                <Btn type="submit" fullWidth size="lg">Sign In</Btn>
+              </div>
 
               {/* Divider */}
               <div className="flex items-center gap-3 mb-4">
@@ -117,18 +115,8 @@ export default function Login() {
 
               {/* Social buttons */}
               <div className="flex flex-col gap-3">
-                <button
-                  type="button"
-                  className="w-full border border-card-border text-foreground hover:bg-secondary font-medium py-2.5 rounded-lg text-sm transition-colors"
-                >
-                  Continue with Google
-                </button>
-                <button
-                  type="button"
-                  className="w-full border border-card-border text-foreground hover:bg-secondary font-medium py-2.5 rounded-lg text-sm transition-colors"
-                >
-                  Continue with Apple
-                </button>
+                <Btn variant="ghostDark" fullWidth>Continue with Google</Btn>
+                <Btn variant="ghostDark" fullWidth>Continue with Apple</Btn>
               </div>
             </form>
           </div>
