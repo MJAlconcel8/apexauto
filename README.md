@@ -146,6 +146,54 @@ Authorization: Bearer <token>
 - `DELETE /vehicles/{vehicleId}` — delete a vehicle by ID
 - `GET /vehicles/filter` — filter vehicles by query parameters
 
+Common filter query parameters for `GET /vehicles/filter`:
+
+- `brand`, `make`, `model`, `color`
+- `year` (exact match)
+- `minYear`, `maxYear` (range; ignored when `year` is provided)
+- `minPrice`, `maxPrice`
+- `isOnSale`, `isInStock`
+
+### Search History
+
+- `GET /users/{userId}/search-history` — list all search history entries for a user
+- `GET /users/{userId}/search-history/{searchHistoryId}` — get one search history entry for a user
+- `POST /users/{userId}/search-history` — create a new search history entry for a user
+- `DELETE /users/{userId}/search-history/{searchHistoryId}` — delete one search history entry for a user
+- `DELETE /users/{userId}/search-history` — delete all search history entries for a user
+
+### Vehicle History
+
+- `GET /users/{userId}/vehicle-history` — list all vehicle history entries for a user
+- `GET /users/{userId}/vehicle-history/{vehicleHistoryId}` — get one vehicle history entry for a user
+- `POST /users/{userId}/vehicle-history` — create a new vehicle history entry for a user
+- `DELETE /users/{userId}/vehicle-history/{vehicleHistoryId}` — delete one vehicle history entry for a user
+- `DELETE /users/{userId}/vehicle-history` — delete all vehicle history entries for a user
+- `GET /vehicle-history` — list all vehicle history entries across all users and vehicles
+- `GET /vehicle-history/vehicles/{vehicleId}` — list all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history/vehicles/{vehicleId}` — delete all vehicle history entries for a specific vehicle
+- `DELETE /vehicle-history` — delete all vehicle history entries from the database
+
+### Reviews
+
+- `GET /users/{userId}/reviews` — list all reviews created by a specific user (newest first)
+- `GET /users/{userId}/reviews/{reviewId}` — get one specific review for a user
+- `POST /users/{userId}/reviews` — create a new review for a vehicle by a user
+- `PATCH /users/{userId}/reviews/{reviewId}` — update the comments for a specific review
+- `DELETE /users/{userId}/reviews/{reviewId}` — delete one specific review for a user
+- `DELETE /users/{userId}/reviews` — delete all reviews created by a specific user
+- `GET /reviews` — list all reviews across all vehicles and users (newest first)
+- `GET /reviews/vehicles/{vehicleId}` — list all reviews for a specific vehicle (newest first)
+- `DELETE /reviews` — delete all reviews across all vehicles and users
+- `DELETE /reviews/vehicles/{vehicleId}` — delete all reviews for a specific vehicle
+
+### Favourites
+
+- `GET /users/{userId}/favourites` — list all favourite vehicles for a user (newest first)
+- `GET /users/{userId}/favourites/{vehicleId}` — get one specific favourite vehicle for a user
+- `POST /users/{userId}/favourites` — add a vehicle to a user's favourites
+- `DELETE /users/{userId}/favourites/{vehicleId}` — remove a vehicle from a user's favourites
+
 ### Carts
 
 - `GET /carts` — list all carts
@@ -197,6 +245,38 @@ If `financingSelected` is `false`, only `vehicleId` is required.
 - `GET /orders/{orderId}/loan` — read-only loan calculator for an already-created order
 
 For the new flow, financing is configured per vehicle before checkout through cart lines.
+
+### Payments
+
+- `GET /payments` — list all payments
+- `GET /payments/{paymentId}` — get one payment by ID
+- `GET /payments/status/{paymentStatusId}` — list all payments with a specific payment status
+- `POST /payments` — create a new payment for an order
+- `PUT /payments/{paymentId}` — update editable payment fields
+- `PATCH /payments/{paymentId}/status` — update only the payment status
+- `DELETE /payments/{paymentId}` — delete a payment by ID
+
+### Order Payments
+
+- `GET /orders/{orderId}/payment` — get the payment attached to a specific order
+- `POST /orders/{orderId}/payment` — create a payment for a specific order
+- `DELETE /orders/{orderId}/payment` — delete the payment attached to a specific order
+
+### User Payments
+
+- `GET /users/{userId}/payments` — list all payments for orders owned by a specific user
+
+### Payment Statuses
+
+- `GET /payment-statuses` — list all payment statuses
+- `GET /payment-statuses/{paymentStatusId}` — get one payment status by ID
+- `POST /payment-statuses` — create a reusable payment status such as PENDING, PAID, FAILED, or REFUNDED
+
+### Cart Statuses
+
+- `GET /cart-statuses` — list all cart statuses
+- `GET /cart-statuses/{cartStatusId}` — get one cart status by ID
+- `POST /cart-statuses` — create a reusable cart status such as ACTIVE, CHECKED_OUT, or ABANDONED
 
 ## End-to-End Testing Flow (Registration to Checkout)
 
