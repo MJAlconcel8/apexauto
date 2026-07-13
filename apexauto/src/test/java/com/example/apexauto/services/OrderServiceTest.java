@@ -1,6 +1,7 @@
 package com.example.apexauto.services;
 
 import com.example.apexauto.entity.CartLine;
+import com.example.apexauto.entity.CartStatus;
 import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderStatus;
@@ -9,6 +10,7 @@ import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.repository.CartLineRepository;
 import com.example.apexauto.repository.CartsRepository;
+import com.example.apexauto.repository.CartStatusRepository;
 import com.example.apexauto.repository.OrderLineRepository;
 import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.OrdersRepository;
@@ -21,6 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -63,6 +68,9 @@ class OrderServiceTest {
     @Mock
     private CartsRepository cartsRepository;
 
+    @Mock
+    private CartStatusRepository cartStatusRepository;
+
     private OrderService orderService;
 
     @BeforeEach
@@ -75,7 +83,8 @@ class OrderServiceTest {
                 vehicleRepository,
                 paymentRepository,
                 cartLineRepository,
-                cartsRepository
+                cartsRepository,
+                cartStatusRepository
         );
     }
 
@@ -100,13 +109,57 @@ class OrderServiceTest {
     }
 
     @Test
+    void createOrderFromCart_rejectsWhenUserDoesNotOwnCart() {
+        User loggedInUser = new User();
+        loggedInUser.setUserId(100);
+        loggedInUser.setEmail("user100@example.com");
+
+        User cartOwner = new User();
+        cartOwner.setUserId(200);
+        cartOwner.setEmail("user200@example.com");
+
+        Carts cart = new Carts();
+        cart.setCartId(15);
+        cart.setUser(cartOwner);
+
+        // Mock the security context
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        SecurityContext securityContext = org.mockito.Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedInUser);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(userRepository.findByUserId(100)).thenReturn(Optional.of(loggedInUser));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> orderService.createOrderFromCart(15)
+        );
+
+        assertEquals("You do not have permission to check out this cart", exception.getMessage());
+        verify(cartLineRepository, never()).findByCartCartIdOrderByVehicleVehicleIdAsc(15);
+    }
+
+    @Test
     void createOrderFromCart_usesFinancedLineTotalsAndCopiesFinancingSnapshot() {
         User user = new User();
         user.setUserId(77);
+        user.setEmail("test@example.com");
+
+        CartStatus activeStatus = new CartStatus();
+        activeStatus.setCartStatusId(1);
+        activeStatus.setCartStatusName("ACTIVE");
+
+        CartStatus checkedOutStatus = new CartStatus();
+        checkedOutStatus.setCartStatusId(2);
+        checkedOutStatus.setCartStatusName("CHECKED_OUT");
 
         Carts cart = new Carts();
         cart.setCartId(15);
         cart.setUser(user);
+        cart.setCartStatus(activeStatus);
 
         Vehicle financedVehicle = vehicle(10, "20000.00", 3);
         Vehicle cashVehicle = vehicle(11, "5000.00", 2);
@@ -134,10 +187,20 @@ class OrderServiceTest {
         pending.setOrderStatusId(1);
         pending.setOrderStatusName("PENDING");
 
+        // Mock the security context
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        SecurityContext securityContext = org.mockito.Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContextHolder.setContext(securityContext);
+
         when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(userRepository.findByUserId(77)).thenReturn(Optional.of(user));
         when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(15))
                 .thenReturn(List.of(financedCartLine, cashCartLine));
         when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
+        when(cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")).thenReturn(Optional.of(checkedOutStatus));
         when(ordersRepository.save(any(Orders.class))).thenAnswer(invocation -> {
             Orders savedOrder = invocation.getArgument(0);
             if (savedOrder.getOrderId() == 0) {

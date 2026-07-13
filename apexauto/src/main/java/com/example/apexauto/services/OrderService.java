@@ -1,6 +1,7 @@
 package com.example.apexauto.services;
 import com.example.apexauto.DTO.UpdateOrderDTO;
 import com.example.apexauto.entity.CartLine;
+import com.example.apexauto.entity.CartStatus;
 import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderLineId;
@@ -10,12 +11,15 @@ import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.repository.CartLineRepository;
 import com.example.apexauto.repository.CartsRepository;
+import com.example.apexauto.repository.CartStatusRepository;
 import com.example.apexauto.repository.OrderLineRepository;
 import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.OrdersRepository;
 import com.example.apexauto.repository.PaymentRepository;
 import com.example.apexauto.repository.UserRepository;
 import com.example.apexauto.repository.VehicleRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,7 @@ public class OrderService {
     private final PaymentRepository paymentRepository;
     private final CartLineRepository cartLineRepository;
     private final CartsRepository cartsRepository;
+    private final CartStatusRepository cartStatusRepository;
 
     public OrderService(
             OrdersRepository ordersRepository,
@@ -47,7 +52,8 @@ public class OrderService {
             VehicleRepository vehicleRepository,
             PaymentRepository paymentRepository,
             CartLineRepository cartLineRepository,
-            CartsRepository cartsRepository
+            CartsRepository cartsRepository,
+            CartStatusRepository cartStatusRepository
     ) {
         this.ordersRepository = ordersRepository;
         this.orderStatusRepository = orderStatusRepository;
@@ -57,12 +63,25 @@ public class OrderService {
         this.paymentRepository = paymentRepository;
         this.cartLineRepository = cartLineRepository;
         this.cartsRepository = cartsRepository;
+        this.cartStatusRepository = cartStatusRepository;
     }
 
 
     @Transactional
     public Orders createOrderFromCart(int cartId) {
         Carts cart = validateCartExists(cartId);
+        
+        // Verify that the logged-in user owns the cart
+        User currentUser = getCurrentAuthenticatedUser();
+        if (cart.getUser().getUserId() != currentUser.getUserId()) {
+            throw new IllegalArgumentException("You do not have permission to check out this cart");
+        }
+        
+        // Check that cart status is ACTIVE before checkout
+        if (!cart.getCartStatus().getCartStatusName().equalsIgnoreCase("ACTIVE")) {
+            throw new IllegalArgumentException("Cart status must be ACTIVE to create an order");
+        }
+        
         List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
 
         if (cartLines.isEmpty()) {
@@ -81,6 +100,12 @@ public class OrderService {
         Orders savedOrder = ordersRepository.save(order);
         createOrderLinesFromCartLines(savedOrder, cartLines);
         reduceStock(cartLines.stream().map(CartLine::getVehicle).toList());
+        
+        // Change cart status to CHECKED_OUT
+        CartStatus checkedOutStatus = cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")
+                .orElseThrow(() -> new IllegalArgumentException("CHECKED_OUT status not found"));
+        cart.setCartStatus(checkedOutStatus);
+        cartsRepository.save(cart);
 
         return ordersRepository.save(savedOrder);
     }
@@ -253,6 +278,10 @@ public class OrderService {
 
     private void reduceStock(List<Vehicle> vehicles) {
         for (Vehicle vehicle : vehicles) {
+            // Check that stock is greater than 0 before reducing it
+            if (vehicle.getAmountInStock() <= 0) {
+                throw new IllegalArgumentException("Vehicle " + vehicle.getVehicleId() + " has insufficient stock");
+            }
             vehicle.setAmountInStock(vehicle.getAmountInStock() - 1);
             vehicle.setInStock(vehicle.getAmountInStock() > 0);
             vehicleRepository.save(vehicle);
@@ -334,5 +363,22 @@ public class OrderService {
 
         return cartsRepository.findByCartId(cartId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+    }
+
+    private User getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("User is not authenticated");
+        }
+        
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof User)) {
+            throw new IllegalArgumentException("Invalid authentication principal");
+        }
+        
+        User user = (User) principal;
+        return userRepository.findByUserId(user.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
     }
 }
