@@ -8,6 +8,7 @@ import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.services.VehicleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,6 +47,7 @@ public class VehicleController {
 
     // POST /vehicles — creates a new vehicle
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<VehicleResponseDTO> createVehicle(@RequestBody CreateVehicleDTO dto) {
         try {
             Vehicle vehicle = vehicleService.createVehicle(toEntity(dto));
@@ -57,6 +59,7 @@ public class VehicleController {
 
     // PUT /vehicles/{vehicleId} — updates an existing vehicle
     @PutMapping("/{vehicleId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<VehicleResponseDTO> updateVehicle(
             @PathVariable int vehicleId,
             @RequestBody CreateVehicleDTO dto
@@ -71,6 +74,7 @@ public class VehicleController {
 
     // PATCH /vehicles/{vehicleId} — partially updates an existing vehicle
     @PatchMapping("/{vehicleId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<VehicleResponseDTO> patchVehicle(
             @PathVariable int vehicleId,
             @RequestBody PatchVehicleDTO dto
@@ -85,6 +89,7 @@ public class VehicleController {
 
     // DELETE /vehicles/{vehicleId} — deletes a vehicle
     @DeleteMapping("/{vehicleId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteVehicle(@PathVariable int vehicleId) {
         try {
             vehicleService.deleteVehicle(vehicleId);

@@ -140,11 +140,11 @@ Authorization: Bearer <token>
 
 - `GET /vehicles` — list all vehicles
 - `GET /vehicles/{vehicleId}` — get one vehicle by ID
-- `POST /vehicles` — create a new vehicle
-- `PUT /vehicles/{vehicleId}` — fully update an existing vehicle
-- `PATCH /vehicles/{vehicleId}` — partially update an existing vehicle
-- `DELETE /vehicles/{vehicleId}` — delete a vehicle by ID
 - `GET /vehicles/filter` — filter vehicles by query parameters
+- `POST /vehicles` — **[Requires Authentication]** create a new vehicle
+- `PUT /vehicles/{vehicleId}` — **[Requires Authentication]** fully update an existing vehicle
+- `PATCH /vehicles/{vehicleId}` — **[Requires Authentication]** partially update an existing vehicle
+- `DELETE /vehicles/{vehicleId}` — **[Requires Authentication]** delete a vehicle by ID
 
 Common filter query parameters for `GET /vehicles/filter`:
 
