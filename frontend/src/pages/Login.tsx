@@ -1,17 +1,33 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { Btn } from '../components'
+import type { GoFn, ViewParams } from '../components/types'
 
-export default function Login() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+interface LoginProps { onNavigate?: GoFn }
 
+export default function Login({ onNavigate }: LoginProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
 
   const [message, setMessage] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+  const navigate = useNavigate()
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    navigate(view)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -35,8 +51,7 @@ export default function Login() {
       const data = await response.json()
 
       if (response.ok) {
-        setIsLoggedIn(true)
-        setMessage('Login successful!')
+        go('/home')
       } else {
         setMessage(data.error || 'Login failed. Please try again.')
       }
@@ -47,10 +62,7 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      {isLoggedIn ? (
-        <p className="text-green-400">You are already logged in.</p>
-      ) : (
-        <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm">
           {/* Logo + Header */}
           <div className="flex flex-col items-center mb-8">
             <Logo />
@@ -91,9 +103,9 @@ export default function Login() {
 
               {/* Forgot password */}
               <div className="flex justify-end mb-5">
-                <Link to="/forgot-password" className="text-xs text-blue-400 hover:underline">
+                <button type="button" onClick={() => go('/forgot-password')} className="text-xs text-blue-400 hover:underline">
                   Forgot password?
-                </Link>
+                </button>
               </div>
 
               {/* Message */}
@@ -124,8 +136,13 @@ export default function Login() {
           {/* Register link */}
           <p className="text-center text-sm text-muted-foreground mt-5">
             New to ApexAuto?{' '}
-            <a href="/register" className="text-blue-400 font-bold hover:underline">Create account</a>
+            <button type="button" onClick={() => go('/register')} className="text-blue-400 font-bold hover:underline">Create account</button>
           </p>
+        </div>
+
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
         </div>
       )}
     </div>

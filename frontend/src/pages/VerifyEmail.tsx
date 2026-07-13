@@ -1,12 +1,30 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { Btn } from '../components'
+import type { GoFn, ViewParams } from '../components/types'
 
-export default function VerifyEmail() {
+interface VerifyEmailProps { onNavigate?: GoFn }
+
+export default function VerifyEmail({ onNavigate }: VerifyEmailProps) {
   const [step, setStep] = useState<'verify' | 'done'>('verify')
   const [token, setToken] = useState('')
   const [message, setMessage] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+  const navigate = useNavigate()
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    navigate(view)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -52,12 +70,13 @@ export default function VerifyEmail() {
               </div>
               <p className="text-foreground font-semibold text-center">All done!</p>
               <p className="text-sm text-muted-foreground text-center">You can now sign in to your account.</p>
-              <Link
-                to="/login"
+              <button
+                type="button"
+                onClick={() => go('/login')}
                 className="mt-2 inline-flex w-full items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 py-3.5 px-6.5 text-[15px] bg-apex-voltage hover:bg-apex-voltage-ink text-white border border-transparent"
               >
                 Sign In
-              </Link>
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
@@ -83,10 +102,16 @@ export default function VerifyEmail() {
         {step !== 'done' && (
           <p className="text-center text-sm text-muted-foreground mt-5">
             Already verified?{' '}
-            <Link to="/login" className="text-blue-400 font-bold hover:underline">Sign in</Link>
+            <button type="button" onClick={() => go('/login')} className="text-blue-400 font-bold hover:underline">Sign in</button>
           </p>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

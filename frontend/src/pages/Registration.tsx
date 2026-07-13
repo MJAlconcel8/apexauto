@@ -1,9 +1,12 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { Btn } from '../components'
+import type { GoFn, ViewParams } from '../components/types'
 
-export default function Registration() {
+interface RegistrationProps { onNavigate?: GoFn }
+
+export default function Registration({ onNavigate }: RegistrationProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,6 +17,21 @@ export default function Registration() {
 
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+  const navigate = useNavigate()
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    navigate(view)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -70,12 +88,13 @@ export default function Registration() {
               </div>
               <p className="text-foreground font-semibold text-center">Account created!</p>
               <p className="text-sm text-muted-foreground text-center">Copy the token from your email and paste it into the verification page.</p>
-              <Link
-                to="/verify-email"
+              <button
+                type="button"
+                onClick={() => go('/verify-email')}
                 className="mt-2 inline-flex w-full items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 py-3.5 px-6.5 text-[15px] bg-apex-voltage hover:bg-apex-voltage-ink text-white border border-transparent"
               >
                 Verify Email
-              </Link>
+              </button>
             </div>
           </>
         ) : (
@@ -183,11 +202,17 @@ export default function Registration() {
           {/* Sign in link */}
           <p className="text-center text-sm text-gray-400 mt-4">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-400 font-semibold hover:underline">Sign in</Link>
+            <button type="button" onClick={() => go('/login')} className="text-blue-400 font-semibold hover:underline">Sign in</button>
           </p>
         </>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

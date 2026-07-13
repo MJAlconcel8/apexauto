@@ -16,17 +16,20 @@ export interface Vehicle {
   marque: string;
   model: string;
   year: number;
+  category?: string;
   img: string;
   price: number;
   was?: number;
-  range: number;
-  battery: number;
+  mileage: number;
+  emissionScore: number;
   seats: number;
-  zero: number;
+  fuelUsage: number;
   stock: number;
   history: string;
   ext: string;
   badge: VehicleBadge;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface BtnProps {
@@ -73,6 +76,7 @@ export interface BadgeProps {
 
 export interface VehicleCardProps {
   v: Vehicle;
+  dark?: boolean;
   onView?: (v: Vehicle) => void;
   onCart?: (v: Vehicle) => void;
 }

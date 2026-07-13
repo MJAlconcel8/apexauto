@@ -21,7 +21,7 @@ public class PatchVehicleDTO {
     private Integer seats;
     private Double emissionScore;
     private Double fuelUsage;
-    private Double millage;
+    private Double mileage;
     private Boolean isOnSale;
     private Boolean isInStock;
     private Integer amountInStock;

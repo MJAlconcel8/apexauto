@@ -82,7 +82,7 @@ public class Vehicle {
     @Getter
     @Setter
     @Column(nullable = false)
-    private double millage;
+    private double mileage;
 
     // A boolean field indicating whether the vehicle is currently on sale, which is a required field.
     @Getter

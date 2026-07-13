@@ -21,7 +21,7 @@ public class CreateVehicleDTO {
     private int seats;
     private double emissionScore;
     private double fuelUsage;
-    private double millage;
+    private double mileage;
     private boolean isOnSale;
     private boolean isInStock;
     private Integer amountInStock;

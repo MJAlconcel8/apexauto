@@ -31,17 +31,17 @@ const CAR_IMAGES = {
 const VEHICLES: Vehicle[] = [
   {
     id: "v-kestrel", marque: "Aster", model: "Kestrel EV Sport", year: 2024, img: CAR_IMAGES.camaro,
-    price: 58900, range: 402, battery: 77, seats: 5, zero: 4.6, stock: 4,
+    price: 58900, mileage: 402, emissionScore: 77, seats: 5, fuelUsage: 4.6, stock: 4,
     history: "Clean · 1 owner", ext: "Voltage Blue", badge: { label: "EV", tone: "voltage" },
   },
   {
     id: "v-lumen", marque: "Halcyon", model: "Volen Lumen", year: 2024, img: CAR_IMAGES.bmw,
-    price: 74500, range: 512, battery: 90, seats: 5, zero: 3.9, stock: 2,
+    price: 74500, mileage: 512, emissionScore: 90, seats: 5, fuelUsage: 3.9, stock: 2,
     history: "Clean", ext: "Pearl White", badge: { label: "2 left", tone: "amber" },
   },
   {
     id: "v-bolt", marque: "Meridian", model: "Meridian Bolt", year: 2023, img: CAR_IMAGES.mustang,
-    price: 44900, was: 47900, range: 389, battery: 64, seats: 5, zero: 5.4, stock: 9,
+    price: 44900, was: 47900, mileage: 389, emissionScore: 64, seats: 5, fuelUsage: 5.4, stock: 9,
     history: "Clean · minor panel", ext: "Graphite", badge: { label: "Hot deal", tone: "hot" },
   },
 ];
@@ -91,9 +91,9 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
   const compareRows: CompareRow[] = [
     { key: "price", label: "Price", fmt: (v) => fmtUSD(v.price), best: (vs) => Math.min(...vs.map((v) => v.price)), pick: (v) => v.price },
-    { key: "range", label: "Range", fmt: (v) => `${v.range} km`, best: (vs) => Math.max(...vs.map((v) => v.range)), pick: (v) => v.range },
-    { key: "battery", label: "Battery", fmt: (v) => `${v.battery} kWh`, best: (vs) => Math.max(...vs.map((v) => v.battery)), pick: (v) => v.battery },
-    { key: "zero", label: "0–100 mph", fmt: (v) => `${v.zero.toFixed(1)} s`, best: (vs) => Math.min(...vs.map((v) => v.zero)), pick: (v) => v.zero },
+    { key: "range", label: "Range", fmt: (v) => `${v.mileage} km`, best: (vs) => Math.max(...vs.map((v) => v.mileage)), pick: (v) => v.mileage },
+    { key: "battery", label: "Battery", fmt: (v) => `${v.emissionScore} kWh`, best: (vs) => Math.max(...vs.map((v) => v.emissionScore)), pick: (v) => v.emissionScore },
+    { key: "zero", label: "0–100 mph", fmt: (v) => `${v.fuelUsage.toFixed(1)} s`, best: (vs) => Math.min(...vs.map((v) => v.fuelUsage)), pick: (v) => v.fuelUsage },
     { key: "stock", label: "In stock", fmt: (v) => `${v.stock}`, best: (vs) => Math.max(...vs.map((v) => v.stock)), pick: (v) => v.stock },
   ];
 
