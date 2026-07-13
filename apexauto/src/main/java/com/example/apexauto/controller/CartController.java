@@ -3,11 +3,16 @@ package com.example.apexauto.controller;
 import com.example.apexauto.DTO.CartLineResponseDTO;
 import com.example.apexauto.DTO.CartResponseDTO;
 import com.example.apexauto.DTO.CreateCartDTO;
+import com.example.apexauto.DTO.OrderLineResponseDTO;
+import com.example.apexauto.DTO.OrderResponseDTO;
 import com.example.apexauto.DTO.UpdateCartDTO;
 import com.example.apexauto.entity.CartLine;
 import com.example.apexauto.entity.Carts;
+import com.example.apexauto.entity.OrderLine;
+import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.services.CartService;
+import com.example.apexauto.services.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +25,11 @@ import java.util.List;
 public class CartController {
 
     private final CartService cartService;
+    private final OrderService orderService;
 
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, OrderService orderService) {
         this.cartService = cartService;
+        this.orderService = orderService;
     }
 
     // GET /carts - returns all carts, newest first.
@@ -102,6 +109,17 @@ public class CartController {
         }
     }
 
+    // POST /carts/{cartId}/checkout - creates an order from the cart.
+    @PostMapping("/{cartId}/checkout")
+    public ResponseEntity<OrderResponseDTO> checkoutCart(@PathVariable int cartId) {
+        try {
+            Orders savedOrder = orderService.createOrderFromCart(cartId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toOrderResponseDTO(savedOrder));
+        } catch (IllegalArgumentException ex) {
+            throw toHttpException(ex);
+        }
+    }
+
     private CartResponseDTO toResponseDTO(Carts cart) {
         List<CartLineResponseDTO> cartLines = cartService.getCartLines(cart.getCartId())
                 .stream()
@@ -128,7 +146,51 @@ public class CartController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                cartLine.isFinancingSelected(),
+                cartLine.getDownPayment(),
+                cartLine.getAnnualRatePercent(),
+                cartLine.getTermMonths(),
+                cartLine.getMonthlyPayment(),
+                cartLine.getLineTotalCost(),
+                cartLine.getTotalInterest()
+        );
+    }
+
+    private OrderResponseDTO toOrderResponseDTO(Orders order) {
+        List<OrderLineResponseDTO> orderLines = orderService.getOrderLines(order.getOrderId())
+                .stream()
+                .map(this::toOrderLineResponseDTO)
+                .toList();
+
+        return new OrderResponseDTO(
+                order.getOrderId(),
+                order.getUser().getUserId(),
+                order.getOrderStatus().getOrderStatusId(),
+                order.getOrderStatus().getOrderStatusName(),
+                order.getTotalAmount(),
+                order.getDeliveryDate(),
+                orderLines
+        );
+    }
+
+    private OrderLineResponseDTO toOrderLineResponseDTO(OrderLine orderLine) {
+        Vehicle vehicle = orderLine.getVehicle();
+        return new OrderLineResponseDTO(
+                orderLine.getOrder().getOrderId(),
+                vehicle.getVehicleId(),
+                vehicle.getBrand(),
+                vehicle.getMake(),
+                vehicle.getModel(),
+                vehicle.getYear(),
+                vehicle.getPrice(),
+                orderLine.isFinancingSelected(),
+                orderLine.getDownPayment(),
+                orderLine.getAnnualRatePercent(),
+                orderLine.getTermMonths(),
+                orderLine.getMonthlyPayment(),
+                orderLine.getLineTotalCost(),
+                orderLine.getTotalInterest()
         );
     }
 

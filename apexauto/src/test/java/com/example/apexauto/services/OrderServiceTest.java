@@ -1,11 +1,16 @@
 package com.example.apexauto.services;
 
-import com.example.apexauto.DTO.CreateOrderDTO;
+import com.example.apexauto.entity.CartLine;
+import com.example.apexauto.entity.CartStatus;
+import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
+import com.example.apexauto.repository.CartLineRepository;
+import com.example.apexauto.repository.CartsRepository;
+import com.example.apexauto.repository.CartStatusRepository;
 import com.example.apexauto.repository.OrderLineRepository;
 import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.OrdersRepository;
@@ -18,6 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,7 +33,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,6 +62,15 @@ class OrderServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private CartLineRepository cartLineRepository;
+
+    @Mock
+    private CartsRepository cartsRepository;
+
+    @Mock
+    private CartStatusRepository cartStatusRepository;
+
     private OrderService orderService;
 
     @BeforeEach
@@ -65,84 +81,13 @@ class OrderServiceTest {
                 orderLineRepository,
                 userRepository,
                 vehicleRepository,
-                paymentRepository
+                paymentRepository,
+                cartLineRepository,
+                cartsRepository,
+                cartStatusRepository
         );
     }
 
-    @Test
-    void createOrder_createsOrderLinesAndReducesStock() {
-        User user = new User();
-        user.setUserId(1);
-
-        OrderStatus pending = new OrderStatus();
-        pending.setOrderStatusId(1);
-        pending.setOrderStatusName("PENDING");
-
-        Vehicle firstVehicle = vehicle(10, "25000.00", 2);
-        Vehicle secondVehicle = vehicle(20, "30000.00", 1);
-
-        CreateOrderDTO request = new CreateOrderDTO();
-        request.setUserId(1);
-        request.setVehicleIds(List.of(10, 20));
-
-        when(userRepository.findByUserId(1)).thenReturn(Optional.of(user));
-        when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
-        when(vehicleRepository.findById(10)).thenReturn(Optional.of(firstVehicle));
-        when(vehicleRepository.findById(20)).thenReturn(Optional.of(secondVehicle));
-        when(ordersRepository.save(any(Orders.class))).thenAnswer(invocation -> {
-            Orders order = invocation.getArgument(0);
-            order.setOrderId(100);
-            return order;
-        });
-        when(orderLineRepository.save(any(OrderLine.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Orders result = orderService.createOrder(request);
-
-        assertEquals(100, result.getOrderId());
-        assertSame(user, result.getUser());
-        assertSame(pending, result.getOrderStatus());
-        assertEquals(0, new BigDecimal("55000.00").compareTo(result.getTotalAmount()));
-        assertEquals(1, firstVehicle.getAmountInStock());
-        assertTrue(firstVehicle.isInStock());
-        assertEquals(0, secondVehicle.getAmountInStock());
-        assertFalse(secondVehicle.isInStock());
-
-        ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
-        verify(orderLineRepository, times(2)).save(orderLineCaptor.capture());
-        assertEquals(List.of(10, 20), orderLineCaptor.getAllValues().stream()
-                .map(orderLine -> orderLine.getVehicle().getVehicleId())
-                .toList());
-        verify(vehicleRepository).save(firstVehicle);
-        verify(vehicleRepository).save(secondVehicle);
-        verify(ordersRepository, times(2)).save(any(Orders.class));
-    }
-
-    @Test
-    void createOrder_rejectsDuplicateVehicleIds() {
-        User user = new User();
-        user.setUserId(1);
-
-        OrderStatus pending = new OrderStatus();
-        pending.setOrderStatusName("PENDING");
-
-        CreateOrderDTO request = new CreateOrderDTO();
-        request.setUserId(1);
-        request.setVehicleIds(List.of(10, 10));
-
-        when(userRepository.findByUserId(1)).thenReturn(Optional.of(user));
-        when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
-
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(request)
-        );
-
-        assertEquals("Duplicate vehicles are not allowed in the same order", exception.getMessage());
-        verify(vehicleRepository, never()).findById(10);
-        verify(orderLineRepository, never()).save(any(OrderLine.class));
-        verify(ordersRepository, never()).save(any(Orders.class));
-    }
 
     @Test
     void addVehicleToOrder_rejectsWhenPaymentExists() {
@@ -161,6 +106,133 @@ class OrderServiceTest {
         verify(vehicleRepository, never()).findById(10);
         verify(orderLineRepository, never()).save(any(OrderLine.class));
         verify(vehicleRepository, never()).save(any(Vehicle.class));
+    }
+
+    @Test
+    void createOrderFromCart_rejectsWhenUserDoesNotOwnCart() {
+        User loggedInUser = new User();
+        loggedInUser.setUserId(100);
+        loggedInUser.setEmail("user100@example.com");
+
+        User cartOwner = new User();
+        cartOwner.setUserId(200);
+        cartOwner.setEmail("user200@example.com");
+
+        Carts cart = new Carts();
+        cart.setCartId(15);
+        cart.setUser(cartOwner);
+
+        // Mock the security context
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        SecurityContext securityContext = org.mockito.Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(loggedInUser);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(userRepository.findByUserId(100)).thenReturn(Optional.of(loggedInUser));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> orderService.createOrderFromCart(15)
+        );
+
+        assertEquals("You do not have permission to check out this cart", exception.getMessage());
+        verify(cartLineRepository, never()).findByCartCartIdOrderByVehicleVehicleIdAsc(15);
+    }
+
+    @Test
+    void createOrderFromCart_usesFinancedLineTotalsAndCopiesFinancingSnapshot() {
+        User user = new User();
+        user.setUserId(77);
+        user.setEmail("test@example.com");
+
+        CartStatus activeStatus = new CartStatus();
+        activeStatus.setCartStatusId(1);
+        activeStatus.setCartStatusName("ACTIVE");
+
+        CartStatus checkedOutStatus = new CartStatus();
+        checkedOutStatus.setCartStatusId(2);
+        checkedOutStatus.setCartStatusName("CHECKED_OUT");
+
+        Carts cart = new Carts();
+        cart.setCartId(15);
+        cart.setUser(user);
+        cart.setCartStatus(activeStatus);
+
+        Vehicle financedVehicle = vehicle(10, "20000.00", 3);
+        Vehicle cashVehicle = vehicle(11, "5000.00", 2);
+
+        CartLine financedCartLine = new CartLine();
+        financedCartLine.setCart(cart);
+        financedCartLine.setVehicle(financedVehicle);
+        financedCartLine.setFinancingSelected(true);
+        financedCartLine.setDownPayment(new BigDecimal("3000.00"));
+        financedCartLine.setAnnualRatePercent(6.5);
+        financedCartLine.setTermMonths(48);
+        financedCartLine.setMonthlyPayment(new BigDecimal("398.88"));
+        financedCartLine.setLineTotalCost(new BigDecimal("22146.24"));
+        financedCartLine.setTotalInterest(new BigDecimal("5146.24"));
+
+        CartLine cashCartLine = new CartLine();
+        cashCartLine.setCart(cart);
+        cashCartLine.setVehicle(cashVehicle);
+        cashCartLine.setFinancingSelected(false);
+        cashCartLine.setDownPayment(new BigDecimal("0.00"));
+        cashCartLine.setLineTotalCost(new BigDecimal("5000.00"));
+        cashCartLine.setTotalInterest(new BigDecimal("0.00"));
+
+        OrderStatus pending = new OrderStatus();
+        pending.setOrderStatusId(1);
+        pending.setOrderStatusName("PENDING");
+
+        // Mock the security context
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        SecurityContext securityContext = org.mockito.Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(userRepository.findByUserId(77)).thenReturn(Optional.of(user));
+        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(15))
+                .thenReturn(List.of(financedCartLine, cashCartLine));
+        when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
+        when(cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")).thenReturn(Optional.of(checkedOutStatus));
+        when(ordersRepository.save(any(Orders.class))).thenAnswer(invocation -> {
+            Orders savedOrder = invocation.getArgument(0);
+            if (savedOrder.getOrderId() == 0) {
+                savedOrder.setOrderId(900);
+            }
+            return savedOrder;
+        });
+
+        Orders created = orderService.createOrderFromCart(15);
+
+        assertEquals(new BigDecimal("27146.24"), created.getTotalAmount());
+        assertEquals(2, financedVehicle.getAmountInStock());
+        assertEquals(1, cashVehicle.getAmountInStock());
+
+        ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
+        verify(orderLineRepository, times(2)).save(orderLineCaptor.capture());
+
+        List<OrderLine> savedLines = orderLineCaptor.getAllValues();
+        OrderLine savedFinancedLine = savedLines.get(0);
+        OrderLine savedCashLine = savedLines.get(1);
+
+        assertTrue(savedFinancedLine.isFinancingSelected());
+        assertEquals(new BigDecimal("3000.00"), savedFinancedLine.getDownPayment());
+        assertEquals(6.5, savedFinancedLine.getAnnualRatePercent());
+        assertEquals(48, savedFinancedLine.getTermMonths());
+        assertEquals(new BigDecimal("398.88"), savedFinancedLine.getMonthlyPayment());
+        assertEquals(new BigDecimal("22146.24"), savedFinancedLine.getLineTotalCost());
+        assertEquals(new BigDecimal("5146.24"), savedFinancedLine.getTotalInterest());
+
+        assertFalse(savedCashLine.isFinancingSelected());
+        assertEquals(new BigDecimal("5000.00"), savedCashLine.getLineTotalCost());
+        assertEquals(new BigDecimal("0.00"), savedCashLine.getTotalInterest());
     }
 
     private Vehicle vehicle(int vehicleId, String price, int amountInStock) {
