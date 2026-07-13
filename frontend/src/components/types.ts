@@ -16,6 +16,7 @@ export interface Vehicle {
   marque: string;
   model: string;
   year: number;
+  category?: string;
   img: string;
   price: number;
   was?: number;
@@ -27,6 +28,8 @@ export interface Vehicle {
   history: string;
   ext: string;
   badge: VehicleBadge;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface BtnProps {
@@ -73,6 +76,7 @@ export interface BadgeProps {
 
 export interface VehicleCardProps {
   v: Vehicle;
+  dark?: boolean;
   onView?: (v: Vehicle) => void;
   onCart?: (v: Vehicle) => void;
 }

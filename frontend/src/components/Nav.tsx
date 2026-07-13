@@ -1,8 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState} from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { ZapIcon } from 'lucide-react'
 import type { GoFn, ViewParams } from './types'
 
 const navLinks = [
-  { label: 'Home', view: '/' },
+  { label: 'Home', view: '/home' },
   { label: 'Catalogue', view: '/catalogue' },
   { label: 'Compare', view: '/compare' },
   { label: 'Loan Calc', view: '/loan-calc' },
@@ -19,35 +21,54 @@ interface NavProps { onNavigate?: GoFn }
 export default function Nav({ onNavigate }: NavProps) {
   const [adminOpen, setAdminOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-  const toastTimer = useRef<number | undefined>(undefined)
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  const flash = (msg: string) => {
-    setToast(msg)
-    clearTimeout(toastTimer.current)
-    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
-  }
 
   const go: GoFn = (view: string, params?: ViewParams) => {
     if (typeof onNavigate === 'function') return onNavigate(view, params)
-    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+    navigate(view)
   }
 
+  const isActive = (view: string) => location.pathname === view
+
   return (
-    <nav className="w-full bg-background text-muted-foreground">
+    <nav
+      className="fixed top-0 inset-x-0 h-16 z-50 border-b border-card-border text-muted-foreground"
+      style={{ background: 'rgba(3,12,26,0.92)', backdropFilter: 'blur(20px)' }}
+    >
       {/* Main bar */}
-      <div className="px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className="h-full px-4 sm:px-6 flex items-center justify-between">
         {/* Left: Logo + Desktop Links */}
         <div className="flex items-center gap-8">
-          <button onClick={() => go('/')} className="flex items-center gap-0.5 font-bold text-lg tracking-wide">
-            <span className="text-foreground">APEX</span>
-            <span className="text-blue-400">AUTO</span>
+          {/* Logo */}
+          <button onClick={() => go('/')} className="group flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 flex items-center justify-center bg-[#0066ff] shadow-[0_0_16px_rgba(0,102,255,0.5)] group-hover:shadow-[0_0_24px_rgba(0,102,255,0.7)] transition-shadow"
+              style={{ borderRadius: '6px' }}
+            >
+              <ZapIcon size={16} className="text-white" />
+            </div>
+            <span
+              className="text-lg font-bold tracking-[0.15em] uppercase font-heading"
+            >
+              <span className="text-foreground">Apex</span>
+              <span className="text-[#0066ff]">Auto</span>
+            </span>
           </button>
+
           {/* Desktop nav links */}
-          <ul className="hidden lg:flex items-center gap-6 text-sm font-medium">
+          <ul className="hidden lg:flex items-center gap-1 text-sm font-medium">
             {navLinks.map((link) => (
               <li key={link.label}>
-                <button onClick={() => go(link.view)} className="hover:text-white transition-colors">
+                <button
+                  onClick={() => go(link.view)}
+                  className={`px-3 py-1.5 rounded transition-colors ${
+                    isActive(link.view)
+                      ? 'bg-[#0066ff]/10 text-[#7eb3ff]'
+                      : 'hover:text-white'
+                  }`}
+                >
                   {link.label}
                 </button>
               </li>
@@ -128,12 +149,19 @@ export default function Nav({ onNavigate }: NavProps) {
 
       {/* Mobile/Tablet dropdown menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-card-border px-4 py-3 flex flex-col gap-1 text-sm">
+        <div
+          className="lg:hidden border-t border-card-border px-4 py-3 flex flex-col gap-1 text-sm"
+          style={{ background: 'rgba(3,12,26,0.97)', backdropFilter: 'blur(20px)' }}
+        >
           {navLinks.map((link) => (
             <button
               key={link.label}
               onClick={() => { go(link.view); setMobileOpen(false) }}
-              className="py-2 px-2 rounded hover:bg-secondary hover:text-foreground transition-colors text-left"
+              className={`py-2 px-2 rounded transition-colors text-left ${
+                isActive(link.view)
+                  ? 'bg-[#0066ff]/10 text-[#7eb3ff]'
+                  : 'hover:bg-secondary hover:text-foreground'
+              }`}
             >
               {link.label}
             </button>
@@ -151,13 +179,6 @@ export default function Nav({ onNavigate }: NavProps) {
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
-          {toast}
         </div>
       )}
     </nav>

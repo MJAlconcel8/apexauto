@@ -1,12 +1,30 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { Btn } from '../components'
+import type { GoFn, ViewParams } from '../components/types'
 
-export default function ForgotPassword() {
+interface ForgotPasswordProps { onNavigate?: GoFn }
+
+export default function ForgotPassword({ onNavigate }: ForgotPasswordProps) {
   const [step, setStep] = useState<'email' | 'done'>('email')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<number | undefined>(undefined)
+  const navigate = useNavigate()
+
+  const flash = (msg: string) => {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const go: GoFn = (view: string, params?: ViewParams) => {
+    if (typeof onNavigate === 'function') return onNavigate(view, params)
+    navigate(view)
+    flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
+  }
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -55,12 +73,13 @@ export default function ForgotPassword() {
               </div>
               <p className="text-foreground font-semibold text-center">Email sent!</p>
               <p className="text-sm text-muted-foreground text-center">Copy the token from your email, then reset your password below.</p>
-              <Link
-                to="/reset-password"
+              <button
+                type="button"
+                onClick={() => go('/reset-password')}
                 className="mt-2 inline-flex w-full items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 py-3.5 px-6.5 text-[15px] bg-apex-voltage hover:bg-apex-voltage-ink text-white border border-transparent"
               >
                 Go to Reset Password
-              </Link>
+              </button>
             </div>
           ) : (
             <form onSubmit={handleEmailSubmit}>
@@ -86,10 +105,16 @@ export default function ForgotPassword() {
         {step !== 'done' && (
           <p className="text-center text-sm text-muted-foreground mt-5">
             Remember your password?{' '}
-            <Link to="/login" className="text-blue-400 font-bold hover:underline">Sign in</Link>
+            <button type="button" onClick={() => go('/login')} className="text-blue-400 font-bold hover:underline">Sign in</button>
           </p>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }
