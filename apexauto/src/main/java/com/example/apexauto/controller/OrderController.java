@@ -1,6 +1,6 @@
 package com.example.apexauto.controller;
 
-import com.example.apexauto.DTO.LoanCalculationResponseDTO;
+import com.example.apexauto.DTO.CreateOrderDTO;
 import com.example.apexauto.DTO.OrderLineResponseDTO;
 import com.example.apexauto.DTO.OrderResponseDTO;
 import com.example.apexauto.DTO.UpdateOrderDTO;
@@ -8,14 +8,12 @@ import com.example.apexauto.DTO.UpdateOrderStatusDTO;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.Vehicle;
-import com.example.apexauto.services.LoanService;
 import com.example.apexauto.services.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -23,11 +21,9 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final LoanService loanService;
 
-    public OrderController(OrderService orderService, LoanService loanService) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
-        this.loanService = loanService;
     }
 
     // GET /orders - returns all orders, newest first.
@@ -69,17 +65,13 @@ public class OrderController {
         }
     }
 
-    // GET /orders/{orderId}/loan - calculates loan details for an order. Read-only, nothing is saved.
-    @GetMapping("/{orderId}/loan")
-    public ResponseEntity<LoanCalculationResponseDTO> calculateLoan(
-            @PathVariable int orderId,
-            @RequestParam BigDecimal downPayment,
-            @RequestParam double annualRate,
-            @RequestParam int termMonths
-    ) {
+
+    // POST /orders - creates an order and its order lines.
+    @PostMapping
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody CreateOrderDTO request) {
         try {
-            LoanCalculationResponseDTO result = loanService.calculateLoan(orderId, downPayment, annualRate, termMonths);
-            return ResponseEntity.ok(result);
+            Orders saved = orderService.createOrder(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(saved));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
         }
@@ -154,14 +146,7 @@ public class OrderController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice(),
-                orderLine.isFinancingSelected(),
-                orderLine.getDownPayment(),
-                orderLine.getAnnualRatePercent(),
-                orderLine.getTermMonths(),
-                orderLine.getMonthlyPayment(),
-                orderLine.getLineTotalCost(),
-                orderLine.getTotalInterest()
+                vehicle.getPrice()
         );
     }
 

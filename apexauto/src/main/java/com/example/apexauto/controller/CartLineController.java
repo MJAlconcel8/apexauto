@@ -50,14 +50,7 @@ public class CartLineController {
                 throw new IllegalArgumentException("Cart line request must not be null");
             }
 
-            Carts updated = cartService.addVehicleToCart(
-                    cartId,
-                    request.getVehicleId(),
-                    request.isFinancingSelected(),
-                    request.getDownPayment(),
-                    request.getAnnualRate(),
-                    request.getTermMonths()
-            );
+            Carts updated = cartService.addVehicleToCart(cartId, request.getVehicleId());
             return ResponseEntity.status(HttpStatus.CREATED).body(toCartResponseDTO(updated));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
@@ -104,14 +97,7 @@ public class CartLineController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice(),
-                cartLine.isFinancingSelected(),
-                cartLine.getDownPayment(),
-                cartLine.getAnnualRatePercent(),
-                cartLine.getTermMonths(),
-                cartLine.getMonthlyPayment(),
-                cartLine.getLineTotalCost(),
-                cartLine.getTotalInterest()
+                vehicle.getPrice()
         );
     }
 

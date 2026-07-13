@@ -1,32 +1,28 @@
 package com.example.apexauto.services;
+
+import com.example.apexauto.DTO.CreateOrderDTO;
 import com.example.apexauto.DTO.UpdateOrderDTO;
-import com.example.apexauto.entity.CartLine;
-import com.example.apexauto.entity.CartStatus;
-import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
 import com.example.apexauto.entity.OrderLineId;
 import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
-import com.example.apexauto.repository.CartLineRepository;
-import com.example.apexauto.repository.CartsRepository;
-import com.example.apexauto.repository.CartStatusRepository;
 import com.example.apexauto.repository.OrderLineRepository;
 import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.OrdersRepository;
 import com.example.apexauto.repository.PaymentRepository;
 import com.example.apexauto.repository.UserRepository;
 import com.example.apexauto.repository.VehicleRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 // This service contains order, order status, and order line business logic.
 @Service
@@ -40,9 +36,6 @@ public class OrderService {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final PaymentRepository paymentRepository;
-    private final CartLineRepository cartLineRepository;
-    private final CartsRepository cartsRepository;
-    private final CartStatusRepository cartStatusRepository;
 
     public OrderService(
             OrdersRepository ordersRepository,
@@ -50,10 +43,7 @@ public class OrderService {
             OrderLineRepository orderLineRepository,
             UserRepository userRepository,
             VehicleRepository vehicleRepository,
-            PaymentRepository paymentRepository,
-            CartLineRepository cartLineRepository,
-            CartsRepository cartsRepository,
-            CartStatusRepository cartStatusRepository
+            PaymentRepository paymentRepository
     ) {
         this.ordersRepository = ordersRepository;
         this.orderStatusRepository = orderStatusRepository;
@@ -61,53 +51,43 @@ public class OrderService {
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
         this.paymentRepository = paymentRepository;
-        this.cartLineRepository = cartLineRepository;
-        this.cartsRepository = cartsRepository;
-        this.cartStatusRepository = cartStatusRepository;
     }
 
-
     @Transactional
-    public Orders createOrderFromCart(int cartId) {
-        Carts cart = validateCartExists(cartId);
-        
-        // Verify that the logged-in user owns the cart
-        User currentUser = getCurrentAuthenticatedUser();
-        if (cart.getUser().getUserId() != currentUser.getUserId()) {
-            throw new IllegalArgumentException("You do not have permission to check out this cart");
-        }
-        
-        // Check that cart status is ACTIVE before checkout
-        if (!cart.getCartStatus().getCartStatusName().equalsIgnoreCase("ACTIVE")) {
-            throw new IllegalArgumentException("Cart status must be ACTIVE to create an order");
-        }
-        
-        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
-
-        if (cartLines.isEmpty()) {
-            throw new IllegalArgumentException("Cart is empty");
+    public Orders createOrder(CreateOrderDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Order request must not be null");
         }
 
-        User user = cart.getUser();
-        OrderStatus orderStatus = getOrCreateDefaultOrderStatus();
+        User user = validateUserExists(request.getUserId());
+        OrderStatus orderStatus = request.getOrderStatusId() == null
+                ? getOrCreateDefaultOrderStatus()
+                : validateOrderStatusExists(request.getOrderStatusId());
+        List<Vehicle> vehicles = validateVehiclesForNewOrder(request.getVehicleIds());
 
         Orders order = new Orders();
         order.setUser(user);
         order.setOrderStatus(orderStatus);
-        order.setDeliveryDate(null);
-        order.setTotalAmount(calculateTotalFromCartLines(cartLines));
+        order.setDeliveryDate(request.getDeliveryDate());
+        order.setTotalAmount(calculateTotal(vehicles));
 
         Orders savedOrder = ordersRepository.save(order);
-        createOrderLinesFromCartLines(savedOrder, cartLines);
-        reduceStock(cartLines.stream().map(CartLine::getVehicle).toList());
-        
-        // Change cart status to CHECKED_OUT
-        CartStatus checkedOutStatus = cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")
-                .orElseThrow(() -> new IllegalArgumentException("CHECKED_OUT status not found"));
-        cart.setCartStatus(checkedOutStatus);
-        cartsRepository.save(cart);
+        createOrderLines(savedOrder, vehicles);
+        reduceStock(vehicles);
 
         return ordersRepository.save(savedOrder);
+    }
+
+    @Transactional
+    public Orders createOrderForUser(int userId, CreateOrderDTO request) {
+        CreateOrderDTO safeRequest = request == null ? new CreateOrderDTO() : request;
+
+        if (safeRequest.getUserId() != 0 && safeRequest.getUserId() != userId) {
+            throw new IllegalArgumentException("Path userId does not match request body userId");
+        }
+
+        safeRequest.setUserId(userId);
+        return createOrder(safeRequest);
     }
 
     @Transactional(readOnly = true)
@@ -178,7 +158,6 @@ public class OrderService {
         orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
         orderLine.setOrder(order);
         orderLine.setVehicle(vehicle);
-        applyCashPricing(orderLine, vehicle);
         orderLineRepository.save(orderLine);
 
         reduceStock(List.of(vehicle));
@@ -227,61 +206,29 @@ public class OrderService {
         }
     }
 
-    private void createOrderLinesFromCartLines(Orders order, List<CartLine> cartLines) {
-        for (CartLine cartLine : cartLines) {
-            Vehicle vehicle = cartLine.getVehicle();
+    private void createOrderLines(Orders order, List<Vehicle> vehicles) {
+        for (Vehicle vehicle : vehicles) {
             OrderLine orderLine = new OrderLine();
             orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
             orderLine.setOrder(order);
             orderLine.setVehicle(vehicle);
-            orderLine.setFinancingSelected(cartLine.isFinancingSelected());
-            orderLine.setDownPayment(cartLine.getDownPayment());
-            orderLine.setAnnualRatePercent(cartLine.getAnnualRatePercent());
-            orderLine.setTermMonths(cartLine.getTermMonths());
-            orderLine.setMonthlyPayment(cartLine.getMonthlyPayment());
-            orderLine.setLineTotalCost(resolveLineTotalCost(cartLine.getLineTotalCost(), vehicle.getPrice()));
-            orderLine.setTotalInterest(cartLine.getTotalInterest());
             orderLineRepository.save(orderLine);
         }
     }
 
     private BigDecimal recalculateTotalAmount(int orderId) {
         List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
-        return calculateTotalFromOrderLines(orderLines);
+        return calculateTotal(orderLines.stream().map(OrderLine::getVehicle).toList());
     }
 
-    private BigDecimal calculateTotalFromCartLines(List<CartLine> cartLines) {
-        return cartLines.stream()
-                .map(cartLine -> resolveLineTotalCost(cartLine.getLineTotalCost(), cartLine.getVehicle().getPrice()))
+    private BigDecimal calculateTotal(List<Vehicle> vehicles) {
+        return vehicles.stream()
+                .map(Vehicle::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal calculateTotalFromOrderLines(List<OrderLine> orderLines) {
-        return orderLines.stream()
-                .map(orderLine -> resolveLineTotalCost(orderLine.getLineTotalCost(), orderLine.getVehicle().getPrice()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal resolveLineTotalCost(BigDecimal lineTotalCost, BigDecimal vehiclePrice) {
-        return lineTotalCost != null ? lineTotalCost : vehiclePrice;
-    }
-
-    private void applyCashPricing(OrderLine orderLine, Vehicle vehicle) {
-        orderLine.setFinancingSelected(false);
-        orderLine.setDownPayment(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-        orderLine.setAnnualRatePercent(null);
-        orderLine.setTermMonths(null);
-        orderLine.setMonthlyPayment(null);
-        orderLine.setLineTotalCost(vehicle.getPrice().setScale(2, RoundingMode.HALF_UP));
-        orderLine.setTotalInterest(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void reduceStock(List<Vehicle> vehicles) {
         for (Vehicle vehicle : vehicles) {
-            // Check that stock is greater than 0 before reducing it
-            if (vehicle.getAmountInStock() <= 0) {
-                throw new IllegalArgumentException("Vehicle " + vehicle.getVehicleId() + " has insufficient stock");
-            }
             vehicle.setAmountInStock(vehicle.getAmountInStock() - 1);
             vehicle.setInStock(vehicle.getAmountInStock() > 0);
             vehicleRepository.save(vehicle);
@@ -296,6 +243,34 @@ public class OrderService {
         }
     }
 
+    private List<Vehicle> validateVehiclesForNewOrder(List<Integer> vehicleIds) {
+        List<Integer> normalizedVehicleIds = normalizeVehicleIds(vehicleIds);
+        List<Vehicle> vehicles = new ArrayList<>();
+
+        for (Integer vehicleId : normalizedVehicleIds) {
+            vehicles.add(validateVehicleForOrderLine(vehicleId));
+        }
+
+        return vehicles;
+    }
+
+    private List<Integer> normalizeVehicleIds(List<Integer> vehicleIds) {
+        if (vehicleIds == null || vehicleIds.isEmpty()) {
+            throw new IllegalArgumentException("Order must contain at least one vehicle");
+        }
+
+        Set<Integer> uniqueVehicleIds = new LinkedHashSet<>();
+        for (Integer vehicleId : vehicleIds) {
+            if (vehicleId == null || vehicleId <= 0) {
+                throw new IllegalArgumentException("Vehicle ID must be a positive value");
+            }
+            if (!uniqueVehicleIds.add(vehicleId)) {
+                throw new IllegalArgumentException("Duplicate vehicles are not allowed in the same order");
+            }
+        }
+
+        return new ArrayList<>(uniqueVehicleIds);
+    }
 
     private Vehicle validateVehicleForOrderLine(int vehicleId) {
         Vehicle vehicle = validateVehicleExists(vehicleId);
@@ -354,31 +329,5 @@ public class OrderService {
                     orderStatus.setOrderStatusName(DEFAULT_ORDER_STATUS.toUpperCase(Locale.ROOT));
                     return orderStatusRepository.save(orderStatus);
                 });
-    }
-
-    private Carts validateCartExists(int cartId) {
-        if (cartId <= 0) {
-            throw new IllegalArgumentException("Cart ID must be a positive value");
-        }
-
-        return cartsRepository.findByCartId(cartId)
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
-    }
-
-    private User getCurrentAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException("User is not authenticated");
-        }
-        
-        Object principal = authentication.getPrincipal();
-        if (!(principal instanceof User)) {
-            throw new IllegalArgumentException("Invalid authentication principal");
-        }
-        
-        User user = (User) principal;
-        return userRepository.findByUserId(user.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
     }
 }

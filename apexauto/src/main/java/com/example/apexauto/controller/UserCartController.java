@@ -90,14 +90,7 @@ public class UserCartController {
                 vehicle.getMake(),
                 vehicle.getModel(),
                 vehicle.getYear(),
-                vehicle.getPrice(),
-                cartLine.isFinancingSelected(),
-                cartLine.getDownPayment(),
-                cartLine.getAnnualRatePercent(),
-                cartLine.getTermMonths(),
-                cartLine.getMonthlyPayment(),
-                cartLine.getLineTotalCost(),
-                cartLine.getTotalInterest()
+                vehicle.getPrice()
         );
     }
 

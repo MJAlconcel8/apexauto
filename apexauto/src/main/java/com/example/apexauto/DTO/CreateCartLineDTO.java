@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-
 // DTO used to add a vehicle to an existing cart.
 @Getter
 @Setter
@@ -13,8 +11,4 @@ import java.math.BigDecimal;
 public class CreateCartLineDTO {
 
     private int vehicleId;
-    private boolean financingSelected;
-    private BigDecimal downPayment;
-    private Double annualRate;
-    private Integer termMonths;
 }

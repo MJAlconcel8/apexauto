@@ -1,6 +1,5 @@
 package com.example.apexauto.services;
 
-import com.example.apexauto.DTO.LoanCalculationResponseDTO;
 import com.example.apexauto.DTO.CreateCartDTO;
 import com.example.apexauto.DTO.UpdateCartDTO;
 import com.example.apexauto.entity.CartLine;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,22 +34,19 @@ public class CartService {
     private final CartLineRepository cartLineRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
-    private final LoanService loanService;
 
     public CartService(
             CartsRepository cartsRepository,
             CartStatusRepository cartStatusRepository,
             CartLineRepository cartLineRepository,
             UserRepository userRepository,
-            VehicleRepository vehicleRepository,
-            LoanService loanService
+            VehicleRepository vehicleRepository
     ) {
         this.cartsRepository = cartsRepository;
         this.cartStatusRepository = cartStatusRepository;
         this.cartLineRepository = cartLineRepository;
         this.userRepository = userRepository;
         this.vehicleRepository = vehicleRepository;
-        this.loanService = loanService;
     }
 
     @Transactional
@@ -154,14 +149,7 @@ public class CartService {
     }
 
     @Transactional
-    public Carts addVehicleToCart(
-            int cartId,
-            int vehicleId,
-            boolean financingSelected,
-            BigDecimal downPayment,
-            Double annualRate,
-            Integer termMonths
-    ) {
+    public Carts addVehicleToCart(int cartId, int vehicleId) {
         Carts cart = validateCartExists(cartId);
         Vehicle vehicle = validateVehicleForCartLine(vehicleId);
 
@@ -173,7 +161,6 @@ public class CartService {
         cartLine.setId(new CartLineId(cart.getCartId(), vehicle.getVehicleId()));
         cartLine.setCart(cart);
         cartLine.setVehicle(vehicle);
-        applyPricingToCartLine(cartLine, vehicle, financingSelected, downPayment, annualRate, termMonths);
         cartLineRepository.save(cartLine);
 
         cart.setTotalItemsInCart(recalculateTotalItems(cart.getCartId()));
@@ -210,56 +197,8 @@ public class CartService {
             cartLine.setId(new CartLineId(cart.getCartId(), vehicle.getVehicleId()));
             cartLine.setCart(cart);
             cartLine.setVehicle(vehicle);
-            applyCashPricing(cartLine, vehicle);
             cartLineRepository.save(cartLine);
         }
-    }
-
-    private void applyPricingToCartLine(
-            CartLine cartLine,
-            Vehicle vehicle,
-            boolean financingSelected,
-            BigDecimal downPayment,
-            Double annualRate,
-            Integer termMonths
-    ) {
-        if (!financingSelected) {
-            applyCashPricing(cartLine, vehicle);
-            return;
-        }
-
-        if (annualRate == null) {
-            throw new IllegalArgumentException("Annual rate is required when financing is selected");
-        }
-
-        if (termMonths == null) {
-            throw new IllegalArgumentException("Term months are required when financing is selected");
-        }
-
-        LoanCalculationResponseDTO loan = loanService.calculateLoanForAmount(
-                vehicle.getPrice(),
-                downPayment,
-                annualRate,
-                termMonths
-        );
-
-        cartLine.setFinancingSelected(true);
-        cartLine.setDownPayment(loan.getDownPayment());
-        cartLine.setAnnualRatePercent(loan.getAnnualRatePercent());
-        cartLine.setTermMonths(loan.getTermMonths());
-        cartLine.setMonthlyPayment(loan.getMonthlyPayment());
-        cartLine.setLineTotalCost(loan.getTotalCost());
-        cartLine.setTotalInterest(loan.getTotalInterest());
-    }
-
-    private void applyCashPricing(CartLine cartLine, Vehicle vehicle) {
-        cartLine.setFinancingSelected(false);
-        cartLine.setDownPayment(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-        cartLine.setAnnualRatePercent(null);
-        cartLine.setTermMonths(null);
-        cartLine.setMonthlyPayment(null);
-        cartLine.setLineTotalCost(vehicle.getPrice().setScale(2, RoundingMode.HALF_UP));
-        cartLine.setTotalInterest(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
     }
 
     private int recalculateTotalItems(int cartId) {
