@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import ResetPassword from './pages/ResetPassword'
+import Cart from './pages/Cart'
 import Home from './pages/Home'
 
 const Landing = () => {
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>
