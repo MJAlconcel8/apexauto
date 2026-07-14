@@ -1,0 +1,29 @@
+Project
+- ApexAuto is an electric-vehicle marketplace application.
+- The frontend uses React, TypeScript, Vite, React Router, and Tailwind CSS.
+- The backend uses Java 21, Spring Boot, Spring Security, JWT authentication, JPA, and MySQL.
+
+Frontend routes
+- / is the landing page.
+- /home is the main user home page.
+- /cart is the cart page.
+- /chatbot is the Amp chatbot page.
+- /login, /register, /forgot-password, /verify-email, and /reset-password are authentication pages.
+- The landing page also presents vehicle comparison, financing, checkout, delivery, and vehicle-detail concepts. These do not have separate routes in App.tsx yet.
+
+Accounts
+- Users can register, sign in, verify their email address, request a password reset, and set a new password.
+- Backend authentication routes use the /auth path.
+- Amp cannot access passwords, reset tokens, JWTs, or private account details.
+
+Vehicles and shopping
+- The backend contains APIs for vehicles, filters, favourites, reviews, search history, vehicle history, carts, cart lines, orders, loan calculations, and payments.
+- Vehicle filters include brand, make, model, color, year, price, sale status, and stock status.
+- Cart-line financing includes a down payment, annual interest rate, and term in months.
+- The chatbot is not connected to these records. It cannot read live inventory or user data, and it cannot create or update records.
+
+Chatbot
+- The React page sends messages to POST /api/chatbot/messages.
+- The Spring Boot backend includes these project notes in the Gemini request.
+- The Gemini API key is read from the backend .env file and is not sent to the browser.
+- Restart the backend after changing this file.

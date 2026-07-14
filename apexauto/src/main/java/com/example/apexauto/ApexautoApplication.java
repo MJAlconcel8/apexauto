@@ -44,6 +44,9 @@ public class ApexautoApplication {
 		applyIfMissing(dotenv, "MAIL_PORT");
 		applyIfMissing(dotenv, "MAIL_USERNAME");
 		applyIfMissing(dotenv, "MAIL_PASSWORD");
+		applyIfMissing(dotenv, "GEMINI_API_KEY");
+		applyIfMissing(dotenv, "GEMINI_MODEL");
+		applyIfMissing(dotenv, "CHATBOT_MAX_OUTPUT_TOKENS");
 			break;
 		}
 	}

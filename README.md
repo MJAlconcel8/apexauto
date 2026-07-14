@@ -476,3 +476,7 @@ npm run dev
 ```
 
 The app will be available at http://localhost:5173 by default.
+
+## Gemini chatbot
+
+Amp calls Gemini through the Spring Boot backend. Setup and test steps are in `CHATBOT_SETUP.md`; keep `GEMINI_API_KEY` in `apexauto/.env`.
