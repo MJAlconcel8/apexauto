@@ -1,21 +1,8 @@
-# ApexAuto Gemini Chatbot
+# Gemini Chatbot Setup
 
-## Overview
+Amp sends chat messages from the React frontend to the Spring Boot backend. The backend adds the ApexAuto project notes and calls Gemini. The Gemini API key is only used by the backend.
 
-The chatbot uses a small frontend-to-backend flow:
-
-```text
-React chatbot page
-    -> POST /api/chatbot/messages
-Spring Boot chatbot service
-    -> ApexAuto knowledge file
-Gemini API
-    -> response shown in React
-```
-
-The Gemini key stays in the backend. Never place it in React or commit it to Git.
-
-## Chatbot files
+## Files used by the chatbot
 
 Backend:
 
@@ -32,102 +19,52 @@ frontend/src/pages/ChatbotPage.css
 frontend/src/services/chatbotApi.ts
 ```
 
-Integration points:
+The route and navigation link are added in:
 
 ```text
-apexauto/src/main/java/com/example/apexauto/configs/SecurityConfiguration.java
-apexauto/src/main/resources/application.properties
 frontend/src/App.tsx
 frontend/src/components/Nav.tsx
 frontend/src/pages/ApexAutoLanding.tsx
 ```
 
-## Requirements
+## Before starting
 
-- Java 21
-- Node.js and npm
-- MySQL 8+
-- A Gemini API key from Google AI Studio
+Make sure the existing ApexAuto backend and frontend can run normally. The database, JWT, and email settings are unchanged; use the main `README.md` for those values.
 
-## 1. Configure MySQL
+You also need a Gemini API key from Google AI Studio.
 
-```powershell
-mysql -u root -p
-```
+## Backend configuration
 
-```sql
-CREATE DATABASE apexauto_test;
-CREATE USER 'apexauto_user'@'localhost' IDENTIFIED BY 'apexauto_password';
-GRANT ALL PRIVILEGES ON apexauto_test.* TO 'apexauto_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-If the user already exists:
-
-```sql
-ALTER USER 'apexauto_user'@'localhost' IDENTIFIED BY 'apexauto_password';
-GRANT ALL PRIVILEGES ON apexauto_test.* TO 'apexauto_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-## 2. Configure the backend
-
-Run these commands from the `apexauto` folder:
+From the `apexauto` folder, copy the example environment file if you do not already have a local `.env`:
 
 ```powershell
 Copy-Item env.example .env
-notepad .env
 ```
 
-Fill in the values:
+Add the chatbot values to `.env`:
 
 ```text
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/apexauto_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-SPRING_DATASOURCE_USERNAME=apexauto_user
-SPRING_DATASOURCE_PASSWORD=apexauto_password
-
-JWT_SECRET_KEY=YOUR_BASE64_SECRET
-JWT_EXPIRATION_TIME=3600000
-
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=YOUR_EMAIL
-MAIL_PASSWORD=YOUR_MAIL_APP_PASSWORD
-
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 GEMINI_MODEL=gemini-3.1-flash-lite
 CHATBOT_MAX_OUTPUT_TOKENS=300
 ```
 
-Generate the JWT secret:
+Do not add the real API key to `env.example`, the frontend environment file, or Git.
 
-```powershell
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
-
-The mail settings belong to the existing account features, not the chatbot, but the main application expects them during startup.
-
-## 3. Test and run the backend
+Run the backend tests and start the application:
 
 ```powershell
 .\mvnw.cmd test
 .\mvnw.cmd spring-boot:run
 ```
 
-A successful start includes:
+The chatbot endpoint is:
 
 ```text
-Started ApexautoApplication
+POST http://localhost:8080/api/chatbot/messages
 ```
 
-Check the backend from another PowerShell window:
-
-```powershell
-Invoke-RestMethod http://localhost:8080/health
-```
-
-Test the chatbot endpoint:
+Example request from PowerShell:
 
 ```powershell
 $body = @{
@@ -142,7 +79,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-Expected response shape:
+A successful request returns:
 
 ```json
 {
@@ -150,9 +87,21 @@ Expected response shape:
 }
 ```
 
-## 4. Test and run the frontend
+## Frontend configuration
 
-Open another PowerShell window in the `frontend` folder:
+The frontend uses `http://localhost:8080` by default. From the `frontend` folder, copy the example file if you need to use another backend address:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Then update:
+
+```text
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+Install the frontend dependencies and run the checks:
 
 ```powershell
 npm ci
@@ -161,51 +110,37 @@ npm run build
 npm run dev
 ```
 
-Open the Vite address, normally:
+Open the Vite address shown in the terminal, then go to `/chatbot` or use the **Chat with Amp** link.
 
-```text
-http://localhost:5173
-```
+## Manual checks
 
-The chatbot page is:
+1. Open the chatbot from the landing page and navigation menu.
+2. Send a suggested question and confirm that only one message is submitted.
+3. Ask a follow-up question to confirm that recent chat history is included.
+4. Clear the conversation and send a new message.
+5. Ask whether Amp can see a cart, payment, password, or account details. It should explain that it has no access to private or live data.
+6. Stop the backend and confirm that the frontend shows an error instead of failing silently.
 
-```text
-http://localhost:5173/chatbot
-```
+## Common errors
 
-For a different backend address, copy `frontend/.env.example` to `frontend/.env` and change `VITE_API_BASE_URL`.
-
-## 5. Browser checks
-
-1. Open the landing page.
-2. Click **Chat with Amp** and confirm `/chatbot` opens.
-3. Click a suggested question and confirm it sends once.
-4. Ask `What can I do on the ApexAuto website?`.
-5. Ask `Can you see my cart or payment information?`.
-6. Confirm Amp does not claim access to accounts, carts, payments, or database records.
-7. Clear the conversation and send another message.
-
-## Expected errors
-
-- Blank or overlong message: HTTP `400`
-- Missing Gemini key: HTTP `503`
-- Invalid key or model: HTTP `502`
-- Gemini quota reached: HTTP `503`
+| Result | Likely cause |
+|---|---|
+| HTTP `400` | The message is blank or longer than 1,000 characters. |
+| HTTP `503` | The Gemini key is missing or the API quota has been reached. |
+| HTTP `502` | Gemini rejected the key/model, could not be reached, or returned an invalid response. |
 
 Restart Spring Boot after changing `.env`.
 
-## Update project knowledge
+## Deployment note
 
-Edit:
+`/api/chatbot/messages` currently allows requests without signing in. This is convenient for the project demo, but a public deployment should add login protection or a simple request limit so the Gemini quota cannot be used freely.
+
+## Updating ApexAuto information
+
+Amp reads its project information from:
 
 ```text
 apexauto/src/main/resources/chatbot/apexauto-site-knowledge.txt
 ```
 
-Keep the file short and factual. Only describe features that exist in the code, then restart the backend.
-
-Never add passwords, API keys, tokens, customer information, payment information, or database credentials.
-
-## Scope
-
-This school-project integration intentionally avoids streaming, vector databases, tool calls, account access, database access, and automatic actions. It sends a short project knowledge file with each request so the code remains easy to explain and maintain.
+Update this file when a route or feature changes. Keep it limited to information that is already implemented, and restart the backend after editing it. Do not put secrets, credentials, payment data, or user information in this file.

@@ -479,4 +479,4 @@ The app will be available at http://localhost:5173 by default.
 
 ## Gemini chatbot
 
-The optional Amp chatbot uses a backend-only Gemini API key. See `CHATBOT_SETUP.md` for setup and testing instructions. Never place `GEMINI_API_KEY` in the frontend.
+Amp calls Gemini through the Spring Boot backend. Setup and test steps are in `CHATBOT_SETUP.md`; keep `GEMINI_API_KEY` in `apexauto/.env`.
