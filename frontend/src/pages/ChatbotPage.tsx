@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowLeft, Bot, Eraser, MessageSquareText, Send, Sparkles, Zap } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Bot, Eraser, MessageSquareText, Send, Sparkles } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Btn, Footer } from '../components'
+import Nav from '../components/Nav'
 import { sendChatbotMessage } from '../services/chatbotApi'
-import './ChatbotPage.css'
 
 type ChatRole = 'user' | 'assistant'
 
@@ -103,82 +104,152 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="amp-page">
-      <header className="amp-header">
-        <div className="amp-header-inner">
-          <Link to="/" className="amp-brand" aria-label="ApexAuto home">
-            <span className="amp-brand-icon"><Zap size={16} /></span>
-            <span><strong>Apex</strong><em>Auto</em></span>
-          </Link>
-          <div className="amp-header-actions">
-            <Link to="/" className="amp-header-link"><ArrowLeft size={16} /> Back home</Link>
-            <Link to="/login" className="amp-sign-in">Sign in</Link>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-apex-paper bg-[radial-gradient(circle_at_8%_18%,rgba(14,99,255,0.11),transparent_24rem)] pt-16 font-body text-apex-ink">
+      <Nav />
 
-      <main className="amp-main">
-        <section className="amp-intro" aria-labelledby="amp-heading">
-          <span className="amp-eyebrow"><Sparkles size={14} /> ApexAuto chatbot</span>
-          <h1 id="amp-heading">Ask Amp about ApexAuto and EVs.</h1>
-          <p>
+      <main className="mx-auto grid min-h-[calc(100vh-4rem)] w-[min(1200px,calc(100%-40px))] flex-1 grid-cols-1 items-center gap-9 py-[clamp(42px,7vw,78px)] lg:grid-cols-[minmax(0,0.82fr)_minmax(480px,1.18fr)] lg:gap-[clamp(36px,7vw,86px)] max-sm:w-[min(1200px,calc(100%-24px))] max-sm:gap-7 max-sm:pt-[30px]">
+        <section className="max-w-[680px]" aria-labelledby="amp-heading">
+          <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-apex-voltage-ink">
+            <Sparkles size={14} /> ApexAuto chatbot
+          </span>
+
+          <h1
+            id="amp-heading"
+            className="my-4 max-w-[620px] font-display text-[clamp(38px,5vw,62px)] font-black leading-[0.98] tracking-[-0.045em] text-apex-ink max-sm:text-[39px]"
+          >
+            Ask Amp about ApexAuto and EVs.
+          </h1>
+
+          <p className="max-w-[570px] text-[17px] leading-[1.65] text-apex-muted max-sm:text-[15px]">
             Amp can explain the current project, account pages, backend features, charging,
             range, and basic EV shopping topics.
           </p>
 
-          <div className="amp-feature-list">
-            <div><MessageSquareText size={18} /><span><strong>Project help</strong> based on the ApexAuto knowledge file</span></div>
-            <div><Bot size={18} /><span><strong>General EV answers</strong> through the backend Gemini connection</span></div>
+          <div className="my-7 grid gap-3 text-sm text-apex-muted">
+            <div className="flex items-center gap-3">
+              <MessageSquareText className="shrink-0 text-apex-voltage" size={18} />
+              <span>
+                <strong className="text-apex-ink">Project help</strong> based on the ApexAuto knowledge file
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Bot className="shrink-0 text-apex-voltage" size={18} />
+              <span>
+                <strong className="text-apex-ink">General EV answers</strong> through the backend Gemini connection
+              </span>
+            </div>
           </div>
 
-          <div className="amp-quick-section">
-            <h2>Try asking</h2>
-            <div className="amp-quick-grid">
-              {quickPrompts.map((prompt) => (
-                <button key={prompt} type="button" onClick={() => void sendMessage(prompt)} disabled={isSending}>
-                  {prompt}
-                </button>
-              ))}
-            </div>
+          <div>
+            <h2 className="mb-3 font-display text-[15px] tracking-[0.02em]">Try asking</h2>
+            <fieldset
+              disabled={isSending}
+              className={`m-0 min-w-0 border-0 p-0 ${isSending ? 'cursor-not-allowed opacity-60' : ''}`}
+            >
+              <div className="flex flex-wrap gap-2">
+                {quickPrompts.map((prompt) => (
+                  <Btn
+                    key={prompt}
+                    variant="quiet"
+                    size="sm"
+                    onClick={() => void sendMessage(prompt)}
+                  >
+                    {prompt}
+                  </Btn>
+                ))}
+              </div>
+            </fieldset>
           </div>
         </section>
 
-        <section className="amp-chat-card" aria-label="Chat with Amp">
-          <div className="amp-chat-topbar">
-            <div className="amp-agent">
-              <span className="amp-agent-avatar"><Sparkles size={18} /></span>
+        <section
+          className="grid h-[min(710px,calc(100vh-118px))] min-h-[570px] grid-rows-[auto_1fr_auto] overflow-hidden rounded-[18px] border border-white/[0.08] bg-apex-ink shadow-[0_34px_78px_-34px_rgba(18,22,28,0.65)] max-lg:h-[680px] max-sm:h-[670px] max-sm:min-h-[540px] max-sm:rounded-[14px]"
+          aria-label="Chat with Amp"
+        >
+          <div className="flex min-h-[68px] items-center justify-between border-b border-white/10 px-4 py-[13px]">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex size-[38px] shrink-0 items-center justify-center rounded-full border border-apex-voltage/40 bg-apex-voltage/20 text-apex-voltage">
+                <Sparkles size={18} />
+              </span>
               <div>
-                <strong>Amp</strong>
-                <span><i /> Ready</span>
+                <strong className="block font-display text-[15px] text-white">Amp</strong>
+                <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-apex-muted-ink">
+                  <i className="size-1.5 rounded-full bg-apex-green" /> Ready
+                </span>
               </div>
             </div>
-            <button type="button" className="amp-clear" onClick={clearConversation} disabled={isSending}>
-              <Eraser size={16} /> Clear
-            </button>
+
+            <fieldset
+              disabled={isSending}
+              className={`m-0 min-w-0 border-0 p-0 ${isSending ? 'cursor-not-allowed opacity-50' : ''}`}
+            >
+              <Btn variant="ghostDark" size="sm" icon={Eraser} onClick={clearConversation}>
+                Clear
+              </Btn>
+            </fieldset>
           </div>
 
-          <div className="amp-messages" aria-live="polite">
-            {messages.map((message) => (
-              <div key={message.id} className={`amp-message-row amp-${message.role}`}>
-                {message.role === 'assistant' && <span className="amp-mini-avatar"><Sparkles size={14} /></span>}
-                <div className="amp-message-bubble">{message.content}</div>
-              </div>
-            ))}
+          <div
+            className="overflow-y-auto px-[18px] py-5 [scrollbar-color:#334050_transparent]"
+            aria-live="polite"
+          >
+            {messages.map((message) => {
+              const isAssistant = message.role === 'assistant'
+
+              return (
+                <div
+                  key={message.id}
+                  className={`mb-3.5 flex items-start gap-2 ${isAssistant ? '' : 'justify-end'}`}
+                >
+                  {isAssistant && (
+                    <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-apex-voltage/40 bg-apex-voltage/20 text-apex-voltage">
+                      <Sparkles size={14} />
+                    </span>
+                  )}
+
+                  <div
+                    className={`max-w-[min(82%,520px)] whitespace-pre-wrap px-3.5 py-3 text-sm leading-[1.55] [overflow-wrap:anywhere] max-sm:max-w-[88%] ${
+                      isAssistant
+                        ? 'rounded-[14px_14px_14px_4px] border border-white/10 bg-apex-ink-2 text-[#f4f7fb]'
+                        : 'rounded-[14px_14px_4px_14px] bg-apex-voltage text-white'
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              )
+            })}
 
             {isSending && (
-              <div className="amp-message-row amp-assistant">
-                <span className="amp-mini-avatar"><Sparkles size={14} /></span>
-                <div className="amp-message-bubble amp-typing" aria-label="Amp is typing">
-                  <span /><span /><span />
+              <div className="mb-3.5 flex items-start gap-2">
+                <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-apex-voltage/40 bg-apex-voltage/20 text-apex-voltage">
+                  <Sparkles size={14} />
+                </span>
+                <div
+                  className="flex min-w-[60px] items-center justify-center gap-1.5 rounded-[14px_14px_14px_4px] border border-white/10 bg-apex-ink-2 px-3.5 py-3"
+                  aria-label="Amp is typing"
+                >
+                  <span className="size-1.5 rounded-full bg-apex-muted-ink motion-safe:animate-bounce motion-reduce:animate-none" />
+                  <span className="size-1.5 rounded-full bg-apex-muted-ink motion-safe:animate-bounce motion-reduce:animate-none [animation-delay:120ms]" />
+                  <span className="size-1.5 rounded-full bg-apex-muted-ink motion-safe:animate-bounce motion-reduce:animate-none [animation-delay:240ms]" />
                 </div>
               </div>
             )}
+
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="amp-composer-wrap">
-            {error && <p className="amp-error" role="alert">{error}</p>}
-            <form className="amp-composer" onSubmit={handleSubmit}>
+          <div className="border-t border-white/10 px-3.5 pb-[13px] pt-3">
+            {error && (
+              <p className="mb-2 text-xs text-[#ff8b8b]" role="alert">
+                {error}
+              </p>
+            )}
+
+            <form
+              className="flex items-end gap-2 rounded-[14px] border border-white/10 bg-apex-ink-2 py-[7px] pl-3.5 pr-[7px] focus-within:border-apex-voltage/75"
+              onSubmit={handleSubmit}
+            >
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -188,20 +259,32 @@ export default function ChatbotPage() {
                     event.currentTarget.form?.requestSubmit()
                   }
                 }}
+                className="av-focus max-h-[120px] w-full resize-none border-0 bg-transparent text-sm leading-6 text-white outline-none placeholder:text-[#778392] disabled:cursor-not-allowed"
                 placeholder="Ask about ApexAuto or EVs…"
                 rows={1}
                 maxLength={1000}
                 disabled={isSending}
                 aria-label="Message Amp"
               />
-              <button type="submit" disabled={isSending || !input.trim()} aria-label="Send message">
+
+              <button
+                type="submit"
+                disabled={isSending || !input.trim()}
+                className="av-focus inline-flex size-[38px] shrink-0 items-center justify-center rounded-[11px] bg-apex-voltage text-white transition-colors hover:bg-apex-voltage-ink disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Send message"
+              >
                 <Send size={18} />
               </button>
             </form>
-            <p className="amp-disclaimer">Do not share passwords, API keys, access tokens, or payment details.</p>
+
+            <p className="mx-1 mt-2 text-center text-[10px] text-[#778392]">
+              Do not share passwords, API keys, access tokens, or payment details.
+            </p>
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   )
 }
