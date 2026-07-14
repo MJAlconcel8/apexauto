@@ -98,10 +98,10 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
   ];
 
   return (
-    <div className="bg-apex-paper text-apex-ink font-body min-h-screen">
+    <div className="min-h-screen bg-background font-body text-foreground">
 
       {/* HERO */}
-      <section className="bg-[linear-gradient(160deg,var(--color-apex-ink)_0%,var(--color-apex-ink-2)_55%,var(--color-apex-ink-3)_100%)]">
+      <section className="bg-[linear-gradient(160deg,#030c1a_0%,#071428_55%,#0d1f3c_100%)]">
         <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 max-w-300 px-5 py-[clamp(48px,7vw,88px)]">
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -133,16 +133,16 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
           {/* Featured vehicle */}
           <Reveal>
-            <div className="bg-white rounded-2xl p-5.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.5)]">
+            <div className="rounded-2xl border border-card-border bg-card p-5.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.72),0_0_42px_rgba(14,99,255,0.10)]">
               <div className="flex items-start justify-between">
                 <div>
-                  <Eyebrow>Flagship · Longest range</Eyebrow>
-                  <h3 className="font-display font-extrabold text-[24px] text-apex-ink mt-1.5 tracking-[-0.01em]">
+                  <Eyebrow dark>Flagship · Longest range</Eyebrow>
+                  <h3 className="mt-1.5 font-display text-[24px] font-extrabold tracking-[-0.01em] text-white">
                     Vantage Aero
                   </h3>
                   <div className="flex items-center gap-1 mt-1">
                     {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={13} color="var(--color-apex-amber)" fill="var(--color-apex-amber)" />)}
-                    <span className="font-mono text-[12px] text-apex-muted ml-1">4.9</span>
+                    <span className="ml-1 font-mono text-[12px] text-[#91a9ca]">4.9</span>
                   </div>
                 </div>
                 <Badge badge={{ label: "2024", tone: "voltage" }} />
@@ -159,16 +159,16 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pb-4 border-b border-apex-line">
-                <SpecReadout label="Battery" value={105} unit="kWh" />
-                <SpecReadout label="0–100" value="2.1" unit="s" />
-                <SpecReadout label="Seats" value={4} />
+              <div className="grid grid-cols-3 gap-3 border-b border-card-border pb-4">
+                <SpecReadout dark label="Battery" value={105} unit="kWh" />
+                <SpecReadout dark label="0–100" value="2.1" unit="s" />
+                <SpecReadout dark label="Seats" value={4} />
               </div>
 
               <div className="flex items-center justify-between mt-4">
                 <div>
-                  <div className="font-mono text-[11px] text-apex-muted tracking-widest uppercase">From</div>
-                  <div className="font-mono text-[24px] font-semibold text-apex-ink">{fmtUSD(89900)}</div>
+                  <div className="font-mono text-[11px] uppercase tracking-widest text-[#8fa8ca]">From</div>
+                  <div className="font-mono text-[24px] font-semibold text-white">{fmtUSD(89900)}</div>
                 </div>
                 <Btn variant="primary" size="md" icon={ArrowRight} onClick={() => go("vehicle-detail", { id: "v-aero" })}>View details</Btn>
               </div>
@@ -178,7 +178,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       </section>
 
       {/* TRUST STRIP */}
-      <section className="bg-white border-b border-apex-line">
+      <section className="border-b border-card-border bg-[#061126]">
         <div className="mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-300 px-5 py-7">
           {[
             { icon: BatteryCharging, t: "Combined range, verified", d: "Cold-weather adjusted" },
@@ -187,12 +187,12 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
             { icon: Route, t: "12,000+ fast chargers", d: "Trip planner built in" },
           ].map((f) => (
             <div key={f.t} className="flex items-center gap-3">
-              <span className="flex items-center justify-center shrink-0 w-10 h-10 rounded-[10px] bg-apex-voltage-soft text-apex-voltage">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-apex-voltage/35 bg-apex-voltage/15 text-[#7eb3ff]">
                 <f.icon size={19} strokeWidth={2} />
               </span>
               <div>
-                <div className="font-body font-semibold text-sm text-apex-ink">{f.t}</div>
-                <div className="font-mono text-[11px] text-apex-muted mt-0.5">{f.d}</div>
+                <div className="font-body text-sm font-semibold text-white">{f.t}</div>
+                <div className="mt-0.5 font-mono text-[11px] text-[#8fa8ca]">{f.d}</div>
               </div>
             </div>
           ))}
@@ -202,21 +202,21 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       {/* BROWSE BY CATEGORY */}
       <section className="mx-auto max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
         <div className="flex items-end justify-between gap-4 flex-wrap">
-          <SectionHead eyebrow="Find your shape" title="Browse by category" />
-          <Btn variant="quiet" size="sm" icon={ChevronRight} onClick={() => go("catalogue")}>View all</Btn>
+          <SectionHead dark eyebrow="Find your shape" title="Browse by category" />
+          <Btn variant="ghostDark" size="sm" icon={ChevronRight} onClick={() => go("catalogue")}>View all</Btn>
         </div>
         <div className="grid gap-4 mt-7" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
           {CATEGORIES.map((cat) => (
             <button
               key={cat.name}
               onClick={() => go("catalogue", { category: cat.name })}
-              className="av-focus av-cat flex flex-col text-left bg-white border border-apex-line rounded-[14px] p-4.5 cursor-pointer gap-2.5"
+              className="av-focus av-cat flex cursor-pointer flex-col gap-2.5 rounded-[14px] border border-card-border bg-card p-4.5 text-left shadow-[0_10px_30px_-20px_rgba(0,0,0,0.75)] hover:bg-secondary"
             >
-              <span className="flex items-center justify-center w-8.5 h-8.5 rounded-[9px] bg-apex-voltage-soft text-apex-voltage">
+              <span className="flex h-8.5 w-8.5 items-center justify-center rounded-[9px] border border-apex-voltage/30 bg-apex-voltage/15 text-[#7eb3ff]">
                 <Gauge size={17} strokeWidth={2} />
               </span>
-              <div className="font-display font-extrabold text-[17px] text-apex-ink">{cat.name}</div>
-              <div className="font-body text-[13px] text-apex-muted leading-[1.4]">{cat.note}</div>
+              <div className="font-display text-[17px] font-extrabold text-white">{cat.name}</div>
+              <div className="font-body text-[13px] leading-[1.4] text-[#91a9ca]">{cat.note}</div>
               <div className="font-mono text-[11px] text-apex-voltage mt-0.5">{cat.count} in stock →</div>
             </button>
           ))}
@@ -224,16 +224,16 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       </section>
 
       {/* FEATURED VEHICLES */}
-      <section className="bg-white border-t border-apex-line border-b">
+      <section className="border-y border-card-border bg-[#061126]">
         <div className="mx-auto max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
           <div className="flex items-end justify-between gap-4 flex-wrap">
-            <SectionHead eyebrow="Hot this week" title="Featured vehicles" sub="Hand-picked for range, value, and quick availability." />
-            <Btn variant="outline" size="sm" icon={ChevronRight} onClick={() => go("catalogue")}>See the full catalogue</Btn>
+            <SectionHead dark eyebrow="Hot this week" title="Featured vehicles" sub="Hand-picked for range, value, and quick availability." />
+            <Btn variant="ghostDark" size="sm" icon={ChevronRight} onClick={() => go("catalogue")}>See the full catalogue</Btn>
           </div>
           <div className="grid gap-6 lg:grid-cols-3 mt-7">
             {VEHICLES.map((v, i) => (
               <Reveal key={v.id} delay={i * 90}>
-                <VehicleCard v={v} hideFinance onView={(veh) => go("vehicle-detail", { id: veh.id })}/>
+                <VehicleCard v={v} dark hideFinance onView={(veh) => go("vehicle-detail", { id: veh.id })}/>
               </Reveal>
             ))}
           </div>
@@ -242,19 +242,19 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
       {/* HOW IT WORKS */}
       <section className="mx-auto max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
-        <SectionHead eyebrow="Three steps" title="How it works" align="center" />
+        <SectionHead dark eyebrow="Three steps" title="How it works" align="center" />
         <div className="grid gap-6 md:grid-cols-3 mt-9">
           {steps.map((s, i) => (
             <Reveal key={s.title} delay={i * 90}>
-              <div className="bg-white border border-apex-line rounded-[14px] p-6 h-full">
+              <div className="h-full rounded-[14px] border border-card-border bg-card p-6 shadow-[0_10px_30px_-22px_rgba(0,0,0,0.8)]">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center justify-center w-10.5 h-10.5 rounded-[10px] bg-apex-voltage-soft text-apex-voltage">
+                  <span className="flex h-10.5 w-10.5 items-center justify-center rounded-[10px] border border-apex-voltage/30 bg-apex-voltage/15 text-[#7eb3ff]">
                     <s.icon size={20} strokeWidth={2} />
                   </span>
-                  <span className="font-mono text-[26px] font-semibold text-apex-line">0{i + 1}</span>
+                  <span className="font-mono text-[26px] font-semibold text-[#27456d]">0{i + 1}</span>
                 </div>
-                <h3 className="font-display font-extrabold text-[19px] text-apex-ink mt-4.5">{s.title}</h3>
-                <p className="font-body text-sm text-apex-muted leading-[1.55] mt-2">{s.body}</p>
+                <h3 className="mt-4.5 font-display text-[19px] font-extrabold text-white">{s.title}</h3>
+                <p className="mt-2 font-body text-sm leading-[1.55] text-[#91a9ca]">{s.body}</p>
               </div>
             </Reveal>
           ))}
@@ -262,7 +262,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       </section>
 
       {/* LOAN CALCULATOR */}
-      <section className="bg-apex-ink">
+      <section className="bg-[#030c1a]">
         <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
           <div>
             <SectionHead dark eyebrow="Finance tool" title="Know the monthly number before you commit" sub="Set the price, down payment, term, and APR. Every control recomputes the payment live — no sign-in, no sales call." />
@@ -276,7 +276,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
             </div>
           </div>
           <Reveal>
-            <div className="bg-apex-ink-2 border border-white/10 rounded-2xl p-6">
+            <div className="rounded-2xl border border-card-border bg-card p-6">
               <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-apex-muted-ink">Est. monthly payment</div>
               <div className="font-mono text-[clamp(40px,7vw,56px)] font-semibold text-white leading-none mt-2 mb-1">$1,043</div>
               <div className="font-mono text-[12px] text-apex-muted-ink">60 mo · 4.9% APR · 20% down</div>
@@ -293,22 +293,22 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
       {/* COMPARE */}
       <section className="mx-auto max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
-        <SectionHead eyebrow="Side by side" title="Compare up to three, spec for spec" sub="Best value in each row is marked. No guesswork." />
+        <SectionHead dark eyebrow="Side by side" title="Compare up to three, spec for spec" sub="Best value in each row is marked. No guesswork." />
         <Reveal>
-          <div className="mt-7 overflow-x-auto border border-apex-line rounded-[14px] bg-white">
+          <div className="mt-7 overflow-x-auto rounded-[14px] border border-card-border bg-card shadow-[0_18px_42px_-28px_rgba(0,0,0,0.85)]">
             <table className="w-full border-collapse min-w-140">
               <thead>
                 <tr>
-                  <th className="text-left p-[16px_18px] border-b border-apex-line">
-                    <span className="font-mono text-[11px] tracking-[0.12em] uppercase text-apex-muted">Spec</span>
+                  <th className="border-b border-card-border p-[16px_18px] text-left">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#8fa8ca]">Spec</span>
                   </th>
                   {VEHICLES.map((v) => (
-                    <th key={v.id} className="text-left p-[14px_18px] border-b border-apex-line">
+                    <th key={v.id} className="border-b border-card-border p-[14px_18px] text-left">
                       <div className="w-full h-16 rounded-lg overflow-hidden mb-2 max-w-32.5">
                         <img src={v.img} alt={`${v.marque} ${v.model}`} className="w-full h-full object-cover block" />
                       </div>
-                      <div className="font-mono text-[10px] text-apex-muted tracking-[0.08em]">{v.marque.toUpperCase()} · {v.year}</div>
-                      <div className="font-display font-extrabold text-[15px] text-apex-ink mt-0.5">{v.model}</div>
+                      <div className="font-mono text-[10px] tracking-[0.08em] text-[#8fa8ca]">{v.marque.toUpperCase()} · {v.year}</div>
+                      <div className="mt-0.5 font-display text-[15px] font-extrabold text-white">{v.model}</div>
                     </th>
                   ))}
                 </tr>
@@ -317,13 +317,13 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
                 {compareRows.map((row, ri) => {
                   const bestVal = row.best(VEHICLES);
                   return (
-                    <tr key={row.key} className={ri % 2 ? "bg-apex-paper" : "bg-white"}>
-                      <td className="p-[13px_18px] font-mono text-[11px] tracking-[0.08em] uppercase text-apex-muted">{row.label}</td>
+                    <tr key={row.key} className={ri % 2 ? "bg-secondary/45" : "bg-card"}>
+                      <td className="p-[13px_18px] font-mono text-[11px] uppercase tracking-[0.08em] text-[#8fa8ca]">{row.label}</td>
                       {VEHICLES.map((v) => {
                         const isBest = row.pick(v) === bestVal;
                         return (
                           <td key={v.id} className="p-[13px_18px]">
-                            <span className={`inline-flex items-center gap-1.5 font-mono text-sm ${isBest ? "font-semibold text-apex-voltage-ink" : "font-normal text-apex-ink"}`}>
+                            <span className={`inline-flex items-center gap-1.5 font-mono text-sm ${isBest ? "font-semibold text-[#7eb3ff]" : "font-normal text-[#dce8ff]"}`}>
                               {isBest && <span className="w-1.5 h-1.5 rounded-full bg-apex-voltage inline-block" />}
                               {row.fmt(v)}
                             </span>
@@ -340,14 +340,14 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       </section>
 
       {/* CHATBOT PROMO */}
-      <section className="bg-white border-t border-apex-line border-b">
+      <section className="border-y border-card-border bg-[#061126]">
         <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
           <div>
-            <SectionHead eyebrow="EV assistant" title="Meet Amp — the ApexAuto chatbot" sub="Ask about the current website, backend features, charging, range, and basic EV shopping questions." />
+            <SectionHead dark eyebrow="EV assistant" title="Meet Amp — the ApexAuto chatbot" sub="Ask about the current website, backend features, charging, range, and basic EV shopping questions." />
             <div className="flex flex-wrap items-center gap-2 mt-5">
               <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => go("chatbot")}>Chat with Amp</Btn>
               {["What can I do on ApexAuto?", "Best cold-weather range", "Explain EV financing"].map((q) => (
-                <button key={q} onClick={() => go("chatbot", { prompt: q })} className="av-focus font-body text-[13px] text-apex-ink bg-apex-paper border border-apex-line rounded-full px-3.5 py-2 cursor-pointer">
+                <button key={q} onClick={() => go("chatbot", { prompt: q })} className="av-focus cursor-pointer rounded-full border border-[#27456d] bg-secondary px-3.5 py-2 font-body text-[13px] text-[#dce8ff] transition-colors hover:border-[#4b91ff] hover:bg-[#12305a]">
                   {q}
                 </button>
               ))}
@@ -393,16 +393,16 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
       {/* WHY APEXAUTO */}
       <section className="mx-auto max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
-        <SectionHead eyebrow="Why ApexAuto" title="Built for people who read the spec sheet" align="center" />
+        <SectionHead dark eyebrow="Why ApexAuto" title="Built for people who read the spec sheet" align="center" />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-9">
           {why.map((w, i) => (
             <Reveal key={w.title} delay={i * 70}>
               <div className="h-full">
-                <span className="flex items-center justify-center w-11 h-11 rounded-[11px] bg-apex-voltage-soft text-apex-voltage">
+                <span className="flex h-11 w-11 items-center justify-center rounded-[11px] border border-apex-voltage/30 bg-apex-voltage/15 text-[#7eb3ff]">
                   <w.icon size={20} strokeWidth={2} />
                 </span>
-                <h3 className="font-display font-extrabold text-[17px] text-apex-ink mt-4">{w.title}</h3>
-                <p className="font-body text-sm text-apex-muted leading-[1.55] mt-2">{w.body}</p>
+                <h3 className="mt-4 font-display text-[17px] font-extrabold text-white">{w.title}</h3>
+                <p className="mt-2 font-body text-sm leading-[1.55] text-[#91a9ca]">{w.body}</p>
               </div>
             </Reveal>
           ))}
@@ -433,7 +433,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
       {/* toast */}
       {toast && (
-        <div role="status" aria-live="polite" className="fixed left-1/2 bottom-6 -translate-x-1/2 bg-apex-ink text-white font-mono text-[13px] px-4.5 py-2.5 rounded-[10px] border border-white/[0.14] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] z-60 flex items-center gap-2">
+        <div role="status" aria-live="polite" className="fixed bottom-6 left-1/2 z-60 flex -translate-x-1/2 items-center gap-2 rounded-[10px] border border-card-border bg-card px-4.5 py-2.5 font-mono text-[13px] text-white shadow-[0_10px_30px_-12px_rgba(0,0,0,0.7)]">
           <Check size={15} className="text-apex-green" /> {toast}
         </div>
       )}
