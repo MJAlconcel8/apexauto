@@ -7,6 +7,7 @@ export { RangeGauge } from "./RangeGauge";
 export { Badge } from "./Badge";
 export { VehicleCard } from "./VehicleCard";
 export { Reveal } from "./Reveal";
+export { CartLineItem } from "./CartLineItem";
 export type {
   BadgeTone,
   LucideIcon,
@@ -21,4 +22,6 @@ export type {
   RangeGaugeProps,
   BadgeProps,
   VehicleCardProps,
+  CartLine,
+  CartLineItemProps,
 } from "./types";

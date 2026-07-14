@@ -32,7 +32,7 @@ public class AuthenticationController {
         User authenticatedUser = authenticationService.authenticate(loginUserDTO);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        LoginResponseDTO response = new LoginResponseDTO(jwtToken, jwtService.getExpirationTime());
+        LoginResponseDTO response = new LoginResponseDTO(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getUserId());
 
         return ResponseEntity.ok(response);
     }

@@ -91,9 +91,9 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
 
   const compareRows: CompareRow[] = [
     { key: "price", label: "Price", fmt: (v) => fmtUSD(v.price), best: (vs) => Math.min(...vs.map((v) => v.price)), pick: (v) => v.price },
-    { key: "range", label: "Range", fmt: (v) => `${v.mileage} km`, best: (vs) => Math.max(...vs.map((v) => v.mileage)), pick: (v) => v.mileage },
-    { key: "battery", label: "Battery", fmt: (v) => `${v.emissionScore} kWh`, best: (vs) => Math.max(...vs.map((v) => v.emissionScore)), pick: (v) => v.emissionScore },
-    { key: "zero", label: "0–100 mph", fmt: (v) => `${v.fuelUsage.toFixed(1)} s`, best: (vs) => Math.min(...vs.map((v) => v.fuelUsage)), pick: (v) => v.fuelUsage },
+    { key: "mileage", label: "Mileage", fmt: (v) => `${v.mileage} km`, best: (vs) => Math.max(...vs.map((v) => v.mileage)), pick: (v) => v.mileage },
+    { key: "emission", label: "Emission", fmt: (v) => `${v.emissionScore} g/km`, best: (vs) => Math.min(...vs.map((v) => v.emissionScore)), pick: (v) => v.emissionScore },
+    { key: "fuel", label: "Fuel Usage", fmt: (v) => `${v.fuelUsage.toFixed(1)} L/100km`, best: (vs) => Math.min(...vs.map((v) => v.fuelUsage)), pick: (v) => v.fuelUsage },
     { key: "stock", label: "In stock", fmt: (v) => `${v.stock}`, best: (vs) => Math.max(...vs.map((v) => v.stock)), pick: (v) => v.stock },
   ];
 
@@ -233,7 +233,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
           <div className="grid gap-6 lg:grid-cols-3 mt-7">
             {VEHICLES.map((v, i) => (
               <Reveal key={v.id} delay={i * 90}>
-                <VehicleCard v={v} onView={(veh) => go("vehicle-detail", { id: veh.id })}/>
+                <VehicleCard v={v} hideFinance onView={(veh) => go("vehicle-detail", { id: veh.id })}/>
               </Reveal>
             ))}
           </div>
