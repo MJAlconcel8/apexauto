@@ -77,6 +77,29 @@ export interface BadgeProps {
 export interface VehicleCardProps {
   v: Vehicle;
   dark?: boolean;
+  hideFinance?: boolean;
   onView?: (v: Vehicle) => void;
-  onCart?: (v: Vehicle) => void;
+  onFinance?: (v: Vehicle) => void;
+}
+
+export interface CartLine {
+  cartId: number
+  vehicleId: number
+  brand: string
+  make: string
+  model: string
+  year: number
+  price: number
+  financingSelected: boolean
+  downPayment: number | null
+  annualRatePercent: number | null
+  termMonths: number | null
+  monthlyPayment: number | null
+  lineTotalCost: number | null
+  totalInterest: number | null
+}
+
+export interface CartLineItemProps {
+  line: CartLine
+  onRemove: (vehicleId: number) => void
 }

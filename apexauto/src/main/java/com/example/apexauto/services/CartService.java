@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 // This service contains cart, cart status, and cart line business logic.
@@ -85,6 +86,13 @@ public class CartService {
 
         if (safeRequest.getUserId() != 0 && safeRequest.getUserId() != userId) {
             throw new IllegalArgumentException("Path userId does not match request body userId");
+        }
+
+        Optional<Carts> existing = cartsRepository
+                .findFirstByUserUserIdAndCartStatusCartStatusNameIgnoreCaseOrderByCartIdDesc(
+                        userId, DEFAULT_CART_STATUS);
+        if (existing.isPresent()) {
+            return existing.get();
         }
 
         safeRequest.setUserId(userId);

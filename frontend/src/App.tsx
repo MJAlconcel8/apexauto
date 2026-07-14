@@ -9,6 +9,7 @@ import ResetPassword from './pages/ResetPassword'
 import Cart from './pages/Cart'
 import Home from './pages/Home'
 import ChatbotPage from './pages/ChatbotPage'
+import LoanCalc from './pages/LoanCalc'
 
 const Landing = () => {
   const navigate = useNavigate()
@@ -36,6 +37,7 @@ const App = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/finance" element={<LoanCalc />} />
         <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>

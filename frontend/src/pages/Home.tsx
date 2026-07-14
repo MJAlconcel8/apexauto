@@ -9,7 +9,7 @@ import Nav from '../components/Nav'
 import { VehicleCard, Reveal, SectionHead, Btn, Footer } from '../components'
 import type { Vehicle, GoFn, ViewParams } from '../components'
 
-const fmtUSD = (n: number) => '$' + n.toLocaleString('en-US')
+const fmtCAD = (n: number) => '$' + n.toLocaleString('en-CA')
 
 /* ── Data ─────────────────────────────────────────────────────── */
 
@@ -236,7 +236,7 @@ export default function Home({ onNavigate }: HomeProps) {
                     {HERO_VEHICLE.model}
                   </span>
                   <span className="font-mono font-semibold text-[15px]" style={{ color: '#0066ff' }}>
-                    {fmtUSD(HERO_VEHICLE.price)}
+                    {fmtCAD(HERO_VEHICLE.price)}
                   </span>
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function Home({ onNavigate }: HomeProps) {
                   v={v}
                   dark
                   onView={(vehicle) => go(`/vehicle/${vehicle.id}`)}
-                  onCart={() => {}}
+                  onFinance={() => {}}
                 />
               </Reveal>
             ))}

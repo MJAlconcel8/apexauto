@@ -15,6 +15,7 @@ public class LoginResponseDTO {
 
     private String token;
     private long expiresIn;
+    private int userId;
 
 }
 

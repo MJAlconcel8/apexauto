@@ -1,6 +1,6 @@
-import { useState} from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ZapIcon } from 'lucide-react'
+import { ZapIcon, ShoppingCart } from 'lucide-react'
 import type { GoFn, ViewParams } from './types'
 
 const navLinks = [
@@ -21,8 +21,22 @@ interface NavProps { onNavigate?: GoFn }
 export default function Nav({ onNavigate }: NavProps) {
   const [adminOpen, setAdminOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
   const location = useLocation()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const userId = localStorage.getItem('userId')
+    if (!token || !userId) return
+
+    fetch(`http://localhost:8080/users/${userId}/carts/active`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setCartCount(data?.totalItemsInCart ?? 0))
+      .catch(() => setCartCount(0))
+  }, [location.pathname])
 
 
   const go: GoFn = (view: string, params?: ViewParams) => {
@@ -114,11 +128,14 @@ export default function Nav({ onNavigate }: NavProps) {
             )}
           </div>
 
-          {/* Notifications */}
-          <button className="relative hover:text-white transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-            </svg>
+          {/* Cart */}
+          <button onClick={() => go('/cart')} className="relative hover:text-white transition-colors">
+            <ShoppingCart className="h-5 w-5" strokeWidth={1.5} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-0.5 rounded-full bg-[#0066ff] text-white text-[10px] font-bold leading-4 text-center">
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
           </button>
 
           {/* User avatar */}
