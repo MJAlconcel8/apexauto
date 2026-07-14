@@ -42,7 +42,7 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/auth/**").permitAll()
+                        .requestMatchers("/", "/health", "/error", "/index.html", "/auth/**", "/api/chatbot/**").permitAll()
                         .requestMatchers("/static/**", "/assets/**", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/vehicles/**").permitAll()
                         .anyRequest().authenticated()

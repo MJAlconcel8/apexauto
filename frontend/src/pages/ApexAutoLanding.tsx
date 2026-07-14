@@ -343,9 +343,10 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       <section className="bg-white border-t border-apex-line border-b">
         <div className="mx-auto grid items-center gap-10 lg:grid-cols-2 max-w-300 px-5 py-[clamp(48px,6vw,72px)]">
           <div>
-            <SectionHead eyebrow="Members only" title="Meet Amp — your personal EV advisor" sub="Join ApexAuto free to unlock Amp. Ask about range, charging, and financing, then get pointed straight to the exact vehicle you need." />
-            <div className="flex flex-wrap gap-2 mt-5">
-              {["EVs under $50k", "Best cold-weather range", "Estimate a payment"].map((q) => (
+            <SectionHead eyebrow="EV assistant" title="Meet Amp — the ApexAuto chatbot" sub="Ask about the current website, backend features, charging, range, and basic EV shopping questions." />
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+              <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => go("chatbot")}>Chat with Amp</Btn>
+              {["What can I do on ApexAuto?", "Best cold-weather range", "Explain EV financing"].map((q) => (
                 <button key={q} onClick={() => go("chatbot", { prompt: q })} className="av-focus font-body text-[13px] text-apex-ink bg-apex-paper border border-apex-line rounded-full px-3.5 py-2 cursor-pointer">
                   {q}
                 </button>
@@ -368,18 +369,18 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
               </div>
               <div className="flex flex-col p-4.5 gap-3">
                 <div className="self-start max-w-[82%] bg-apex-ink-2 border border-white/10 font-body text-[13px] text-white px-3.5 py-2.5" style={{ borderRadius: "14px 14px 14px 4px" }}>
-                  Looking for the longest range under $80k? The Halcyon Volen Lumen does 512 km on a 90 kWh pack.
+                  You can ask me which ApexAuto pages are currently implemented and what the backend supports.
                 </div>
                 <div className="self-end max-w-[82%] bg-apex-voltage font-body text-[13px] text-white px-3.5 py-2.5" style={{ borderRadius: "14px 14px 4px 14px" }}>
-                  Show me its financing
+                  Can you see my cart or payment details?
                 </div>
                 <div className="self-start max-w-[82%] bg-apex-ink-2 border border-white/10 font-body text-[13px] text-white px-3.5 py-2.5" style={{ borderRadius: "14px 14px 14px 4px" }}>
-                  From ~$1,043/mo at 4.9% APR. Want me to open the calculator with that price loaded?
+                  No. I can explain the project, but I cannot access accounts, carts, orders, payments, or the database.
                 </div>
               </div>
               <div className="flex items-center gap-2 p-3.5 border-t border-white/10">
                 <div className="flex-1 bg-apex-ink-2 border border-white/10 rounded-full px-3.5 py-2.25 font-body text-[13px] text-apex-muted-ink">
-                  Ask about range, charging, delivery…
+                  Ask about ApexAuto or EVs…
                 </div>
                 <span className="flex items-center justify-center w-8.5 h-8.5 rounded-full bg-apex-voltage text-white">
                   <Send size={15} />
@@ -417,7 +418,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
             Join thousands finding their perfect EV.<br />It's <span className="text-apex-voltage">completely free.</span>
           </h2>
           <p className="font-body text-[16px] text-white/85 mt-4 max-w-120">
-            Create a free account to save vehicles, unlock Amp, and track your order — no obligations, cancel any time.
+            Create a free account to save vehicles, ask Amp questions, and track your order — no obligations, cancel any time.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mt-7">
             <button onClick={() => go("register")} className="av-focus inline-flex items-center gap-2 font-semibold font-body text-[15px] py-3.5 px-6.5 bg-white text-apex-voltage-ink border-0 cursor-pointer rounded-[10px] hover:bg-white/90 transition-colors">
