@@ -104,44 +104,52 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-apex-paper bg-[radial-gradient(circle_at_8%_18%,rgba(14,99,255,0.11),transparent_24rem)] pt-16 font-body text-apex-ink">
+    <div
+      className="flex min-h-screen flex-col bg-background pt-16 font-body text-foreground"
+      style={{
+        background: `
+          radial-gradient(ellipse 42% 52% at 10% 12%, rgba(0,102,255,0.13) 0%, transparent 68%),
+          radial-gradient(ellipse 72% 58% at 68% 40%, #0a2060 0%, #030c1a 100%)
+        `,
+      }}
+    >
       <Nav />
 
       <main className="mx-auto grid min-h-[calc(100vh-4rem)] w-[min(1200px,calc(100%-40px))] flex-1 grid-cols-1 items-center gap-9 py-[clamp(42px,7vw,78px)] lg:grid-cols-[minmax(0,0.82fr)_minmax(480px,1.18fr)] lg:gap-[clamp(36px,7vw,86px)] max-sm:w-[min(1200px,calc(100%-24px))] max-sm:gap-7 max-sm:pt-[30px]">
         <section className="max-w-[680px]" aria-labelledby="amp-heading">
-          <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-apex-voltage-ink">
+          <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7eb3ff]">
             <Sparkles size={14} /> ApexAuto chatbot
           </span>
 
           <h1
             id="amp-heading"
-            className="my-4 max-w-[620px] font-display text-[clamp(38px,5vw,62px)] font-black leading-[0.98] tracking-[-0.045em] text-apex-ink max-sm:text-[39px]"
+            className="my-4 max-w-[620px] font-display text-[clamp(38px,5vw,62px)] font-black leading-[0.98] tracking-[-0.045em] text-white max-sm:text-[39px]"
           >
             Ask Amp about ApexAuto and EVs.
           </h1>
 
-          <p className="max-w-[570px] text-[17px] leading-[1.65] text-apex-muted max-sm:text-[15px]">
+          <p className="max-w-[570px] text-[17px] leading-[1.65] text-[#9bbcff] max-sm:text-[15px]">
             Amp can explain the current project, account pages, backend features, charging,
             range, and basic EV shopping topics.
           </p>
 
-          <div className="my-7 grid gap-3 text-sm text-apex-muted">
+          <div className="my-7 grid gap-3 text-sm text-[#91a9ca]">
             <div className="flex items-center gap-3">
               <MessageSquareText className="shrink-0 text-apex-voltage" size={18} />
               <span>
-                <strong className="text-apex-ink">Project help</strong> based on the ApexAuto knowledge file
+                <strong className="text-white">Project help</strong> based on the ApexAuto knowledge file
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Bot className="shrink-0 text-apex-voltage" size={18} />
               <span>
-                <strong className="text-apex-ink">General EV answers</strong> through the backend Gemini connection
+                <strong className="text-white">General EV answers</strong> through the backend Gemini connection
               </span>
             </div>
           </div>
 
           <div>
-            <h2 className="mb-3 font-display text-[15px] tracking-[0.02em]">Try asking</h2>
+            <h2 className="mb-3 font-display text-[15px] tracking-[0.02em] text-white">Try asking</h2>
             <fieldset
               disabled={isSending}
               className={`m-0 min-w-0 border-0 p-0 ${isSending ? 'cursor-not-allowed opacity-60' : ''}`}
@@ -150,7 +158,7 @@ export default function ChatbotPage() {
                 {quickPrompts.map((prompt) => (
                   <Btn
                     key={prompt}
-                    variant="quiet"
+                    variant="ghostDark"
                     size="sm"
                     onClick={() => void sendMessage(prompt)}
                   >
@@ -163,17 +171,17 @@ export default function ChatbotPage() {
         </section>
 
         <section
-          className="grid h-[min(710px,calc(100vh-118px))] min-h-[570px] grid-rows-[auto_1fr_auto] overflow-hidden rounded-[18px] border border-white/[0.08] bg-apex-ink shadow-[0_34px_78px_-34px_rgba(18,22,28,0.65)] max-lg:h-[680px] max-sm:h-[670px] max-sm:min-h-[540px] max-sm:rounded-[14px]"
+          className="grid h-[min(710px,calc(100vh-118px))] min-h-[570px] grid-rows-[auto_1fr_auto] overflow-hidden rounded-[18px] border border-card-border bg-card shadow-[0_34px_90px_-34px_rgba(0,0,0,0.78),0_0_58px_rgba(0,102,255,0.12)] max-lg:h-[680px] max-sm:h-[670px] max-sm:min-h-[540px] max-sm:rounded-[14px]"
           aria-label="Chat with Amp"
         >
-          <div className="flex min-h-[68px] items-center justify-between border-b border-white/10 px-4 py-[13px]">
+          <div className="flex min-h-[68px] items-center justify-between border-b border-card-border bg-[#061126]/80 px-4 py-[13px]">
             <div className="flex items-center gap-3">
               <span className="inline-flex size-[38px] shrink-0 items-center justify-center rounded-full border border-apex-voltage/40 bg-apex-voltage/20 text-apex-voltage">
                 <Sparkles size={18} />
               </span>
               <div>
                 <strong className="block font-display text-[15px] text-white">Amp</strong>
-                <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-apex-muted-ink">
+                <span className="mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-[#8fa8ca]">
                   <i className="size-1.5 rounded-full bg-apex-green" /> Ready
                 </span>
               </div>
@@ -190,7 +198,7 @@ export default function ChatbotPage() {
           </div>
 
           <div
-            className="overflow-y-auto px-[18px] py-5 [scrollbar-color:#334050_transparent]"
+            className="overflow-y-auto px-[18px] py-5 [scrollbar-color:#2b4d78_transparent]"
             aria-live="polite"
           >
             {messages.map((message) => {
@@ -210,8 +218,8 @@ export default function ChatbotPage() {
                   <div
                     className={`max-w-[min(82%,520px)] whitespace-pre-wrap px-3.5 py-3 text-sm leading-[1.55] [overflow-wrap:anywhere] max-sm:max-w-[88%] ${
                       isAssistant
-                        ? 'rounded-[14px_14px_14px_4px] border border-white/10 bg-apex-ink-2 text-[#f4f7fb]'
-                        : 'rounded-[14px_14px_4px_14px] bg-apex-voltage text-white'
+                        ? 'rounded-[14px_14px_14px_4px] border border-[#27456d] bg-secondary text-[#e7f0ff]'
+                        : 'rounded-[14px_14px_4px_14px] border border-[#3d84e8] bg-[#0b4ea2] text-[#f8fbff] shadow-[0_8px_22px_rgba(0,78,162,0.28)]'
                     }`}
                   >
                     {message.content}
@@ -226,7 +234,7 @@ export default function ChatbotPage() {
                   <Sparkles size={14} />
                 </span>
                 <div
-                  className="flex min-w-[60px] items-center justify-center gap-1.5 rounded-[14px_14px_14px_4px] border border-white/10 bg-apex-ink-2 px-3.5 py-3"
+                  className="flex min-w-[60px] items-center justify-center gap-1.5 rounded-[14px_14px_14px_4px] border border-[#27456d] bg-secondary px-3.5 py-3"
                   aria-label="Amp is typing"
                 >
                   <span className="size-1.5 rounded-full bg-apex-muted-ink motion-safe:animate-bounce motion-reduce:animate-none" />
@@ -239,7 +247,7 @@ export default function ChatbotPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-white/10 px-3.5 pb-[13px] pt-3">
+          <div className="border-t border-card-border bg-[#061126]/80 px-3.5 pb-[13px] pt-3">
             {error && (
               <p className="mb-2 text-xs text-[#ff8b8b]" role="alert">
                 {error}
@@ -247,7 +255,7 @@ export default function ChatbotPage() {
             )}
 
             <form
-              className="flex items-end gap-2 rounded-[14px] border border-white/10 bg-apex-ink-2 py-[7px] pl-3.5 pr-[7px] focus-within:border-apex-voltage/75"
+              className="flex items-end gap-2 rounded-[14px] border border-[#27456d] bg-secondary py-[7px] pl-3.5 pr-[7px] transition-colors focus-within:border-[#4b91ff]"
               onSubmit={handleSubmit}
             >
               <textarea
@@ -259,7 +267,7 @@ export default function ChatbotPage() {
                     event.currentTarget.form?.requestSubmit()
                   }
                 }}
-                className="av-focus max-h-[120px] w-full resize-none border-0 bg-transparent text-sm leading-6 text-white outline-none placeholder:text-[#778392] disabled:cursor-not-allowed"
+                className="av-focus max-h-[120px] w-full resize-none border-0 bg-transparent text-sm leading-6 text-[#f2f7ff] outline-none placeholder:text-[#7f98b6] disabled:cursor-not-allowed"
                 placeholder="Ask about ApexAuto or EVs…"
                 rows={1}
                 maxLength={1000}
@@ -270,14 +278,14 @@ export default function ChatbotPage() {
               <button
                 type="submit"
                 disabled={isSending || !input.trim()}
-                className="av-focus inline-flex size-[38px] shrink-0 items-center justify-center rounded-[11px] bg-apex-voltage text-white transition-colors hover:bg-apex-voltage-ink disabled:cursor-not-allowed disabled:opacity-40"
+                className="av-focus inline-flex size-[38px] shrink-0 items-center justify-center rounded-[11px] bg-[#0e63ff] text-white shadow-[0_0_18px_rgba(14,99,255,0.28)] transition-colors hover:bg-[#2675ff] disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Send message"
               >
                 <Send size={18} />
               </button>
             </form>
 
-            <p className="mx-1 mt-2 text-center text-[10px] text-[#778392]">
+            <p className="mx-1 mt-2 text-center text-[10px] text-[#7189a7]">
               Do not share passwords, API keys, access tokens, or payment details.
             </p>
           </div>
