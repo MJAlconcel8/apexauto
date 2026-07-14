@@ -1,13 +1,20 @@
-import { ArrowRight, MapPin, Star, ShoppingCart } from "lucide-react";
+import { ArrowRight, MapPin, Star, BadgeDollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { VehicleCardProps } from "./types";
 import { Badge } from "./Badge";
 import { RangeGauge } from "./RangeGauge";
 import { SpecReadout } from "./SpecReadout";
 import { Btn } from "./Btn";
 
-const fmtUSD = (n: number) => "$" + n.toLocaleString("en-US");
+const fmtCAD = (n: number) => "$" + n.toLocaleString("en-CA");
 
-export function VehicleCard({ v, dark = false, onView, onCart }: VehicleCardProps) {
+export function VehicleCard({ v, dark = false, onView, onFinance }: VehicleCardProps) {
+  const navigate = useNavigate();
+
+  const handleFinance = () => {
+    if (onFinance) onFinance(v);
+    navigate('/finance', { state: { id: v.id, marque: v.marque, model: v.model, price: v.price, img: v.img } });
+  };
   return (
     <article className={`group/card av-rise flex flex-col rounded-[14px] overflow-hidden border hover:-translate-y-0.75 transition-all duration-220 ${
       dark
@@ -82,19 +89,17 @@ export function VehicleCard({ v, dark = false, onView, onCart }: VehicleCardProp
           <div>
             {v.was && (
               <span className={`font-mono text-[12px] line-through mr-1.5 ${dark ? "text-muted-foreground" : "text-apex-muted"}`}>
-                {fmtUSD(v.was)}
+                {fmtCAD(v.was)}
               </span>
             )}
             <div className={`font-mono text-[21px] font-semibold leading-none ${dark ? "text-foreground" : "text-apex-ink"}`}>
-              {fmtUSD(v.price)}
+              {fmtCAD(v.price)}
             </div>
           </div>
           <div className="flex gap-2">
-            {onCart && (
-              <Btn variant="outline" size="sm" icon={ShoppingCart} onClick={() => onCart(v)}>
-                Cart
-              </Btn>
-            )}
+            <Btn variant="outline" size="sm" icon={BadgeDollarSign} onClick={handleFinance}>
+              Finance
+            </Btn>
             {onView && (
               <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => onView(v)}>
                 View

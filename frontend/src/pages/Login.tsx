@@ -51,6 +51,17 @@ export default function Login({ onNavigate }: LoginProps) {
       const data = await response.json()
 
       if (response.ok) {
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('userId', String(data.userId))
+
+        await fetch(`http://localhost:8080/users/${data.userId}/carts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${data.token}`,
+          },
+        }).catch(() => {})
+
         go('/home')
       } else {
         setMessage(data.error || 'Login failed. Please try again.')
