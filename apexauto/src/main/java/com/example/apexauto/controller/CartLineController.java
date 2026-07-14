@@ -24,11 +24,11 @@ public class CartLineController {
         this.cartService = cartService;
     }
 
-    // GET /carts/{cartId}/cart-lines - returns vehicles inside one cart.
+    // GET /carts/{cartId}/cart-lines - returns vehicles inside the authenticated user's cart.
     @GetMapping
     public ResponseEntity<List<CartLineResponseDTO>> getCartLines(@PathVariable int cartId) {
         try {
-            List<CartLineResponseDTO> cartLines = cartService.getCartLines(cartId)
+            List<CartLineResponseDTO> cartLines = cartService.getCartLinesForUser(cartId)
                     .stream()
                     .map(this::toCartLineResponseDTO)
                     .toList();

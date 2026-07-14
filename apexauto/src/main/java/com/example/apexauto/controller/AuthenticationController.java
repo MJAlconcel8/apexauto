@@ -4,6 +4,8 @@ import com.example.apexauto.DTO.*;
 import com.example.apexauto.entity.User;
 import com.example.apexauto.services.AuthenticationService;
 import com.example.apexauto.services.JWTService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,15 +28,42 @@ public class AuthenticationController {
         return ResponseEntity.ok(new RegisterResponseDTO(registeredUser, registeredUser.getEmailVerificationToken()));
     }
 
-    // POST /auth/login — authenticates credentials and returns a JWT
+    // POST /auth/login — authenticates credentials, sets JWT as httpOnly cookie, and returns user info
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginUserDTO loginUserDTO) {
         User authenticatedUser = authenticationService.authenticate(loginUserDTO);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        LoginResponseDTO response = new LoginResponseDTO(jwtToken, jwtService.getExpirationTime(), authenticatedUser.getUserId());
 
-        return ResponseEntity.ok(response);
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwtToken)
+                .httpOnly(true)
+                .secure(false)   // set to true in production (requires HTTPS)
+                .path("/")
+                .maxAge(jwtService.getExpirationTime() / 1000)
+                .sameSite("Lax")
+                .build();
+
+        LoginResponseDTO response = new LoginResponseDTO(jwtService.getExpirationTime(), authenticatedUser.getUserId());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(response);
+    }
+
+    // POST /auth/logout — clears the JWT cookie
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie clearCookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .build();
     }
 
     // GET /auth/verify-email?token= — verifies the user's email using the token sent on registration

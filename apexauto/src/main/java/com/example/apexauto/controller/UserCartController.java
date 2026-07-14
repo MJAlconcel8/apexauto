@@ -5,17 +5,19 @@ import com.example.apexauto.DTO.CartResponseDTO;
 import com.example.apexauto.DTO.CreateCartDTO;
 import com.example.apexauto.entity.CartLine;
 import com.example.apexauto.entity.Carts;
+import com.example.apexauto.entity.User;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.services.CartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/carts")
+@RequestMapping("/users/me/carts")
 public class UserCartController {
 
     private final CartService cartService;
@@ -24,11 +26,11 @@ public class UserCartController {
         this.cartService = cartService;
     }
 
-    // GET /users/{userId}/carts - returns all carts for one user.
+    // GET /users/me/carts - returns all carts for the authenticated user.
     @GetMapping
-    public ResponseEntity<List<CartResponseDTO>> getCartsByUserId(@PathVariable int userId) {
+    public ResponseEntity<List<CartResponseDTO>> getCartsByUserId(@AuthenticationPrincipal User currentUser) {
         try {
-            List<CartResponseDTO> carts = cartService.getCartsByUserId(userId)
+            List<CartResponseDTO> carts = cartService.getCartsByUserId(currentUser.getUserId())
                     .stream()
                     .map(this::toResponseDTO)
                     .toList();
@@ -39,25 +41,25 @@ public class UserCartController {
         }
     }
 
-    // GET /users/{userId}/carts/active - returns the user's latest ACTIVE cart.
+    // GET /users/me/carts/active - returns the authenticated user's latest ACTIVE cart.
     @GetMapping("/active")
-    public ResponseEntity<CartResponseDTO> getActiveCartByUserId(@PathVariable int userId) {
+    public ResponseEntity<CartResponseDTO> getActiveCartByUserId(@AuthenticationPrincipal User currentUser) {
         try {
-            Carts cart = cartService.getActiveCartByUserId(userId);
+            Carts cart = cartService.getActiveCartByUserId(currentUser.getUserId());
             return ResponseEntity.ok(toResponseDTO(cart));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
         }
     }
 
-    // POST /users/{userId}/carts - creates a cart for one user.
+    // POST /users/me/carts - creates a cart for the authenticated user.
     @PostMapping
     public ResponseEntity<CartResponseDTO> createCartForUser(
-            @PathVariable int userId,
+            @AuthenticationPrincipal User currentUser,
             @RequestBody(required = false) CreateCartDTO request
     ) {
         try {
-            Carts saved = cartService.createCartForUser(userId, request);
+            Carts saved = cartService.createCartForUser(currentUser.getUserId(), request);
             return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(saved));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);

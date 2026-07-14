@@ -24,21 +24,11 @@ export default function Cart() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userId = localStorage.getItem('userId')
-
-    if (!token || !userId) {
-      navigate('/login')
-      return
-    }
-
-    fetch(`http://localhost:8080/users/${userId}/carts/active`, {
-      headers: { Authorization: `Bearer ${token}` },
+    fetch(`http://localhost:8080/users/me/carts/active`, {
+      credentials: 'include',
     })
       .then((res) => {
         if (res.status === 401) {
-          localStorage.removeItem('token')
-          localStorage.removeItem('userId')
           navigate('/login')
           return null
         }
@@ -57,22 +47,20 @@ export default function Cart() {
   }, [navigate])
 
   const handleRemove = async (vehicleId: number) => {
-    const token = localStorage.getItem('token')
-    if (!cart || !token) return
+    if (!cart) return
 
     const res = await fetch(
       `http://localhost:8080/carts/${cart.cartId}/cart-lines/${vehicleId}`,
-      { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+      { method: 'DELETE', credentials: 'include' },
     )
 
     if (res.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('userId')
       navigate('/login')
       return
     }
 
     if (res.ok) {
+      window.dispatchEvent(new CustomEvent('cart-updated'))
       setCart((prev) => {
         if (!prev) return prev
         const updated = prev.cartLines.filter((l) => l.vehicleId !== vehicleId)

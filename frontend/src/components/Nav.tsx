@@ -26,16 +26,18 @@ export default function Nav({ onNavigate }: NavProps) {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userId = localStorage.getItem('userId')
-    if (!token || !userId) return
+    const fetchCartCount = () => {
+      fetch(`http://localhost:8080/users/me/carts/active`, {
+        credentials: 'include',
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => setCartCount(data?.totalItemsInCart ?? 0))
+        .catch(() => setCartCount(0))
+    }
 
-    fetch(`http://localhost:8080/users/${userId}/carts/active`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setCartCount(data?.totalItemsInCart ?? 0))
-      .catch(() => setCartCount(0))
+    fetchCartCount()
+    window.addEventListener('cart-updated', fetchCartCount)
+    return () => window.removeEventListener('cart-updated', fetchCartCount)
   }, [location.pathname])
 
 
