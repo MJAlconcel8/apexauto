@@ -33,7 +33,11 @@ public class DataInitializer implements CommandLineRunner {
             // id '2' in the frontend (TOP_PICKS[1]) — Apex Vector GT
             dto("Apex", "Apex", "Vector GT", 2026, "Alpine White", 2, 4, 165.0, 9.8, 340.0, false, 2, new BigDecimal("134500.00")),
             // id '3' in the frontend (TOP_PICKS[2]) — Apex Terrain X
-            dto("Apex", "Apex", "Terrain X", 2026, "Shadow Black", 4, 7, 130.0, 8.4, 370.0, false, 5, new BigDecimal("74900.00"))
+            dto("Apex", "Apex", "Terrain X", 2026, "Shadow Black", 4, 7, 130.0, 8.4, 370.0, false, 5, new BigDecimal("74900.00")),
+            // Landing page listings
+            dto("Aster", "Aster", "Kestrel EV Sport", 2024, "Voltage Blue", 4, 5, 77.0, 4.6, 402.0, false, 4, new BigDecimal("58900.00")),
+            dto("Halcyon", "Halcyon", "Volen Lumen", 2024, "Pearl White", 4, 5, 90.0, 3.9, 512.0, false, 2, new BigDecimal("74500.00")),
+            dto("Meridian", "Meridian", "Meridian Bolt", 2023, "Graphite", 4, 5, 64.0, 5.4, 389.0, true, 9, new BigDecimal("44900.00"))
         );
 
         for (CreateVehicleDTO d : defaults) {

@@ -8,7 +8,7 @@ import { Btn } from "./Btn";
 
 const fmtCAD = (n: number) => "$" + n.toLocaleString("en-CA");
 
-export function VehicleCard({ v, dark = false, onView, onFinance }: VehicleCardProps) {
+export function VehicleCard({ v, dark = false, hideFinance = false, onView, onFinance }: VehicleCardProps) {
   const navigate = useNavigate();
 
   const handleFinance = () => {
@@ -97,9 +97,11 @@ export function VehicleCard({ v, dark = false, onView, onFinance }: VehicleCardP
             </div>
           </div>
           <div className="flex gap-2">
-            <Btn variant="outline" size="sm" icon={BadgeDollarSign} onClick={handleFinance}>
-              Finance
-            </Btn>
+            {!hideFinance && (
+              <Btn variant="outline" size="sm" icon={BadgeDollarSign} onClick={handleFinance}>
+                Finance
+              </Btn>
+            )}
             {onView && (
               <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => onView(v)}>
                 View

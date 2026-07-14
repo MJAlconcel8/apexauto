@@ -77,6 +77,7 @@ export interface BadgeProps {
 export interface VehicleCardProps {
   v: Vehicle;
   dark?: boolean;
+  hideFinance?: boolean;
   onView?: (v: Vehicle) => void;
   onFinance?: (v: Vehicle) => void;
 }
