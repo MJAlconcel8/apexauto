@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Eye, ChevronRight,
@@ -7,73 +7,58 @@ import {
 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, SectionHead, Btn, Footer } from '../components'
-import type { Vehicle, GoFn, ViewParams } from '../components'
+import type { Vehicle, VehicleBadge, GoFn, ViewParams } from '../components'
+import { VEHICLE_IMAGES } from '../assets/vehicleImages'
 
 const fmtCAD = (n: number) => '$' + n.toLocaleString('en-CA')
 
-/* ── Data ─────────────────────────────────────────────────────── */
+/* ── Backend DTO ──────────────────────────────────────────────── */
+interface VehicleApiResponse {
+  vehicleId: number
+  brand: string
+  make: string
+  model: string
+  year: number
+  color: string
+  seats: number
+  emissionScore: number
+  fuelUsage: number
+  mileage: number
+  onSale: boolean
+  inStock: boolean
+  amountInStock: number
+  price: number
+}
 
-const TOP_PICKS: Vehicle[] = [
-  {
-    id: '1',
-    marque: 'Apex',
-    model: 'Nexus S',
-    year: 2026,
-    category: 'Sedan',
-    img: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=75',
-    price: 89900,
-    mileage: 459,
-    emissionScore: 85,
-    seats: 5,
-    fuelUsage: 6.2,
-    stock: 3,
-    history: 'New · 2026',
-    ext: 'Pearl White',
-    badge: { label: 'Best Seller', tone: 'voltage' },
-    rating: 4.8,
-    reviewCount: 2545,
-  },
-  {
-    id: '2',
-    marque: 'Apex',
-    model: 'Vector GT',
-    year: 2026,
-    category: 'Sports',
-    img: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=75',
-    price: 134500,
-    mileage: 340,
-    emissionScore: 165,
-    seats: 4,
-    fuelUsage: 9.8,
-    stock: 2,
-    history: 'New · 2026',
-    ext: 'Alpine White',
-    badge: { label: 'New', tone: 'voltage' },
-    rating: 4.9,
-    reviewCount: 1307,
-  },
-  {
-    id: '3',
-    marque: 'Apex',
-    model: 'Terrain X',
-    year: 2026,
-    category: 'SUV',
-    img: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=800&q=75',
-    price: 74900,
-    mileage: 370,
-    emissionScore: 130,
-    seats: 7,
-    fuelUsage: 8.4,
-    stock: 5,
-    history: 'New · 2026',
-    ext: 'Shadow Black',
-    badge: { label: 'Popular', tone: 'amber' },
-    rating: 4.7,
-    reviewCount: 3108,
-  },
-]
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=75'
 
-const HERO_VEHICLE = TOP_PICKS[0]
+function mapVehicle(v: VehicleApiResponse): Vehicle {
+  const modelName = [v.make, v.model].filter(Boolean).join(' ')
+  let badge: VehicleBadge
+  if (v.onSale) {
+    badge = { label: 'On Sale', tone: 'hot' }
+  } else if (v.amountInStock <= 2 && v.amountInStock > 0) {
+    badge = { label: `${v.amountInStock} left`, tone: 'amber' }
+  } else {
+    badge = { label: 'In Stock', tone: 'voltage' }
+  }
+  return {
+    id: String(v.vehicleId),
+    marque: v.brand,
+    model: modelName,
+    year: v.year,
+    img: VEHICLE_IMAGES[v.model] ?? VEHICLE_IMAGES[modelName] ?? VEHICLE_IMAGES[v.make] ?? FALLBACK_IMG,
+    price: v.price,
+    mileage: v.mileage,
+    emissionScore: v.emissionScore,
+    seats: v.seats,
+    fuelUsage: v.fuelUsage,
+    stock: v.amountInStock,
+    history: `New · ${v.year}`,
+    ext: v.color,
+    badge,
+  }
+}
 
 const STATS = [
   { value: '459km',   label: 'Max Mileage' },
@@ -132,6 +117,16 @@ export default function Home({ onNavigate }: HomeProps) {
   const navigate = useNavigate()
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | undefined>(undefined)
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('http://localhost:8080/vehicles')
+      .then((res) => (res.ok ? res.json() as Promise<VehicleApiResponse[]> : Promise.reject()))
+      .then((data) => setVehicles(data.map(mapVehicle)))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   const flash = (msg: string) => {
     setToast(msg)
@@ -210,7 +205,7 @@ export default function Home({ onNavigate }: HomeProps) {
               className="relative cursor-pointer group"
               role="button"
               tabIndex={0}
-              aria-label={`View ${HERO_VEHICLE.model} details`}
+              aria-label={`View ${vehicles[0]?.model ?? 'vehicle'} details`}
               onClick={() => go('/vehicle/1')}
               onKeyDown={(e) => e.key === 'Enter' && go('/vehicle/1')}
             >
@@ -222,8 +217,8 @@ export default function Home({ onNavigate }: HomeProps) {
                 }}
               >
                 <img
-                  src={HERO_VEHICLE.img}
-                  alt={`${HERO_VEHICLE.marque} ${HERO_VEHICLE.model}`}
+                  src={vehicles[0]?.img ?? FALLBACK_IMG}
+                  alt={vehicles[0] ? `${vehicles[0].marque} ${vehicles[0].model}` : 'Featured vehicle'}
                   className="w-full object-cover block"
                   style={{ height: 360 }}
                 />
@@ -233,10 +228,10 @@ export default function Home({ onNavigate }: HomeProps) {
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between">
                   <span className="font-heading font-bold text-xl text-white">
-                    {HERO_VEHICLE.model}
+                    {vehicles[0]?.model ?? ''}
                   </span>
                   <span className="font-mono font-semibold text-[15px]" style={{ color: '#0066ff' }}>
-                    {fmtCAD(HERO_VEHICLE.price)}
+                    {vehicles[0] ? fmtCAD(vehicles[0].price) : ''}
                   </span>
                 </div>
               </div>
@@ -336,7 +331,10 @@ export default function Home({ onNavigate }: HomeProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {TOP_PICKS.map((v, i) => (
+            {loading && (
+              <p className="font-mono text-[13px] col-span-3" style={{ color: 'rgba(126,179,255,0.5)' }}>Loading vehicles…</p>
+            )}
+            {vehicles.slice(0, 3).map((v, i) => (
               <Reveal key={v.id} delay={i * 80}>
                 <VehicleCard
                   v={v}

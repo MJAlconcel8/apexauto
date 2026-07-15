@@ -11,6 +11,7 @@ import Home from './pages/Home'
 import ChatbotPage from './pages/ChatbotPage'
 import LoanCalc from './pages/LoanCalc'
 import Catalogue from './pages/Catalogue'
+import GuestCatalogue from './pages/GuestCatalogue'
 
 const Landing = () => {
   const navigate = useNavigate()
@@ -20,7 +21,8 @@ const Landing = () => {
     else if (view === 'chatbot' || view === '/chatbot') {
       const prompt = typeof params?.prompt === 'string' ? params.prompt : ''
       navigate(prompt ? `/chatbot?prompt=${encodeURIComponent(prompt)}` : '/chatbot')
-    } else if (view === 'home' || view === '/') navigate('/')
+    } else if (view === 'catalogue' || view === '/catalogue') navigate('/guest-catalogue')
+    else if (view === 'home' || view === '/') navigate('/')
   }
   return <ApexAutoLanding onNavigate={handleNavigate} />
 }
@@ -38,6 +40,7 @@ const App = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/catalogue" element={<Catalogue />} />
+        <Route path="/guest-catalogue" element={<GuestCatalogue />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/finance" element={<LoanCalc />} />
         <Route path="*" element={<Login />} />
