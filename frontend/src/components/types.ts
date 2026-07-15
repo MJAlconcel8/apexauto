@@ -90,6 +90,7 @@ export interface CartLine {
   model: string
   year: number
   price: number
+  quantity: number
   financingSelected: boolean
   downPayment: number | null
   annualRatePercent: number | null

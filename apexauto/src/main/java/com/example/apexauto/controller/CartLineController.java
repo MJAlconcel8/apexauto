@@ -53,6 +53,7 @@ public class CartLineController {
             Carts updated = cartService.addVehicleToCart(
                     cartId,
                     request.getVehicleId(),
+                    request.getQuantity(),
                     request.isFinancingSelected(),
                     request.getDownPayment(),
                     request.getAnnualRate(),
@@ -105,6 +106,7 @@ public class CartLineController {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getPrice(),
+                cartLine.getQuantity(),
                 cartLine.isFinancingSelected(),
                 cartLine.getDownPayment(),
                 cartLine.getAnnualRatePercent(),

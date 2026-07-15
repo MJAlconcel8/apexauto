@@ -18,6 +18,7 @@ import com.example.apexauto.repository.PaymentRepository;
 import com.example.apexauto.repository.UserRepository;
 import com.example.apexauto.repository.VehicleRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -86,6 +87,11 @@ class OrderServiceTest {
                 cartsRepository,
                 cartStatusRepository
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
 
@@ -167,6 +173,7 @@ class OrderServiceTest {
         CartLine financedCartLine = new CartLine();
         financedCartLine.setCart(cart);
         financedCartLine.setVehicle(financedVehicle);
+        financedCartLine.setQuantity(2);
         financedCartLine.setFinancingSelected(true);
         financedCartLine.setDownPayment(new BigDecimal("3000.00"));
         financedCartLine.setAnnualRatePercent(6.5);
@@ -178,6 +185,7 @@ class OrderServiceTest {
         CartLine cashCartLine = new CartLine();
         cashCartLine.setCart(cart);
         cashCartLine.setVehicle(cashVehicle);
+        cashCartLine.setQuantity(1);
         cashCartLine.setFinancingSelected(false);
         cashCartLine.setDownPayment(new BigDecimal("0.00"));
         cashCartLine.setLineTotalCost(new BigDecimal("5000.00"));
@@ -211,8 +219,8 @@ class OrderServiceTest {
 
         Orders created = orderService.createOrderFromCart(15);
 
-        assertEquals(new BigDecimal("27146.24"), created.getTotalAmount());
-        assertEquals(2, financedVehicle.getAmountInStock());
+        assertEquals(new BigDecimal("49292.48"), created.getTotalAmount());
+        assertEquals(1, financedVehicle.getAmountInStock());
         assertEquals(1, cashVehicle.getAmountInStock());
 
         ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
@@ -223,6 +231,7 @@ class OrderServiceTest {
         OrderLine savedCashLine = savedLines.get(1);
 
         assertTrue(savedFinancedLine.isFinancingSelected());
+        assertEquals(2, savedFinancedLine.getQuantity());
         assertEquals(new BigDecimal("3000.00"), savedFinancedLine.getDownPayment());
         assertEquals(6.5, savedFinancedLine.getAnnualRatePercent());
         assertEquals(48, savedFinancedLine.getTermMonths());
@@ -231,6 +240,7 @@ class OrderServiceTest {
         assertEquals(new BigDecimal("5146.24"), savedFinancedLine.getTotalInterest());
 
         assertFalse(savedCashLine.isFinancingSelected());
+        assertEquals(1, savedCashLine.getQuantity());
         assertEquals(new BigDecimal("5000.00"), savedCashLine.getLineTotalCost());
         assertEquals(new BigDecimal("0.00"), savedCashLine.getTotalInterest());
     }

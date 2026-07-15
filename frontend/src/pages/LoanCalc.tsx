@@ -74,6 +74,7 @@ export default function LoanCalc() {
         },
         body: JSON.stringify({
           vehicleId: Number(vehicle.id),
+          quantity: 1,
           financingSelected: true,
           downPayment: downPayment,
           annualRate: apr,

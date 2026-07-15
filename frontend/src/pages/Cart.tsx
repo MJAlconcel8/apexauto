@@ -37,7 +37,22 @@ export default function Cart() {
         return res.json() as Promise<CartData>
       })
       .then((data) => {
-        setCart(data)
+        if (!data) {
+          setCart(null)
+          setLoading(false)
+          return
+        }
+
+        const normalizedLines = data.cartLines.map((line) => ({
+          ...line,
+          quantity: Math.max(1, line.quantity ?? 1),
+        }))
+
+        setCart({
+          ...data,
+          cartLines: normalizedLines,
+          totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
+        })
         setLoading(false)
       })
       .catch(() => {
@@ -64,7 +79,8 @@ export default function Cart() {
       setCart((prev) => {
         if (!prev) return prev
         const updated = prev.cartLines.filter((l) => l.vehicleId !== vehicleId)
-        return { ...prev, cartLines: updated, totalItemsInCart: updated.length }
+        const totalItems = updated.reduce((sum, line) => sum + line.quantity, 0)
+        return { ...prev, cartLines: updated, totalItemsInCart: totalItems }
       })
     }
   }
@@ -82,9 +98,14 @@ export default function Cart() {
     )
   }
 
-  const lines = cart?.cartLines ?? []
+  const rawLines = cart?.cartLines ?? []
+  const lines = rawLines.flatMap((line) => {
+    const quantity = Math.max(1, line.quantity ?? 1)
+    return Array.from({ length: quantity }, () => ({ ...line, quantity: 1 }))
+  })
+  const totalItems = lines.length
   const grandTotal = lines.reduce(
-    (sum, l) => sum + (l.financingSelected ? (l.lineTotalCost ?? 0) : l.price),
+    (sum, line) => sum + (line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price),
     0,
   )
 
@@ -98,7 +119,7 @@ export default function Cart() {
           <div className="mx-auto max-w-5xl px-6 py-6">
             <h1 className="font-heading text-3xl font-bold">Your Cart</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {lines.length} {lines.length === 1 ? 'item' : 'items'}
+              {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </p>
           </div>
         </section>
@@ -134,9 +155,9 @@ export default function Cart() {
           /* Cart items */
           <section className="mx-auto max-w-5xl px-6 py-8">
             <ul className="space-y-4">
-              {lines.map((line) => (
+              {lines.map((line, index) => (
                 <CartLineItem
-                  key={line.vehicleId}
+                  key={`${line.vehicleId}-${index}`}
                   line={line}
                   onRemove={handleRemove}
                 />
@@ -146,7 +167,7 @@ export default function Cart() {
             {/* Summary */}
             <div className="mt-8 rounded-xl border border-card-border bg-card p-6">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Subtotal ({lines.length} {lines.length === 1 ? 'item' : 'items'})</span>
+                <span>Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})</span>
                 <span className="font-medium text-foreground">{fmtCAD(grandTotal)}</span>
               </div>
               <div className="mt-5 flex justify-end">

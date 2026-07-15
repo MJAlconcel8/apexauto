@@ -7,9 +7,7 @@ const fmtCAD = (n: number) =>
 
 export function CartLineItem({ line, onRemove }: CartLineItemProps) {
   const img = VEHICLE_IMAGES[line.model]
-  const displayPrice = line.financingSelected
-    ? (line.lineTotalCost ?? line.price)
-    : line.price
+  const displayPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
 
   return (
     <li className="flex flex-col rounded-xl border border-card-border bg-card overflow-hidden sm:flex-row sm:items-stretch">

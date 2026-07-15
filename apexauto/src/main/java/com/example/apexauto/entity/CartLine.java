@@ -35,6 +35,11 @@ public class CartLine {
 
     @Getter
     @Setter
+    @Column(name = "quantity", nullable = false)
+    private int quantity = 1;
+
+    @Getter
+    @Setter
     @Column(name = "financing_selected", nullable = false)
     private boolean financingSelected;
 

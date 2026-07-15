@@ -155,6 +155,7 @@ public class OrderController {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getPrice(),
+                orderLine.getQuantity(),
                 orderLine.isFinancingSelected(),
                 orderLine.getDownPayment(),
                 orderLine.getAnnualRatePercent(),

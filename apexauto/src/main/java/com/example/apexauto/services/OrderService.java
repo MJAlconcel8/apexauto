@@ -99,7 +99,7 @@ public class OrderService {
 
         Orders savedOrder = ordersRepository.save(order);
         createOrderLinesFromCartLines(savedOrder, cartLines);
-        reduceStock(cartLines.stream().map(CartLine::getVehicle).toList());
+        reduceStockFromCartLines(cartLines);
         
         // Change cart status to CHECKED_OUT
         CartStatus checkedOutStatus = cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")
@@ -178,10 +178,11 @@ public class OrderService {
         orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
         orderLine.setOrder(order);
         orderLine.setVehicle(vehicle);
+        orderLine.setQuantity(1);
         applyCashPricing(orderLine, vehicle);
         orderLineRepository.save(orderLine);
 
-        reduceStock(List.of(vehicle));
+        reduceStock(vehicle, 1);
         order.setTotalAmount(recalculateTotalAmount(order.getOrderId()));
 
         return ordersRepository.save(order);
@@ -200,7 +201,7 @@ public class OrderService {
         OrderLine orderLine = orderLineRepository.findByOrderOrderIdAndVehicleVehicleId(orderId, vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Order line not found"));
 
-        restoreStock(List.of(orderLine.getVehicle()));
+        restoreStock(orderLine.getVehicle(), orderLine.getQuantity());
         orderLineRepository.delete(orderLine);
         order.setTotalAmount(recalculateTotalAmount(order.getOrderId()));
 
@@ -216,7 +217,7 @@ public class OrderService {
         }
 
         List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
-        restoreStock(orderLines.stream().map(OrderLine::getVehicle).toList());
+        restoreStockFromOrderLines(orderLines);
         orderLineRepository.deleteAll(orderLines);
         ordersRepository.delete(order);
     }
@@ -234,6 +235,7 @@ public class OrderService {
             orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
             orderLine.setOrder(order);
             orderLine.setVehicle(vehicle);
+            orderLine.setQuantity(normalizeQuantity(cartLine.getQuantity()));
             orderLine.setFinancingSelected(cartLine.isFinancingSelected());
             orderLine.setDownPayment(cartLine.getDownPayment());
             orderLine.setAnnualRatePercent(cartLine.getAnnualRatePercent());
@@ -252,13 +254,19 @@ public class OrderService {
 
     private BigDecimal calculateTotalFromCartLines(List<CartLine> cartLines) {
         return cartLines.stream()
-                .map(cartLine -> resolveLineTotalCost(cartLine.getLineTotalCost(), cartLine.getVehicle().getPrice()))
+                .map(cartLine -> resolveLineTotalCost(
+                        cartLine.getLineTotalCost(),
+                        cartLine.getVehicle().getPrice()
+                ).multiply(BigDecimal.valueOf(normalizeQuantity(cartLine.getQuantity()))))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal calculateTotalFromOrderLines(List<OrderLine> orderLines) {
         return orderLines.stream()
-                .map(orderLine -> resolveLineTotalCost(orderLine.getLineTotalCost(), orderLine.getVehicle().getPrice()))
+                .map(orderLine -> resolveLineTotalCost(
+                        orderLine.getLineTotalCost(),
+                        orderLine.getVehicle().getPrice()
+                ).multiply(BigDecimal.valueOf(normalizeQuantity(orderLine.getQuantity()))))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -276,24 +284,40 @@ public class OrderService {
         orderLine.setTotalInterest(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
     }
 
-    private void reduceStock(List<Vehicle> vehicles) {
-        for (Vehicle vehicle : vehicles) {
-            // Check that stock is greater than 0 before reducing it
-            if (vehicle.getAmountInStock() <= 0) {
-                throw new IllegalArgumentException("Vehicle " + vehicle.getVehicleId() + " has insufficient stock");
-            }
-            vehicle.setAmountInStock(vehicle.getAmountInStock() - 1);
-            vehicle.setInStock(vehicle.getAmountInStock() > 0);
-            vehicleRepository.save(vehicle);
+    private void reduceStockFromCartLines(List<CartLine> cartLines) {
+        for (CartLine cartLine : cartLines) {
+            reduceStock(cartLine.getVehicle(), normalizeQuantity(cartLine.getQuantity()));
         }
     }
 
-    private void restoreStock(List<Vehicle> vehicles) {
-        for (Vehicle vehicle : vehicles) {
-            vehicle.setAmountInStock(vehicle.getAmountInStock() + 1);
-            vehicle.setInStock(true);
-            vehicleRepository.save(vehicle);
+    private void reduceStock(Vehicle vehicle, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be a positive value");
         }
+
+        if (vehicle.getAmountInStock() < quantity) {
+            throw new IllegalArgumentException("Vehicle " + vehicle.getVehicleId() + " has insufficient stock");
+        }
+
+        vehicle.setAmountInStock(vehicle.getAmountInStock() - quantity);
+        vehicle.setInStock(vehicle.getAmountInStock() > 0);
+        vehicleRepository.save(vehicle);
+    }
+
+    private void restoreStockFromOrderLines(List<OrderLine> orderLines) {
+        for (OrderLine orderLine : orderLines) {
+            restoreStock(orderLine.getVehicle(), normalizeQuantity(orderLine.getQuantity()));
+        }
+    }
+
+    private void restoreStock(Vehicle vehicle, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be a positive value");
+        }
+
+        vehicle.setAmountInStock(vehicle.getAmountInStock() + quantity);
+        vehicle.setInStock(true);
+        vehicleRepository.save(vehicle);
     }
 
 
@@ -363,6 +387,10 @@ public class OrderService {
 
         return cartsRepository.findByCartId(cartId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+    }
+
+    private int normalizeQuantity(int quantity) {
+        return quantity <= 0 ? 1 : quantity;
     }
 
     private User getCurrentAuthenticatedUser() {

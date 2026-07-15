@@ -93,6 +93,7 @@ public class UserCartController {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getPrice(),
+                cartLine.getQuantity(),
                 cartLine.isFinancingSelected(),
                 cartLine.getDownPayment(),
                 cartLine.getAnnualRatePercent(),

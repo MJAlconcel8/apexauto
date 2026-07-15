@@ -21,6 +21,7 @@ public class OrderLineResponseDTO {
     private String model;
     private int year;
     private BigDecimal price;
+    private int quantity;
     private boolean financingSelected;
     private BigDecimal downPayment;
     private Double annualRatePercent;
