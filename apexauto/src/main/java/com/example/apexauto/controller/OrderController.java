@@ -148,6 +148,7 @@ public class OrderController {
     private OrderLineResponseDTO toOrderLineResponseDTO(OrderLine orderLine) {
         Vehicle vehicle = orderLine.getVehicle();
         return new OrderLineResponseDTO(
+                orderLine.getOrderLineId(),
                 orderLine.getOrder().getOrderId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),

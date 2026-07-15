@@ -4,7 +4,6 @@ import com.example.apexauto.DTO.LoanCalculationResponseDTO;
 import com.example.apexauto.DTO.CreateCartDTO;
 import com.example.apexauto.DTO.UpdateCartDTO;
 import com.example.apexauto.entity.CartLine;
-import com.example.apexauto.entity.CartLineId;
 import com.example.apexauto.entity.CartStatus;
 import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.User;
@@ -138,14 +137,14 @@ public class CartService {
     @Transactional(readOnly = true)
     public List<CartLine> getCartLines(int cartId) {
         validateCartExists(cartId);
-        return cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+        return cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId);
     }
 
     @Transactional(readOnly = true)
     public List<CartLine> getCartLinesForUser(int cartId) {
         Carts cart = validateCartExists(cartId);
         verifyCartOwnership(cart);
-        return cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+        return cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId);
     }
 
     @Transactional
@@ -185,22 +184,14 @@ public class CartService {
         Vehicle vehicle = validateVehicleForCartLine(vehicleId);
         int quantityToAdd = normalizeQuantity(quantity);
 
-        Optional<CartLine> existingCartLine = cartLineRepository.findByCartCartIdAndVehicleVehicleId(cartId, vehicleId);
-        if (existingCartLine.isPresent()) {
-            CartLine cartLine = existingCartLine.get();
-            ensureSufficientStock(vehicle, cartLine.getQuantity() + quantityToAdd);
-            cartLine.setQuantity(cartLine.getQuantity() + quantityToAdd);
-            cartLineRepository.save(cartLine);
-        } else {
-            ensureSufficientStock(vehicle, quantityToAdd);
-            CartLine cartLine = new CartLine();
-            cartLine.setId(new CartLineId(cart.getCartId(), vehicle.getVehicleId()));
-            cartLine.setCart(cart);
-            cartLine.setVehicle(vehicle);
-            cartLine.setQuantity(quantityToAdd);
-            applyPricingToCartLine(cartLine, vehicle, financingSelected, downPayment, annualRate, termMonths);
-            cartLineRepository.save(cartLine);
-        }
+        ensureSufficientStock(vehicle, getVehicleQuantityInCart(cartId, vehicleId) + quantityToAdd);
+
+        CartLine cartLine = new CartLine();
+        cartLine.setCart(cart);
+        cartLine.setVehicle(vehicle);
+        cartLine.setQuantity(quantityToAdd);
+        applyPricingToCartLine(cartLine, vehicle, financingSelected, downPayment, annualRate, termMonths);
+        cartLineRepository.save(cartLine);
 
         cart.setTotalItemsInCart(recalculateTotalItems(cart.getCartId()));
 
@@ -208,11 +199,11 @@ public class CartService {
     }
 
     @Transactional
-    public Carts removeVehicleFromCart(int cartId, int vehicleId) {
+    public Carts removeVehicleFromCart(int cartId, int cartLineId) {
         Carts cart = validateCartExists(cartId);
         verifyCartOwnership(cart);
 
-        CartLine cartLine = cartLineRepository.findByCartCartIdAndVehicleVehicleId(cartId, vehicleId)
+        CartLine cartLine = cartLineRepository.findByCartCartIdAndCartLineId(cartId, cartLineId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart line not found"));
 
         cartLineRepository.delete(cartLine);
@@ -225,7 +216,7 @@ public class CartService {
     public void deleteCart(int cartId) {
         Carts cart = validateCartExists(cartId);
 
-        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId);
         cartLineRepository.deleteAll(cartLines);
 
         cartsRepository.delete(cart);
@@ -233,25 +224,23 @@ public class CartService {
 
     private void createCartLines(Carts cart, List<Vehicle> vehicles) {
         for (Vehicle vehicle : vehicles) {
-            Optional<CartLine> existingCartLine = cartLineRepository
-                    .findByCartCartIdAndVehicleVehicleId(cart.getCartId(), vehicle.getVehicleId());
+            ensureSufficientStock(vehicle, getVehicleQuantityInCart(cart.getCartId(), vehicle.getVehicleId()) + 1);
 
-            if (existingCartLine.isPresent()) {
-                CartLine cartLine = existingCartLine.get();
-                ensureSufficientStock(vehicle, cartLine.getQuantity() + 1);
-                cartLine.setQuantity(cartLine.getQuantity() + 1);
-                cartLineRepository.save(cartLine);
-            } else {
-                ensureSufficientStock(vehicle, 1);
-                CartLine cartLine = new CartLine();
-                cartLine.setId(new CartLineId(cart.getCartId(), vehicle.getVehicleId()));
-                cartLine.setCart(cart);
-                cartLine.setVehicle(vehicle);
-                cartLine.setQuantity(1);
-                applyCashPricing(cartLine, vehicle);
-                cartLineRepository.save(cartLine);
-            }
+            CartLine cartLine = new CartLine();
+            cartLine.setCart(cart);
+            cartLine.setVehicle(vehicle);
+            cartLine.setQuantity(1);
+            applyCashPricing(cartLine, vehicle);
+            cartLineRepository.save(cartLine);
         }
+    }
+
+    private int getVehicleQuantityInCart(int cartId, int vehicleId) {
+        return cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId)
+                .stream()
+                .filter(cartLine -> cartLine.getVehicle().getVehicleId() == vehicleId)
+                .mapToInt(CartLine::getQuantity)
+                .sum();
     }
 
     private void applyPricingToCartLine(
@@ -302,7 +291,7 @@ public class CartService {
     }
 
     private int recalculateTotalItems(int cartId) {
-        return cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId)
+        return cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId)
                 .stream()
                 .mapToInt(CartLine::getQuantity)
                 .sum();

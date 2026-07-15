@@ -61,11 +61,11 @@ export default function Cart() {
       })
   }, [navigate])
 
-  const handleRemove = async (vehicleId: number) => {
+  const handleRemove = async (cartLineId: number) => {
     if (!cart) return
 
     const res = await fetch(
-      `http://localhost:8080/carts/${cart.cartId}/cart-lines/${vehicleId}`,
+      `http://localhost:8080/carts/${cart.cartId}/cart-lines/${cartLineId}`,
       { method: 'DELETE', credentials: 'include' },
     )
 
@@ -78,7 +78,7 @@ export default function Cart() {
       window.dispatchEvent(new CustomEvent('cart-updated'))
       setCart((prev) => {
         if (!prev) return prev
-        const updated = prev.cartLines.filter((l) => l.vehicleId !== vehicleId)
+        const updated = prev.cartLines.filter((l) => l.cartLineId !== cartLineId)
         const totalItems = updated.reduce((sum, line) => sum + line.quantity, 0)
         return { ...prev, cartLines: updated, totalItemsInCart: totalItems }
       })
@@ -98,16 +98,12 @@ export default function Cart() {
     )
   }
 
-  const rawLines = cart?.cartLines ?? []
-  const lines = rawLines.flatMap((line) => {
-    const quantity = Math.max(1, line.quantity ?? 1)
-    return Array.from({ length: quantity }, () => ({ ...line, quantity: 1 }))
-  })
-  const totalItems = lines.length
-  const grandTotal = lines.reduce(
-    (sum, line) => sum + (line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price),
-    0,
-  )
+  const lines = cart?.cartLines ?? []
+  const totalItems = lines.reduce((sum, line) => sum + line.quantity, 0)
+  const grandTotal = lines.reduce((sum, line) => {
+    const unitTotal = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
+    return sum + unitTotal * line.quantity
+  }, 0)
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -155,9 +151,9 @@ export default function Cart() {
           /* Cart items */
           <section className="mx-auto max-w-5xl px-6 py-8">
             <ul className="space-y-4">
-              {lines.map((line, index) => (
+              {lines.map((line) => (
                 <CartLineItem
-                  key={`${line.vehicleId}-${index}`}
+                  key={line.cartLineId}
                   line={line}
                   onRemove={handleRemove}
                 />

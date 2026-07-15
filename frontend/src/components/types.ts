@@ -83,6 +83,7 @@ export interface VehicleCardProps {
 }
 
 export interface CartLine {
+  cartLineId: number
   cartId: number
   vehicleId: number
   brand: string
@@ -102,5 +103,5 @@ export interface CartLine {
 
 export interface CartLineItemProps {
   line: CartLine
-  onRemove: (vehicleId: number) => void
+  onRemove: (cartLineId: number) => void
 }

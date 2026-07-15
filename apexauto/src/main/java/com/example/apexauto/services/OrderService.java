@@ -4,7 +4,6 @@ import com.example.apexauto.entity.CartLine;
 import com.example.apexauto.entity.CartStatus;
 import com.example.apexauto.entity.Carts;
 import com.example.apexauto.entity.OrderLine;
-import com.example.apexauto.entity.OrderLineId;
 import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Orders;
 import com.example.apexauto.entity.User;
@@ -82,7 +81,7 @@ public class OrderService {
             throw new IllegalArgumentException("Cart status must be ACTIVE to create an order");
         }
         
-        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+        List<CartLine> cartLines = cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(cartId);
 
         if (cartLines.isEmpty()) {
             throw new IllegalArgumentException("Cart is empty");
@@ -135,7 +134,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderLine> getOrderLines(int orderId) {
         validateOrderExists(orderId);
-        return orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
+        return orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(orderId);
     }
 
     @Transactional
@@ -170,12 +169,7 @@ public class OrderService {
         ensureOrderHasNoPayment(orderId);
         Vehicle vehicle = validateVehicleForOrderLine(vehicleId);
 
-        if (orderLineRepository.existsByOrderOrderIdAndVehicleVehicleId(orderId, vehicleId)) {
-            throw new IllegalArgumentException("Vehicle already exists in this order");
-        }
-
         OrderLine orderLine = new OrderLine();
-        orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
         orderLine.setOrder(order);
         orderLine.setVehicle(vehicle);
         orderLine.setQuantity(1);
@@ -189,16 +183,16 @@ public class OrderService {
     }
 
     @Transactional
-    public Orders removeVehicleFromOrder(int orderId, int vehicleId) {
+    public Orders removeVehicleFromOrder(int orderId, int orderLineId) {
         Orders order = validateOrderExists(orderId);
         ensureOrderHasNoPayment(orderId);
-        List<OrderLine> existingLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
+        List<OrderLine> existingLines = orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(orderId);
 
         if (existingLines.size() <= 1) {
             throw new IllegalArgumentException("Order must contain at least one vehicle");
         }
 
-        OrderLine orderLine = orderLineRepository.findByOrderOrderIdAndVehicleVehicleId(orderId, vehicleId)
+        OrderLine orderLine = orderLineRepository.findByOrderOrderIdAndOrderLineId(orderId, orderLineId)
                 .orElseThrow(() -> new IllegalArgumentException("Order line not found"));
 
         restoreStock(orderLine.getVehicle(), orderLine.getQuantity());
@@ -216,7 +210,7 @@ public class OrderService {
             throw new IllegalArgumentException("Cannot delete order with existing payment");
         }
 
-        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
+        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(orderId);
         restoreStockFromOrderLines(orderLines);
         orderLineRepository.deleteAll(orderLines);
         ordersRepository.delete(order);
@@ -232,7 +226,6 @@ public class OrderService {
         for (CartLine cartLine : cartLines) {
             Vehicle vehicle = cartLine.getVehicle();
             OrderLine orderLine = new OrderLine();
-            orderLine.setId(new OrderLineId(order.getOrderId(), vehicle.getVehicleId()));
             orderLine.setOrder(order);
             orderLine.setVehicle(vehicle);
             orderLine.setQuantity(normalizeQuantity(cartLine.getQuantity()));
@@ -248,7 +241,7 @@ public class OrderService {
     }
 
     private BigDecimal recalculateTotalAmount(int orderId) {
-        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByVehicleVehicleIdAsc(orderId);
+        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(orderId);
         return calculateTotalFromOrderLines(orderLines);
     }
 

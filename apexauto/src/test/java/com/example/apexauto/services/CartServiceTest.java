@@ -23,16 +23,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -108,12 +108,15 @@ class CartServiceTest {
         when(cartsRepository.findByCartId(55)).thenReturn(Optional.of(cart));
         when(userRepository.findByUserId(8)).thenReturn(Optional.of(user));
         when(vehicleRepository.findById(10)).thenReturn(Optional.of(vehicle));
-        when(cartLineRepository.findByCartCartIdAndVehicleVehicleId(55, 10)).thenReturn(Optional.empty());
+        CartLine persistedLine = new CartLine();
+        persistedLine.setQuantity(1);
+        AtomicInteger queryCount = new AtomicInteger();
+        when(cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(55))
+                .thenAnswer(invocation -> queryCount.getAndIncrement() == 0
+                        ? Collections.emptyList()
+                        : Collections.singletonList(persistedLine));
         when(loanService.calculateLoanForAmount(vehicle.getPrice(), new BigDecimal("2500.00"), 5.9, 60))
                 .thenReturn(loan);
-        CartLine recalculationLine = new CartLine();
-        recalculationLine.setQuantity(1);
-        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(55)).thenReturn(List.of(recalculationLine));
         when(cartsRepository.save(any(Carts.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Carts updated = cartService.addVehicleToCart(55, 10, null, true, new BigDecimal("2500.00"), 5.9, 60);
@@ -154,10 +157,13 @@ class CartServiceTest {
         when(cartsRepository.findByCartId(55)).thenReturn(Optional.of(cart));
         when(userRepository.findByUserId(8)).thenReturn(Optional.of(user));
         when(vehicleRepository.findById(12)).thenReturn(Optional.of(vehicle));
-        when(cartLineRepository.findByCartCartIdAndVehicleVehicleId(55, 12)).thenReturn(Optional.empty());
-        CartLine recalculationLine = new CartLine();
-        recalculationLine.setQuantity(1);
-        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(55)).thenReturn(List.of(recalculationLine));
+        CartLine persistedLine = new CartLine();
+        persistedLine.setQuantity(1);
+        AtomicInteger queryCount = new AtomicInteger();
+        when(cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(55))
+                .thenAnswer(invocation -> queryCount.getAndIncrement() == 0
+                        ? Collections.emptyList()
+                        : Collections.singletonList(persistedLine));
         when(cartsRepository.save(any(Carts.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         cartService.addVehicleToCart(55, 12, null, false, null, null, null);
@@ -174,7 +180,7 @@ class CartServiceTest {
     }
 
     @Test
-    void addVehicleToCart_duplicateVehicleIncrementsQuantity() {
+    void addVehicleToCart_duplicateVehicleCreatesSeparateCartLinesForDifferentFinancing() {
         User user = new User();
         user.setUserId(8);
         mockAuthenticatedUser(user);
@@ -190,25 +196,65 @@ class CartServiceTest {
 
         Vehicle vehicle = vehicle(12, "12500.00", 5);
 
-        CartLine existingLine = new CartLine();
-        existingLine.setCart(cart);
-        existingLine.setVehicle(vehicle);
-        existingLine.setQuantity(1);
-        existingLine.setFinancingSelected(false);
-        existingLine.setLineTotalCost(new BigDecimal("12500.00"));
+        LoanCalculationResponseDTO loan = new LoanCalculationResponseDTO(
+                0,
+                new BigDecimal("12500.00"),
+                new BigDecimal("1000.00"),
+                new BigDecimal("11500.00"),
+                8.1,
+                36,
+                new BigDecimal("362.98"),
+                new BigDecimal("13067.28"),
+                new BigDecimal("1567.28")
+        );
+
+        CartLine cashLine = new CartLine();
+        cashLine.setVehicle(vehicle);
+        cashLine.setQuantity(1);
+
+        CartLine financedLine = new CartLine();
+        financedLine.setVehicle(vehicle);
+        financedLine.setQuantity(1);
 
         when(cartsRepository.findByCartId(55)).thenReturn(Optional.of(cart));
         when(userRepository.findByUserId(8)).thenReturn(Optional.of(user));
         when(vehicleRepository.findById(12)).thenReturn(Optional.of(vehicle));
-        when(cartLineRepository.findByCartCartIdAndVehicleVehicleId(55, 12)).thenReturn(Optional.of(existingLine));
-        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(55)).thenReturn(List.of(existingLine));
+        AtomicInteger queryCount = new AtomicInteger();
+        when(cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(55))
+                .thenAnswer(invocation -> {
+                    int call = queryCount.getAndIncrement();
+                    if (call == 0) {
+                        return Collections.emptyList();
+                    }
+                    if (call == 1 || call == 2) {
+                        return Collections.singletonList(cashLine);
+                    }
+                    return Arrays.asList(cashLine, financedLine);
+                });
+        when(loanService.calculateLoanForAmount(vehicle.getPrice(), new BigDecimal("1000.00"), 8.1, 36))
+                .thenReturn(loan);
         when(cartsRepository.save(any(Carts.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Carts updated = cartService.addVehicleToCart(55, 12, 2, true, new BigDecimal("1000.00"), 8.1, 36);
+        Carts firstUpdated = cartService.addVehicleToCart(55, 12, null, false, null, null, null);
+        assertEquals(1, firstUpdated.getTotalItemsInCart());
 
-        assertEquals(3, existingLine.getQuantity());
-        assertEquals(3, updated.getTotalItemsInCart());
-        verify(loanService, never()).calculateLoanForAmount(any(), any(), anyDouble(), anyInt());
+        Carts updated = cartService.addVehicleToCart(55, 12, null, true, new BigDecimal("1000.00"), 8.1, 36);
+        assertEquals(2, updated.getTotalItemsInCart());
+
+        ArgumentCaptor<CartLine> cartLineCaptor = ArgumentCaptor.forClass(CartLine.class);
+        verify(cartLineRepository, org.mockito.Mockito.times(2)).save(cartLineCaptor.capture());
+
+        List<CartLine> savedLines = cartLineCaptor.getAllValues();
+        assertFalse(savedLines.get(0).isFinancingSelected());
+        assertEquals(new BigDecimal("12500.00"), savedLines.get(0).getLineTotalCost());
+
+        assertTrue(savedLines.get(1).isFinancingSelected());
+        assertEquals(new BigDecimal("1000.00"), savedLines.get(1).getDownPayment());
+        assertEquals(8.1, savedLines.get(1).getAnnualRatePercent());
+        assertEquals(36, savedLines.get(1).getTermMonths());
+        assertEquals(new BigDecimal("362.98"), savedLines.get(1).getMonthlyPayment());
+        assertEquals(new BigDecimal("13067.28"), savedLines.get(1).getLineTotalCost());
+        assertEquals(new BigDecimal("1567.28"), savedLines.get(1).getTotalInterest());
     }
 
     private void mockAuthenticatedUser(User user) {

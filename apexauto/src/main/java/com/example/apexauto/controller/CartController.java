@@ -140,6 +140,7 @@ public class CartController {
         Vehicle vehicle = cartLine.getVehicle();
 
         return new CartLineResponseDTO(
+                cartLine.getCartLineId(),
                 cartLine.getCart().getCartId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),
@@ -177,7 +178,7 @@ public class CartController {
 
     private OrderLineResponseDTO toOrderLineResponseDTO(OrderLine orderLine) {
         Vehicle vehicle = orderLine.getVehicle();
-        return new OrderLineResponseDTO(
+        return new OrderLineResponseDTO(orderLine.getOrderLineId(),
                 orderLine.getOrder().getOrderId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),

@@ -145,7 +145,7 @@ class OrderServiceTest {
         );
 
         assertEquals("You do not have permission to check out this cart", exception.getMessage());
-        verify(cartLineRepository, never()).findByCartCartIdOrderByVehicleVehicleIdAsc(15);
+        verify(cartLineRepository, never()).findByCartCartIdOrderByCartLineIdAsc(15);
     }
 
     @Test
@@ -205,7 +205,7 @@ class OrderServiceTest {
 
         when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
         when(userRepository.findByUserId(77)).thenReturn(Optional.of(user));
-        when(cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(15))
+        when(cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(15))
                 .thenReturn(List.of(financedCartLine, cashCartLine));
         when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
         when(cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")).thenReturn(Optional.of(checkedOutStatus));
@@ -243,6 +243,94 @@ class OrderServiceTest {
         assertEquals(1, savedCashLine.getQuantity());
         assertEquals(new BigDecimal("5000.00"), savedCashLine.getLineTotalCost());
         assertEquals(new BigDecimal("0.00"), savedCashLine.getTotalInterest());
+    }
+
+    @Test
+    void createOrderFromCart_preservesDuplicateVehicleLinesWithDifferentFinancing() {
+        User user = new User();
+        user.setUserId(77);
+        user.setEmail("test@example.com");
+
+        CartStatus activeStatus = new CartStatus();
+        activeStatus.setCartStatusId(1);
+        activeStatus.setCartStatusName("ACTIVE");
+
+        CartStatus checkedOutStatus = new CartStatus();
+        checkedOutStatus.setCartStatusId(2);
+        checkedOutStatus.setCartStatusName("CHECKED_OUT");
+
+        Carts cart = new Carts();
+        cart.setCartId(15);
+        cart.setUser(user);
+        cart.setCartStatus(activeStatus);
+
+        Vehicle vehicle = vehicle(10, "20000.00", 3);
+
+        CartLine cashCartLine = new CartLine();
+        cashCartLine.setCart(cart);
+        cashCartLine.setVehicle(vehicle);
+        cashCartLine.setQuantity(1);
+        cashCartLine.setFinancingSelected(false);
+        cashCartLine.setDownPayment(new BigDecimal("0.00"));
+        cashCartLine.setLineTotalCost(new BigDecimal("20000.00"));
+        cashCartLine.setTotalInterest(new BigDecimal("0.00"));
+
+        CartLine financedCartLine = new CartLine();
+        financedCartLine.setCart(cart);
+        financedCartLine.setVehicle(vehicle);
+        financedCartLine.setQuantity(1);
+        financedCartLine.setFinancingSelected(true);
+        financedCartLine.setDownPayment(new BigDecimal("3000.00"));
+        financedCartLine.setAnnualRatePercent(6.5);
+        financedCartLine.setTermMonths(48);
+        financedCartLine.setMonthlyPayment(new BigDecimal("398.88"));
+        financedCartLine.setLineTotalCost(new BigDecimal("22146.24"));
+        financedCartLine.setTotalInterest(new BigDecimal("5146.24"));
+
+        OrderStatus pending = new OrderStatus();
+        pending.setOrderStatusId(1);
+        pending.setOrderStatusName("PENDING");
+
+        Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
+        SecurityContext securityContext = org.mockito.Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(authentication.isAuthenticated()).thenReturn(true);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(cartsRepository.findByCartId(15)).thenReturn(Optional.of(cart));
+        when(userRepository.findByUserId(77)).thenReturn(Optional.of(user));
+        when(cartLineRepository.findByCartCartIdOrderByCartLineIdAsc(15))
+                .thenReturn(List.of(cashCartLine, financedCartLine));
+        when(orderStatusRepository.findByOrderStatusNameIgnoreCase("PENDING")).thenReturn(Optional.of(pending));
+        when(cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")).thenReturn(Optional.of(checkedOutStatus));
+        when(ordersRepository.save(any(Orders.class))).thenAnswer(invocation -> {
+            Orders savedOrder = invocation.getArgument(0);
+            if (savedOrder.getOrderId() == 0) {
+                savedOrder.setOrderId(901);
+            }
+            return savedOrder;
+        });
+
+        Orders created = orderService.createOrderFromCart(15);
+
+        assertEquals(new BigDecimal("42146.24"), created.getTotalAmount());
+        assertEquals(1, vehicle.getAmountInStock());
+
+        ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
+        verify(orderLineRepository, times(2)).save(orderLineCaptor.capture());
+
+        List<OrderLine> savedLines = orderLineCaptor.getAllValues();
+        assertFalse(savedLines.get(0).isFinancingSelected());
+        assertEquals(new BigDecimal("20000.00"), savedLines.get(0).getLineTotalCost());
+
+        assertTrue(savedLines.get(1).isFinancingSelected());
+        assertEquals(new BigDecimal("3000.00"), savedLines.get(1).getDownPayment());
+        assertEquals(6.5, savedLines.get(1).getAnnualRatePercent());
+        assertEquals(48, savedLines.get(1).getTermMonths());
+        assertEquals(new BigDecimal("398.88"), savedLines.get(1).getMonthlyPayment());
+        assertEquals(new BigDecimal("22146.24"), savedLines.get(1).getLineTotalCost());
+        assertEquals(new BigDecimal("5146.24"), savedLines.get(1).getTotalInterest());
     }
 
     private Vehicle vehicle(int vehicleId, String price, int amountInStock) {

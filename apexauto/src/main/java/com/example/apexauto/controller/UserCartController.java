@@ -86,6 +86,7 @@ public class UserCartController {
         Vehicle vehicle = cartLine.getVehicle();
 
         return new CartLineResponseDTO(
+                cartLine.getCartLineId(),
                 cartLine.getCart().getCartId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),

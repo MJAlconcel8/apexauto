@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CartLineResponseDTO {
 
+    private int cartLineId;
     private int cartId;
     private int vehicleId;
     private String brand;

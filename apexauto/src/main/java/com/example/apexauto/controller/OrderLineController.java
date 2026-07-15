@@ -56,14 +56,14 @@ public class OrderLineController {
         }
     }
 
-    // DELETE /orders/{orderId}/order-lines/{vehicleId} - removes one vehicle from an order.
-    @DeleteMapping("/{vehicleId}")
+    // DELETE /orders/{orderId}/order-lines/{orderLineId} - removes one specific order line.
+    @DeleteMapping("/{orderLineId}")
     public ResponseEntity<OrderResponseDTO> removeVehicleFromOrder(
             @PathVariable int orderId,
-            @PathVariable int vehicleId
+            @PathVariable int orderLineId
     ) {
         try {
-            Orders updated = orderService.removeVehicleFromOrder(orderId, vehicleId);
+            Orders updated = orderService.removeVehicleFromOrder(orderId, orderLineId);
             return ResponseEntity.ok(toOrderResponseDTO(updated));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
@@ -90,6 +90,7 @@ public class OrderLineController {
     private OrderLineResponseDTO toOrderLineResponseDTO(OrderLine orderLine) {
         Vehicle vehicle = orderLine.getVehicle();
         return new OrderLineResponseDTO(
+                orderLine.getOrderLineId(),
                 orderLine.getOrder().getOrderId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),
