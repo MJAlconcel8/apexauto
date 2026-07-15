@@ -281,7 +281,8 @@ export default function GuestCatalogue() {
                     v={v}
                     dark
                     hideFinance
-                    onView={() => navigate('/login')}
+                    cardNavigateState={{ hideNav: true }}
+                    onView={(veh) => navigate(`/vehicle/${veh.id}`, { state: { hideNav: true } })}
                   />
                 </Reveal>
               ))}

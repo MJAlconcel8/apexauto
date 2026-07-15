@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
   BadgeDollarSign,
@@ -11,6 +11,7 @@ import {
   Wind,
   Calendar,
   Palette,
+  Lock,
 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { Badge, RangeGauge, SpecReadout, Btn, Footer } from '../components'
@@ -100,14 +101,18 @@ function StatBlock({ icon, label, value }: StatBlockProps) {
 export default function VehicleInfoPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const hideNav = (location.state as { hideNav?: boolean } | null)?.hideNav ?? false
+  const stateVehicle = (location.state as { vehicle?: Vehicle } | null)?.vehicle ?? null
 
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [vehicle, setVehicle] = useState<Vehicle | null>(stateVehicle)
+  const [loading, setLoading] = useState(!stateVehicle)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [addingToCart, setAddingToCart] = useState(false)
   const [cartMsg, setCartMsg] = useState<string | null>(null)
 
   useEffect(() => {
+    if (stateVehicle) return
     if (!id) return
     fetch(`http://localhost:8080/vehicles/${id}`)
       .then((res) => {
@@ -122,7 +127,7 @@ export default function VehicleInfoPage() {
         setFetchError('Could not load vehicle details. Please try again later.')
         setLoading(false)
       })
-  }, [id])
+  }, [id, stateVehicle])
 
   const handleFinance = () => {
     if (!vehicle) return
@@ -206,8 +211,8 @@ export default function VehicleInfoPage() {
 
   return (
     <>
-      <Nav />
-      <main className="min-h-screen pt-16 flex flex-col" style={{ background: '#030c1a' }}>
+      {!hideNav && <Nav />}
+      <main className={`min-h-screen flex flex-col${hideNav ? '' : ' pt-16'}`} style={{ background: '#030c1a' }}>
 
         {/* ─── Sub-header band ─────────────────────────────────── */}
         <div style={{ background: '#040f20', borderBottom: '1px solid rgba(30,58,95,0.8)' }}>
@@ -344,26 +349,56 @@ export default function VehicleInfoPage() {
             )}
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-3 mt-auto">
-              <Btn
-                variant="primary"
-                size="md"
-                icon={ShoppingCart}
-                onClick={handleAddToCart}
-                ariaLabel="Add to cart"
+            {hideNav ? (
+              <div
+                className="flex flex-col gap-4 mt-auto p-5 rounded-xl border"
+                style={{ background: 'rgba(0,102,255,0.06)', borderColor: 'rgba(0,102,255,0.25)' }}
               >
-                {addingToCart ? 'Adding…' : 'Add to Cart'}
-              </Btn>
-              <Btn
-                variant="outline"
-                size="md"
-                icon={BadgeDollarSign}
-                onClick={handleFinance}
-                ariaLabel="Finance this vehicle"
-              >
-                Finance
-              </Btn>
-            </div>
+                <div className="flex items-start gap-2.5">
+                  <Lock size={15} strokeWidth={2} className="shrink-0 mt-0.5" style={{ color: '#0066ff' }} />
+                  <p className="font-body text-[13px] leading-[1.5]" style={{ color: 'rgba(126,179,255,0.85)' }}>
+                    Create Free Account or Log In to finance or purchase this vehicle.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Btn
+                    variant="primary"
+                    size="md"
+                    onClick={() => navigate('/login', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
+                  >
+                    Create Free Account
+                  </Btn>
+                  <Btn
+                    variant="outline"
+                    size="md"
+                    onClick={() => navigate('/registration', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
+                  >
+                    Log In
+                  </Btn>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-3 mt-auto">
+                <Btn
+                  variant="primary"
+                  size="md"
+                  icon={ShoppingCart}
+                  onClick={handleAddToCart}
+                  ariaLabel="Add to cart"
+                >
+                  {addingToCart ? 'Adding…' : 'Add to Cart'}
+                </Btn>
+                <Btn
+                  variant="outline"
+                  size="md"
+                  icon={BadgeDollarSign}
+                  onClick={handleFinance}
+                  ariaLabel="Finance this vehicle"
+                >
+                  Finance
+                </Btn>
+              </div>
+            )}
           </div>
         </div>
 

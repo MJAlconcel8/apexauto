@@ -339,7 +339,6 @@ export default function Home({ onNavigate }: HomeProps) {
                 <VehicleCard
                   v={v}
                   dark
-                  onView={(vehicle) => go(`/vehicle/${vehicle.id}`)}
                   onFinance={() => {}}
                 />
               </Reveal>

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search, ArrowRight, BatteryCharging,
   Calculator, Check, ChevronRight, Star, ShieldCheck, Clock,
@@ -58,6 +59,7 @@ const fmtUSD = (n: number) => "$" + n.toLocaleString("en-US");
 
 
 export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
+  const navigate = useNavigate();
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -233,7 +235,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
           <div className="grid gap-6 lg:grid-cols-3 mt-7">
             {VEHICLES.map((v, i) => (
               <Reveal key={v.id} delay={i * 90}>
-                <VehicleCard v={v} dark hideFinance onView={(veh) => go("vehicle-detail", { id: veh.id })}/>
+                <VehicleCard v={v} dark hideFinance cardNavigateState={{ hideNav: true, vehicle: v }} onView={(veh) => navigate(`/vehicle/${veh.id}`, { state: { hideNav: true, vehicle: veh } })} />
               </Reveal>
             ))}
           </div>

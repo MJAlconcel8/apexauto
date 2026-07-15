@@ -139,7 +139,7 @@ export default function Cart() {
               <p className="mt-5 text-sm text-muted-foreground">Your cart is empty.</p>
               <button
                 type="button"
-                onClick={() => navigate('/home')}
+                onClick={() => navigate('/catalogue')}
                 className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#0066ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0055d9]"
               >
                 Browse Vehicles

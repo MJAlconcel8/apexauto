@@ -28,6 +28,7 @@ export default function LoanCalc() {
   const [apr, setApr] = useState<number>(6.9)
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [addSuccess, setAddSuccess] = useState(false)
 
   const { monthlyPayment, totalCost, totalInterest } = useMemo(() => {
     const principal = Math.max(0, vehiclePrice - downPayment)
@@ -101,7 +102,8 @@ export default function LoanCalc() {
         throw new Error(err?.message ?? 'Could not add vehicle to cart.')
       }
 
-      navigate('/cart')
+      window.dispatchEvent(new Event('cart-updated'))
+      setAddSuccess(true)
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
@@ -308,6 +310,9 @@ export default function LoanCalc() {
               {/* CTA */}
               {addError && (
                 <p className="text-sm text-red-500 text-center">{addError}</p>
+              )}
+              {addSuccess && (
+                <p className="text-sm text-center" style={{ color: '#22c55e' }}>Added to cart!</p>
               )}
               <button
                 type="button"

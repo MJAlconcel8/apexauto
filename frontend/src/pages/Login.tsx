@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Logo from '../components/Logo'
 import { Btn } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
@@ -16,6 +16,9 @@ export default function Login({ onNavigate }: LoginProps) {
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | undefined>(undefined)
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as Record<string, unknown> | null
+  const returnTo = locationState?.returnTo as string | undefined
 
   const flash = (msg: string) => {
     setToast(msg)
@@ -60,7 +63,13 @@ export default function Login({ onNavigate }: LoginProps) {
           },
         }).catch(() => {})
 
-        go('/home')
+        if (returnTo) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { returnTo: _rt, hideNav: _hn, ...returnState } = locationState ?? {}
+          navigate(returnTo, { state: returnState })
+        } else {
+          go('/home')
+        }
       } else {
         setMessage(data.error || 'Login failed. Please try again.')
       }

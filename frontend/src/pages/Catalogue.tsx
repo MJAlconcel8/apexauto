@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, Footer } from '../components'
@@ -154,8 +153,6 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default function Catalogue() {
-  const navigate = useNavigate()
-
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -287,7 +284,6 @@ export default function Catalogue() {
                     <VehicleCard
                       v={v}
                       dark
-                      onView={(vehicle) => navigate(`/vehicle/${vehicle.id}`)}
                       onFinance={() => {}}
                     />
                   </Reveal>

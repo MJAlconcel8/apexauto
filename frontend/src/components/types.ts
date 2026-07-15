@@ -78,8 +78,10 @@ export interface VehicleCardProps {
   v: Vehicle;
   dark?: boolean;
   hideFinance?: boolean;
+  hideAddToCart?: boolean;
   onView?: (v: Vehicle) => void;
   onFinance?: (v: Vehicle) => void;
+  cardNavigateState?: Record<string, unknown>;
 }
 
 export interface CartLine {
