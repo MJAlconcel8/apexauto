@@ -14,6 +14,9 @@ import com.example.apexauto.repository.CartStatusRepository;
 import com.example.apexauto.repository.CartsRepository;
 import com.example.apexauto.repository.UserRepository;
 import com.example.apexauto.repository.VehicleRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -139,6 +142,13 @@ public class CartService {
         return cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
     }
 
+    @Transactional(readOnly = true)
+    public List<CartLine> getCartLinesForUser(int cartId) {
+        Carts cart = validateCartExists(cartId);
+        verifyCartOwnership(cart);
+        return cartLineRepository.findByCartCartIdOrderByVehicleVehicleIdAsc(cartId);
+    }
+
     @Transactional
     public Carts updateCart(int cartId, UpdateCartDTO request) {
         if (request == null) {
@@ -171,6 +181,7 @@ public class CartService {
             Integer termMonths
     ) {
         Carts cart = validateCartExists(cartId);
+        verifyCartOwnership(cart);
         Vehicle vehicle = validateVehicleForCartLine(vehicleId);
 
         if (cartLineRepository.existsByCartCartIdAndVehicleVehicleId(cartId, vehicleId)) {
@@ -192,6 +203,7 @@ public class CartService {
     @Transactional
     public Carts removeVehicleFromCart(int cartId, int vehicleId) {
         Carts cart = validateCartExists(cartId);
+        verifyCartOwnership(cart);
 
         CartLine cartLine = cartLineRepository.findByCartCartIdAndVehicleVehicleId(cartId, vehicleId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart line not found"));
@@ -362,5 +374,29 @@ public class CartService {
                     cartStatus.setCartStatusName(DEFAULT_CART_STATUS.toUpperCase(Locale.ROOT));
                     return cartStatusRepository.save(cartStatus);
                 });
+    }
+
+    private void verifyCartOwnership(Carts cart) {
+        User currentUser = getCurrentAuthenticatedUser();
+        if (cart.getUser().getUserId() != currentUser.getUserId()) {
+            throw new AccessDeniedException("You do not have permission to access this cart");
+        }
+    }
+
+    private User getCurrentAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof User)) {
+            throw new AccessDeniedException("Invalid authentication principal");
+        }
+
+        User user = (User) principal;
+        return userRepository.findByUserId(user.getUserId())
+                .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
     }
 }

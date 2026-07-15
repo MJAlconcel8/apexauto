@@ -42,6 +42,7 @@ export default function Login({ onNavigate }: LoginProps) {
     try {
       const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -51,14 +52,11 @@ export default function Login({ onNavigate }: LoginProps) {
       const data = await response.json()
 
       if (response.ok) {
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userId', String(data.userId))
-
-        await fetch(`http://localhost:8080/users/${data.userId}/carts`, {
+        await fetch(`http://localhost:8080/users/me/carts`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${data.token}`,
           },
         }).catch(() => {})
 

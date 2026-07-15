@@ -54,21 +54,11 @@ export default function LoanCalc() {
     setAddError(null)
 
     try {
-      const token = localStorage.getItem('token')
-      const userId = localStorage.getItem('userId')
-
-      if (!token || !userId) {
-        navigate('/login')
-        return
-      }
-
       // Fetch the user's active cart to get the cartId
-      const cartRes = await fetch(`http://localhost:8080/users/${userId}/carts/active`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const cartRes = await fetch(`http://localhost:8080/users/me/carts/active`, {
+        credentials: 'include',
       })
       if (cartRes.status === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('userId')
         navigate('/login')
         return
       }
@@ -78,9 +68,9 @@ export default function LoanCalc() {
       // POST the financed vehicle to the cart
       const addRes = await fetch(`http://localhost:8080/carts/${cart.cartId}/cart-lines`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           vehicleId: Number(vehicle.id),
@@ -91,8 +81,6 @@ export default function LoanCalc() {
         }),
       })
       if (addRes.status === 401) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('userId')
         navigate('/login')
         return
       }
