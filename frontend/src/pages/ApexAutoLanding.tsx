@@ -30,17 +30,17 @@ const CAR_IMAGES = {
 
 const VEHICLES: Vehicle[] = [
   {
-    id: "v-kestrel", marque: "Aster", model: "Kestrel EV Sport", year: 2024, img: CAR_IMAGES.camaro,
+    id: "v-kestrel", marque: "Aster", model: "Kestrel EV Sport", year: 2024, img: 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=800&q=75',
     price: 58900, mileage: 402, emissionScore: 77, seats: 5, fuelUsage: 4.6, stock: 4,
     history: "Clean · 1 owner", ext: "Voltage Blue", badge: { label: "EV", tone: "voltage" },
   },
   {
-    id: "v-lumen", marque: "Halcyon", model: "Volen Lumen", year: 2024, img: CAR_IMAGES.bmw,
+    id: "v-lumen", marque: "Halcyon", model: "Volen Lumen", year: 2024, img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=75',
     price: 74500, mileage: 512, emissionScore: 90, seats: 5, fuelUsage: 3.9, stock: 2,
     history: "Clean", ext: "Pearl White", badge: { label: "2 left", tone: "amber" },
   },
   {
-    id: "v-bolt", marque: "Meridian", model: "Meridian Bolt", year: 2023, img: CAR_IMAGES.mustang,
+    id: "v-bolt", marque: "Meridian", model: "Meridian Bolt", year: 2023, img: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&w=800&q=75',
     price: 44900, was: 47900, mileage: 389, emissionScore: 64, seats: 5, fuelUsage: 5.4, stock: 9,
     history: "Clean · minor panel", ext: "Graphite", badge: { label: "Hot deal", tone: "hot" },
   },
@@ -267,7 +267,7 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
           <div>
             <SectionHead dark eyebrow="Finance tool" title="Know the monthly number before you commit" sub="Set the price, down payment, term, and APR. Every control recomputes the payment live — no sign-in, no sales call." />
             <div className="relative mt-7 rounded-[14px] overflow-hidden border border-white/10">
-              <img src={CAR_IMAGES.tesla3} alt="Electric sedan available to finance" loading="lazy" className="w-full h-50 object-cover block" />
+              <img src='https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&w=800&q=75' alt="Electric sedan available to finance" loading="lazy" className="w-full h-50 object-cover block" />
               <div className="absolute inset-0 bg-[linear-gradient(to_top,var(--color-apex-ink)_4%,transparent_60%)]" />
               <div className="absolute left-4 bottom-3.5">
                 <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-apex-muted-ink">Prefilled from any detail page</div>

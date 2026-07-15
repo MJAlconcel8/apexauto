@@ -35,29 +35,29 @@ const VEHICLES: Vehicle[] = [
     rating: 4.7, reviewCount: 3108,
   },
   {
-    id: '4', marque: 'Apex', model: 'Phantom L', year: 2026, category: 'Luxury',
+    id: '4', marque: 'Aster', model: 'Kestrel EV Sport', year: 2024, category: 'Sports',
+    img: 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=800&q=75',
+    price: 58900, mileage: 402, emissionScore: 77, seats: 5, fuelUsage: 4.6, stock: 4,
+    history: 'New · 2024', ext: 'Voltage Blue', badge: { label: 'New', tone: 'voltage' },
+    rating: 4.7, reviewCount: 1024,
+  },
+  {
+    id: '5', marque: 'Halcyon', model: 'Volen Lumen', year: 2024, category: 'Luxury',
     img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=75',
-    price: 156000, mileage: 450, emissionScore: 95, seats: 5, fuelUsage: 7.1, stock: 2,
-    history: 'New · 2026', ext: 'Obsidian Black', badge: { label: 'Limited', tone: 'amber' },
-    rating: 5.0, reviewCount: 842,
+    price: 74500, mileage: 512, emissionScore: 90, seats: 5, fuelUsage: 3.9, stock: 2,
+    history: 'New · 2024', ext: 'Pearl White', badge: { label: 'Limited', tone: 'amber' },
+    rating: 4.9, reviewCount: 638,
   },
   {
-    id: '5', marque: 'Apex', model: 'Surge R', year: 2026, category: 'Sports',
-    img: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=75',
-    price: 198000, mileage: 310, emissionScore: 180, seats: 2, fuelUsage: 10.4, stock: 1,
-    history: 'New · 2026', ext: 'Voltage Blue', badge: { label: 'Flagship', tone: 'voltage' },
-    rating: 5.0, reviewCount: 421,
-  },
-  {
-    id: '6', marque: 'Apex', model: 'City Pod', year: 2026, category: 'Compact',
-    img: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=800&q=75',
-    price: 42500, was: 46900, mileage: 280, emissionScore: 72, seats: 4, fuelUsage: 5.4, stock: 8,
-    history: 'New · 2026', ext: 'Arctic White', badge: { label: 'Hot Deal', tone: 'hot' },
-    rating: 4.5, reviewCount: 5201,
+    id: '6', marque: 'Meridian', model: 'Meridian Bolt', year: 2023, category: 'Sedan',
+    img: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&w=800&q=75',
+    price: 44900, was: 49900, mileage: 389, emissionScore: 64, seats: 5, fuelUsage: 5.4, stock: 9,
+    history: 'New · 2023', ext: 'Graphite', badge: { label: 'Hot Deal', tone: 'hot' },
+    rating: 4.5, reviewCount: 3872,
   },
 ]
 
-const CATEGORIES = ['All', 'Sedan', 'Sports', 'SUV', 'Luxury', 'Compact'] as const
+const CATEGORIES = ['All', 'Sedan', 'Sports', 'SUV', 'Luxury'] as const
 
 const SORTS = [
   { key: 'featured', label: 'Featured' },
@@ -70,7 +70,7 @@ const SORTS = [
 type SortKey = (typeof SORTS)[number]['key']
 
 const PRICE_MIN = 40000
-const PRICE_MAX = 200000
+const PRICE_MAX = 150000
 
 /* ── Filter rail ──────────────────────────────────────────────── */
 
