@@ -16,22 +16,27 @@ public class OrderLine {
 
     @Getter
     @Setter
-    @EmbeddedId
-    private OrderLineId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_line_id")
+    private Integer orderLineId;
 
     @Getter
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("orderId")
     @JoinColumn(name = "order_id", nullable = false)
     private Orders order;
 
     @Getter
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("vehicleId")
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
+
+    @Getter
+    @Setter
+    @Column(name = "quantity", nullable = false)
+    private int quantity = 1;
 
     @Getter
     @Setter

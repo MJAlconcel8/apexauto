@@ -28,6 +28,7 @@ export default function LoanCalc() {
   const [apr, setApr] = useState<number>(6.9)
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [addSuccess, setAddSuccess] = useState(false)
 
   const { monthlyPayment, totalCost, totalInterest } = useMemo(() => {
     const principal = Math.max(0, vehiclePrice - downPayment)
@@ -54,15 +55,26 @@ export default function LoanCalc() {
     setAddError(null)
 
     try {
-      // Fetch the user's active cart to get the cartId
-      const cartRes = await fetch(`http://localhost:8080/users/me/carts/active`, {
+      // Fetch the user's active cart; auto-create one if it doesn't exist yet
+      let cartRes = await fetch(`http://localhost:8080/users/me/carts/active`, {
         credentials: 'include',
       })
       if (cartRes.status === 401) {
         navigate('/login')
         return
       }
-      if (!cartRes.ok) throw new Error('Could not fetch your active cart.')
+      if (cartRes.status === 404) {
+        const createRes = await fetch(`http://localhost:8080/users/me/carts`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (createRes.status === 401) { navigate('/login'); return }
+        if (!createRes.ok) throw new Error('Could not create a cart.')
+        cartRes = createRes
+      } else if (!cartRes.ok) {
+        throw new Error('Could not fetch your active cart.')
+      }
       const cart = await cartRes.json()
 
       // POST the financed vehicle to the cart
@@ -74,6 +86,7 @@ export default function LoanCalc() {
         },
         body: JSON.stringify({
           vehicleId: Number(vehicle.id),
+          quantity: 1,
           financingSelected: true,
           downPayment: downPayment,
           annualRate: apr,
@@ -89,7 +102,8 @@ export default function LoanCalc() {
         throw new Error(err?.message ?? 'Could not add vehicle to cart.')
       }
 
-      navigate('/cart')
+      window.dispatchEvent(new Event('cart-updated'))
+      setAddSuccess(true)
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
@@ -296,6 +310,9 @@ export default function LoanCalc() {
               {/* CTA */}
               {addError && (
                 <p className="text-sm text-red-500 text-center">{addError}</p>
+              )}
+              {addSuccess && (
+                <p className="text-sm text-center" style={{ color: '#22c55e' }}>Added to cart!</p>
               )}
               <button
                 type="button"

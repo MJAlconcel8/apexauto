@@ -37,7 +37,22 @@ export default function Cart() {
         return res.json() as Promise<CartData>
       })
       .then((data) => {
-        setCart(data)
+        if (!data) {
+          setCart(null)
+          setLoading(false)
+          return
+        }
+
+        const normalizedLines = data.cartLines.map((line) => ({
+          ...line,
+          quantity: Math.max(1, line.quantity ?? 1),
+        }))
+
+        setCart({
+          ...data,
+          cartLines: normalizedLines,
+          totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
+        })
         setLoading(false)
       })
       .catch(() => {
@@ -46,11 +61,11 @@ export default function Cart() {
       })
   }, [navigate])
 
-  const handleRemove = async (vehicleId: number) => {
+  const handleRemove = async (cartLineId: number) => {
     if (!cart) return
 
     const res = await fetch(
-      `http://localhost:8080/carts/${cart.cartId}/cart-lines/${vehicleId}`,
+      `http://localhost:8080/carts/${cart.cartId}/cart-lines/${cartLineId}`,
       { method: 'DELETE', credentials: 'include' },
     )
 
@@ -63,8 +78,9 @@ export default function Cart() {
       window.dispatchEvent(new CustomEvent('cart-updated'))
       setCart((prev) => {
         if (!prev) return prev
-        const updated = prev.cartLines.filter((l) => l.vehicleId !== vehicleId)
-        return { ...prev, cartLines: updated, totalItemsInCart: updated.length }
+        const updated = prev.cartLines.filter((l) => l.cartLineId !== cartLineId)
+        const totalItems = updated.reduce((sum, line) => sum + line.quantity, 0)
+        return { ...prev, cartLines: updated, totalItemsInCart: totalItems }
       })
     }
   }
@@ -83,10 +99,11 @@ export default function Cart() {
   }
 
   const lines = cart?.cartLines ?? []
-  const grandTotal = lines.reduce(
-    (sum, l) => sum + (l.financingSelected ? (l.lineTotalCost ?? 0) : l.price),
-    0,
-  )
+  const totalItems = lines.reduce((sum, line) => sum + line.quantity, 0)
+  const grandTotal = lines.reduce((sum, line) => {
+    const unitTotal = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
+    return sum + unitTotal * line.quantity
+  }, 0)
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -98,7 +115,7 @@ export default function Cart() {
           <div className="mx-auto max-w-5xl px-6 py-6">
             <h1 className="font-heading text-3xl font-bold">Your Cart</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {lines.length} {lines.length === 1 ? 'item' : 'items'}
+              {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </p>
           </div>
         </section>
@@ -122,7 +139,7 @@ export default function Cart() {
               <p className="mt-5 text-sm text-muted-foreground">Your cart is empty.</p>
               <button
                 type="button"
-                onClick={() => navigate('/home')}
+                onClick={() => navigate('/catalogue')}
                 className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#0066ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0055d9]"
               >
                 Browse Vehicles
@@ -136,7 +153,7 @@ export default function Cart() {
             <ul className="space-y-4">
               {lines.map((line) => (
                 <CartLineItem
-                  key={line.vehicleId}
+                  key={line.cartLineId}
                   line={line}
                   onRemove={handleRemove}
                 />
@@ -146,7 +163,7 @@ export default function Cart() {
             {/* Summary */}
             <div className="mt-8 rounded-xl border border-card-border bg-card p-6">
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Subtotal ({lines.length} {lines.length === 1 ? 'item' : 'items'})</span>
+                <span>Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})</span>
                 <span className="font-medium text-foreground">{fmtCAD(grandTotal)}</span>
               </div>
               <div className="mt-5 flex justify-end">

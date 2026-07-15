@@ -53,6 +53,7 @@ public class CartLineController {
             Carts updated = cartService.addVehicleToCart(
                     cartId,
                     request.getVehicleId(),
+                    request.getQuantity(),
                     request.isFinancingSelected(),
                     request.getDownPayment(),
                     request.getAnnualRate(),
@@ -64,14 +65,14 @@ public class CartLineController {
         }
     }
 
-    // DELETE /carts/{cartId}/cart-lines/{vehicleId} - removes one vehicle from a cart.
-    @DeleteMapping("/{vehicleId}")
+    // DELETE /carts/{cartId}/cart-lines/{cartLineId} - removes one specific cart line.
+    @DeleteMapping("/{cartLineId}")
     public ResponseEntity<CartResponseDTO> removeVehicleFromCart(
             @PathVariable int cartId,
-            @PathVariable int vehicleId
+            @PathVariable int cartLineId
     ) {
         try {
-            Carts updated = cartService.removeVehicleFromCart(cartId, vehicleId);
+            Carts updated = cartService.removeVehicleFromCart(cartId, cartLineId);
             return ResponseEntity.ok(toCartResponseDTO(updated));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
@@ -98,6 +99,7 @@ public class CartLineController {
         Vehicle vehicle = cartLine.getVehicle();
 
         return new CartLineResponseDTO(
+                cartLine.getCartLineId(),
                 cartLine.getCart().getCartId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),
@@ -105,6 +107,7 @@ public class CartLineController {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getPrice(),
+                cartLine.getQuantity(),
                 cartLine.isFinancingSelected(),
                 cartLine.getDownPayment(),
                 cartLine.getAnnualRatePercent(),

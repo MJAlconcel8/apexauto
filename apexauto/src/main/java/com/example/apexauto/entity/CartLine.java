@@ -16,22 +16,27 @@ public class CartLine {
 
     @Getter
     @Setter
-    @EmbeddedId
-    private CartLineId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "cart_line_id")
+    private Integer cartLineId;
 
     @Getter
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("cartId")
     @JoinColumn(name = "cart_id", nullable = false)
     private Carts cart;
 
     @Getter
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("vehicleId")
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
+
+    @Getter
+    @Setter
+    @Column(name = "quantity", nullable = false)
+    private int quantity = 1;
 
     @Getter
     @Setter

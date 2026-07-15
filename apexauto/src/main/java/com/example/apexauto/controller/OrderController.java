@@ -148,6 +148,7 @@ public class OrderController {
     private OrderLineResponseDTO toOrderLineResponseDTO(OrderLine orderLine) {
         Vehicle vehicle = orderLine.getVehicle();
         return new OrderLineResponseDTO(
+                orderLine.getOrderLineId(),
                 orderLine.getOrder().getOrderId(),
                 vehicle.getVehicleId(),
                 vehicle.getBrand(),
@@ -155,6 +156,7 @@ public class OrderController {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getPrice(),
+                orderLine.getQuantity(),
                 orderLine.isFinancingSelected(),
                 orderLine.getDownPayment(),
                 orderLine.getAnnualRatePercent(),

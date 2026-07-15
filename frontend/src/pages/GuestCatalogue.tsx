@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
-import Nav from '../components/Nav'
 import { VehicleCard, Reveal, Footer } from '../components'
 import type { Vehicle, VehicleBadge } from '../components'
 import { VEHICLE_IMAGES } from '../assets/vehicleImages'
@@ -55,32 +55,21 @@ function mapVehicle(v: VehicleApiResponse): Vehicle {
   }
 }
 
+/* ── Filter rail ──────────────────────────────────────────────── */
 const CATEGORIES = ['All', 'Sedan', 'Sports', 'SUV', 'Luxury'] as const
 
 const SORTS = [
-  { key: 'featured', label: 'Featured' },
-  { key: 'price-asc', label: 'Price: Low to High' },
-  { key: 'price-desc', label: 'Price: High to Low' },
-  { key: 'mileage-desc', label: 'Mileage: High to Low' },
-  { key: 'emission-asc', label: 'Best Emission' },
+  { key: 'featured',      label: 'Featured' },
+  { key: 'price-asc',     label: 'Price: Low to High' },
+  { key: 'price-desc',    label: 'Price: High to Low' },
+  { key: 'mileage-desc',  label: 'Mileage: High to Low' },
+  { key: 'emission-asc',  label: 'Best Emission' },
 ] as const
 
 type SortKey = (typeof SORTS)[number]['key']
 
 const PRICE_MIN = 40000
 const PRICE_MAX = 150000
-
-/* ── Filter rail ──────────────────────────────────────────────── */
-
-interface FilterRailProps {
-  cat: string
-  setCat: (c: string) => void
-  priceMax: number
-  setPriceMax: (n: number) => void
-  sort: SortKey
-  setSort: (s: SortKey) => void
-  onReset: () => void
-}
 
 const groupLabel = 'font-mono text-[11px] tracking-[0.16em] uppercase mb-3'
 const groupLabelColor = { color: 'rgba(126,179,255,0.55)' }
@@ -93,10 +82,19 @@ function pillClass(active: boolean) {
   }`
 }
 
+interface FilterRailProps {
+  cat: string
+  setCat: (c: string) => void
+  priceMax: number
+  setPriceMax: (n: number) => void
+  sort: SortKey
+  setSort: (s: SortKey) => void
+  onReset: () => void
+}
+
 function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset }: FilterRailProps) {
   return (
     <aside className="w-full lg:w-60 shrink-0 flex flex-col gap-8">
-      {/* Category */}
       <div>
         <div className={groupLabel} style={groupLabelColor}>Category</div>
         <div className="flex flex-col gap-1">
@@ -108,7 +106,6 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
         </div>
       </div>
 
-      {/* Max price */}
       <div>
         <div className={groupLabel} style={groupLabelColor}>Max Price</div>
         <input
@@ -127,7 +124,6 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
         </div>
       </div>
 
-      {/* Sort */}
       <div>
         <div className={groupLabel} style={groupLabelColor}>Sort By</div>
         <div className="flex flex-col gap-1">
@@ -152,7 +148,9 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
 
 /* ── Page ─────────────────────────────────────────────────────── */
 
-export default function Catalogue() {
+export default function GuestCatalogue() {
+  const navigate = useNavigate()
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -221,94 +219,93 @@ export default function Catalogue() {
   }
 
   return (
-    <>
-      <Nav />
-      <main className="min-h-screen pt-16 flex flex-col" style={{ background: '#030c1a' }}>
+    <main className="min-h-screen flex flex-col" style={{ background: '#030c1a' }}>
 
-        {/* ─── Sub-header band ─────────────────────────────────── */}
-        <div style={{ background: '#040f20', borderBottom: '1px solid rgba(30,58,95,0.8)' }}>
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="font-heading font-bold text-3xl text-white">Vehicle Catalogue</h1>
-              <p className="font-mono text-[13px] mt-1" style={{ color: 'rgba(126,179,255,0.6)' }}>
-                {results.length} vehicle{results.length !== 1 ? 's' : ''} found
-              </p>
+      {/* ─── Sub-header band ─────────────────────────────────── */}
+      <div style={{ background: '#040f20', borderBottom: '1px solid rgba(30,58,95,0.8)' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="font-heading font-bold text-3xl text-white">Vehicle Catalogue</h1>
+            <p className="font-mono text-[13px] mt-1" style={{ color: 'rgba(126,179,255,0.6)' }}>
+              {results.length} vehicle{results.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 md:flex-none">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: 'rgba(126,179,255,0.5)' }}
+              />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search models…"
+                aria-label="Search models"
+                className="av-focus w-full md:w-64 pl-9 pr-3 py-2 rounded-lg font-body text-sm text-white transition-colors focus:border-[#0066ff] focus:outline-none placeholder:text-[rgba(126,179,255,0.4)]"
+                style={{ background: 'rgba(7,20,40,0.6)', border: '1px solid rgba(30,58,95,0.6)' }}
+              />
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1 md:flex-none">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ color: 'rgba(126,179,255,0.5)' }}
-                />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search models…"
-                  aria-label="Search models"
-                  className="av-focus w-full md:w-64 pl-9 pr-3 py-2 rounded-lg font-body text-sm text-white transition-colors focus:border-[#0066ff] focus:outline-none placeholder:text-[rgba(126,179,255,0.4)]"
-                  style={{ background: 'rgba(7,20,40,0.6)', border: '1px solid rgba(30,58,95,0.6)' }}
-                />
-              </div>
+            <button
+              onClick={() => setShowFilter((s) => !s)}
+              aria-pressed={showFilter}
+              className="av-focus inline-flex items-center gap-2 px-4 py-2 rounded-lg font-body text-sm text-[#7eb3ff] transition-colors hover:text-white shrink-0"
+              style={{ background: 'rgba(7,20,40,0.6)', border: '1px solid rgba(30,58,95,0.6)', cursor: 'pointer' }}
+            >
+              <SlidersHorizontal size={15} />
+              <span className="hidden sm:inline">{showFilter ? 'Hide' : 'Show'} Filters</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
+      {/* ─── Body: filters + grid ────────────────────────────── */}
+      <div className="max-w-7xl w-full mx-auto px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 flex-1">
+        {showFilter && (
+          <FilterRail
+            cat={cat} setCat={setCat}
+            priceMax={priceMax} setPriceMax={setPriceMax}
+            sort={sort} setSort={setSort}
+            onReset={reset}
+          />
+        )}
+
+        <div className="flex-1">
+          {results.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {results.map((v, i) => (
+                <Reveal key={v.id} delay={i * 60}>
+                  <VehicleCard
+                    v={v}
+                    dark
+                    hideFinance
+                    cardNavigateState={{ hideNav: true }}
+                    onView={(veh) => navigate(`/vehicle/${veh.id}`, { state: { hideNav: true } })}
+                  />
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center py-24">
+              <Car size={48} strokeWidth={1.5} style={{ color: 'rgba(126,179,255,0.3)' }} />
+              <p className="mt-4 font-body text-[15px]" style={{ color: 'rgba(126,179,255,0.7)' }}>
+                No vehicles match these filters.
+              </p>
               <button
-                onClick={() => setShowFilter((s) => !s)}
-                aria-pressed={showFilter}
-                className="av-focus inline-flex items-center gap-2 px-4 py-2 rounded-lg font-body text-sm text-[#7eb3ff] transition-colors hover:text-white shrink-0"
+                onClick={reset}
+                className="av-focus mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-body text-sm text-[#7eb3ff] transition-colors hover:text-white"
                 style={{ background: 'rgba(7,20,40,0.6)', border: '1px solid rgba(30,58,95,0.6)', cursor: 'pointer' }}
               >
-                <SlidersHorizontal size={15} />
-                <span className="hidden sm:inline">{showFilter ? 'Hide' : 'Show'} Filters</span>
+                <RotateCcw size={14} /> Reset Filters
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* ─── Body: filters + grid ────────────────────────────── */}
-        <div className="max-w-7xl w-full mx-auto px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 flex-1">
-          {showFilter && (
-            <FilterRail
-              cat={cat} setCat={setCat}
-              priceMax={priceMax} setPriceMax={setPriceMax}
-              sort={sort} setSort={setSort}
-              onReset={reset}
-            />
           )}
-
-          <div className="flex-1">
-            {results.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.map((v, i) => (
-                  <Reveal key={v.id} delay={i * 60}>
-                    <VehicleCard
-                      v={v}
-                      dark
-                      onFinance={() => {}}
-                    />
-                  </Reveal>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center py-24">
-                <Car size={48} strokeWidth={1.5} style={{ color: 'rgba(126,179,255,0.3)' }} />
-                <p className="mt-4 font-body text-[15px]" style={{ color: 'rgba(126,179,255,0.7)' }}>
-                  No vehicles match these filters.
-                </p>
-                <button
-                  onClick={reset}
-                  className="av-focus mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-body text-sm text-[#7eb3ff] transition-colors hover:text-white"
-                  style={{ background: 'rgba(7,20,40,0.6)', border: '1px solid rgba(30,58,95,0.6)', cursor: 'pointer' }}
-                >
-                  <RotateCcw size={14} /> Reset Filters
-                </button>
-              </div>
-            )}
-          </div>
         </div>
+      </div>
 
-        <Footer />
-      </main>
-    </>
+      <Footer />
+    </main>
   )
 }

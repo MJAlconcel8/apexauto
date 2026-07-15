@@ -78,11 +78,14 @@ export interface VehicleCardProps {
   v: Vehicle;
   dark?: boolean;
   hideFinance?: boolean;
+  hideAddToCart?: boolean;
   onView?: (v: Vehicle) => void;
   onFinance?: (v: Vehicle) => void;
+  cardNavigateState?: Record<string, unknown>;
 }
 
 export interface CartLine {
+  cartLineId: number
   cartId: number
   vehicleId: number
   brand: string
@@ -90,6 +93,7 @@ export interface CartLine {
   model: string
   year: number
   price: number
+  quantity: number
   financingSelected: boolean
   downPayment: number | null
   annualRatePercent: number | null
@@ -101,5 +105,5 @@ export interface CartLine {
 
 export interface CartLineItemProps {
   line: CartLine
-  onRemove: (vehicleId: number) => void
+  onRemove: (cartLineId: number) => void
 }

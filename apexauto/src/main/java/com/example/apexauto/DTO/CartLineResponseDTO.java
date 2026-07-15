@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CartLineResponseDTO {
 
+    private int cartLineId;
     private int cartId;
     private int vehicleId;
     private String brand;
@@ -21,6 +22,7 @@ public class CartLineResponseDTO {
     private String model;
     private int year;
     private BigDecimal price;
+    private int quantity;
     private boolean financingSelected;
     private BigDecimal downPayment;
     private Double annualRatePercent;

@@ -1,4 +1,5 @@
-import { ArrowRight, MapPin, Star, BadgeDollarSign } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, MapPin, Star, BadgeDollarSign, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { VehicleCardProps } from "./types";
 import { Badge } from "./Badge";
@@ -8,19 +9,59 @@ import { Btn } from "./Btn";
 
 const fmtCAD = (n: number) => "$" + n.toLocaleString("en-CA");
 
-export function VehicleCard({ v, dark = false, hideFinance = false, onView, onFinance }: VehicleCardProps) {
+export function VehicleCard({ v, dark = false, hideFinance = false, hideAddToCart = false, onView, onFinance, cardNavigateState }: VehicleCardProps) {
   const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+  const [cartMsg, setCartMsg] = useState<string | null>(null);
 
   const handleFinance = () => {
     if (onFinance) onFinance(v);
     navigate('/finance', { state: { id: v.id, marque: v.marque, model: v.model, price: v.price, img: v.img } });
   };
+
+  const handleAddToCart = async () => {
+    setAdding(true);
+    setCartMsg(null);
+    try {
+      let cartRes = await fetch('http://localhost:8080/users/me/carts/active', { credentials: 'include' });
+      if (cartRes.status === 401) { navigate('/login'); return; }
+      if (cartRes.status === 404) {
+        const createRes = await fetch('http://localhost:8080/users/me/carts', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (createRes.status === 401) { navigate('/login'); return; }
+        if (!createRes.ok) throw new Error();
+        cartRes = createRes;
+      } else if (!cartRes.ok) {
+        throw new Error();
+      }
+      const cartData = await cartRes.json() as { cartId: number };
+      const addRes = await fetch(`http://localhost:8080/carts/${cartData.cartId}/cart-lines`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleId: Number(v.id), quantity: 1 }),
+      });
+      if (!addRes.ok) throw new Error();
+      window.dispatchEvent(new Event('cart-updated'));
+      setCartMsg('Added to cart!');
+    } catch {
+      setCartMsg('Failed to add.');
+    } finally {
+      setAdding(false);
+    }
+  };
   return (
-    <article className={`group/card av-rise flex flex-col rounded-[14px] overflow-hidden border hover:-translate-y-0.75 transition-all duration-220 ${
-      dark
-        ? "bg-card border-card-border hover:border-[rgba(14,99,255,0.35)] shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_30px_rgba(14,99,255,0.15)]"
-        : "bg-white border-apex-line hover:border-[rgba(14,99,255,0.35)] shadow-[0_8px_24px_-14px_rgba(18,22,28,0.20)] hover:shadow-[0_14px_30px_-18px_rgba(18,22,28,0.35)]"
-    }`}>
+    <article
+      className={`group/card av-rise flex flex-col rounded-[14px] overflow-hidden border cursor-pointer hover:-translate-y-0.75 transition-all duration-220 ${
+        dark
+          ? "bg-card border-card-border hover:border-[rgba(14,99,255,0.35)] shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_30px_rgba(14,99,255,0.15)]"
+          : "bg-white border-apex-line hover:border-[rgba(14,99,255,0.35)] shadow-[0_8px_24px_-14px_rgba(18,22,28,0.20)] hover:shadow-[0_14px_30px_-18px_rgba(18,22,28,0.35)]"
+      }`}
+      onClick={() => navigate(`/vehicle/${v.id}`, cardNavigateState ? { state: cardNavigateState } : undefined)}
+    >
       {/* Image */}
       <div className="relative h-47 overflow-hidden">
         <img
@@ -85,28 +126,46 @@ export function VehicleCard({ v, dark = false, hideFinance = false, onView, onFi
           </div>
         )}
 
-        <div className="flex items-end justify-between mt-auto">
-          <div>
+        <div className="flex flex-col gap-3 mt-auto">
+          {/* Price row */}
+          <div className="flex items-baseline gap-2">
             {v.was && (
-              <span className={`font-mono text-[12px] line-through mr-1.5 ${dark ? "text-muted-foreground" : "text-apex-muted"}`}>
+              <span className={`font-mono text-[12px] line-through ${dark ? "text-muted-foreground" : "text-apex-muted"}`}>
                 {fmtCAD(v.was)}
               </span>
             )}
-            <div className={`font-mono text-[21px] font-semibold leading-none ${dark ? "text-foreground" : "text-apex-ink"}`}>
+            <span className={`font-mono text-[21px] font-semibold leading-none ${dark ? "text-foreground" : "text-apex-ink"}`}>
               {fmtCAD(v.price)}
-            </div>
+            </span>
+            {cartMsg && (
+              <span
+                className="font-mono text-[11px]"
+                style={{ color: cartMsg.startsWith('Added') ? '#22c55e' : '#f87171' }}
+              >
+                {cartMsg}
+              </span>
+            )}
           </div>
-          <div className="flex gap-2">
+          {/* Buttons row */}
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
             {!hideFinance && (
               <Btn variant="outline" size="sm" icon={BadgeDollarSign} onClick={handleFinance}>
                 Finance
               </Btn>
             )}
-            {onView && (
-              <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => onView(v)}>
-                View
-              </Btn>
-            )}
+            {onView ? (
+              <div className="flex-1">
+                <Btn variant="primary" size="sm" icon={ArrowRight} onClick={() => onView(v)} fullWidth>
+                  View
+                </Btn>
+              </div>
+            ) : !hideAddToCart ? (
+              <div className="flex-1">
+                <Btn variant="primary" size="sm" icon={ShoppingCart} onClick={handleAddToCart} fullWidth>
+                  {adding ? 'Adding…' : 'Add to Cart'}
+                </Btn>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -220,6 +220,7 @@ Common filter query parameters for `GET /vehicles/filter`:
 ```json
 {
   "vehicleId": 12,
+  "quantity": 2,
   "financingSelected": true,
   "downPayment": 5000.00,
   "annualRate": 6.5,
@@ -228,6 +229,8 @@ Common filter query parameters for `GET /vehicles/filter`:
 ```
 
 If `financingSelected` is `false`, only `vehicleId` is required.
+
+`quantity` is optional and defaults to `1`. Re-adding the same `vehicleId` to the same cart increments that line's quantity instead of returning a conflict.
 
 ### Checkout and Orders
 

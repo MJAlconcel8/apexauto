@@ -7,9 +7,8 @@ const fmtCAD = (n: number) =>
 
 export function CartLineItem({ line, onRemove }: CartLineItemProps) {
   const img = VEHICLE_IMAGES[line.model]
-  const displayPrice = line.financingSelected
-    ? (line.lineTotalCost ?? line.price)
-    : line.price
+  const unitPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
+  const displayPrice = unitPrice * line.quantity
 
   return (
     <li className="flex flex-col rounded-xl border border-card-border bg-card overflow-hidden sm:flex-row sm:items-stretch">
@@ -39,6 +38,9 @@ export function CartLineItem({ line, onRemove }: CartLineItemProps) {
           <p className="mt-0.5 text-sm text-muted-foreground">
             Base price: {fmtCAD(line.price)}
           </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Quantity: {line.quantity}
+          </p>
 
           {line.financingSelected && line.monthlyPayment != null && (
             <div className="mt-2 space-y-0.5 text-sm text-muted-foreground">
@@ -56,7 +58,7 @@ export function CartLineItem({ line, onRemove }: CartLineItemProps) {
           </p>
           <button
             type="button"
-            onClick={() => onRemove(line.vehicleId)}
+            onClick={() => onRemove(line.cartLineId)}
             className="inline-flex items-center gap-1.5 rounded-md border border-card-border px-3 py-1.5 text-xs text-muted-foreground transition hover:border-red-500 hover:text-red-400"
           >
             <Trash2 size={13} />

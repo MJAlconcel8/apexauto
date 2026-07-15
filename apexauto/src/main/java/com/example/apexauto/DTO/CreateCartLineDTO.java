@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class CreateCartLineDTO {
 
     private int vehicleId;
+    private Integer quantity;
     private boolean financingSelected;
     private BigDecimal downPayment;
     private Double annualRate;
