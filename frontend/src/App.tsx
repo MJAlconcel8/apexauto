@@ -13,6 +13,7 @@ import LoanCalc from './pages/LoanCalc'
 import Catalogue from './pages/Catalogue'
 import GuestCatalogue from './pages/GuestCatalogue'
 import VehicleInfoPage from './pages/VehicleInfoPage'
+import Compare from './pages/Compare'
 
 const Landing = () => {
   const navigate = useNavigate()
@@ -45,6 +46,7 @@ const App = () => {
         <Route path="/vehicle/:id" element={<VehicleInfoPage />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/finance" element={<LoanCalc />} />
+        <Route path="/compare" element={<Compare />} />
         <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,7 @@
 package com.example.apexauto.controller;
 
+import com.example.apexauto.DTO.CompareRequestDTO;
+import com.example.apexauto.DTO.CompareResponseDTO;
 import com.example.apexauto.DTO.CreateVehicleDTO;
 import com.example.apexauto.DTO.PatchVehicleDTO;
 import com.example.apexauto.DTO.VehicleFilterDTO;
@@ -110,6 +112,16 @@ public class VehicleController {
                     .map(this::toResponseDTO)
                     .toList();
             return ResponseEntity.ok(vehicles);
+        } catch (IllegalArgumentException ex) {
+            throw toHttpException(ex);
+        }
+    }
+
+    // POST /vehicles/compare — compares 2–3 vehicles and returns the best recommendation
+    @PostMapping("/compare")
+    public ResponseEntity<CompareResponseDTO> compareVehicles(@RequestBody CompareRequestDTO dto) {
+        try {
+            return ResponseEntity.ok(vehicleService.compareVehicles(dto.getVehicleIds()));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
         }

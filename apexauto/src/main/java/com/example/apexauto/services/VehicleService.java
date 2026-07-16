@@ -1,7 +1,9 @@
 package com.example.apexauto.services;
 
+import com.example.apexauto.DTO.CompareResponseDTO;
 import com.example.apexauto.DTO.PatchVehicleDTO;
 import com.example.apexauto.DTO.VehicleFilterDTO;
+import com.example.apexauto.DTO.VehicleResponseDTO;
 import com.example.apexauto.entity.Vehicle;
 import com.example.apexauto.repository.VehicleRepository;
 import jakarta.persistence.criteria.Predicate;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 // This class is responsible for handling the business logic related to vehicles, including retrieving, updating, and filtering vehicle data. It interacts with the VehicleRepository to perform database operations and uses specifications to implement dynamic filtering based on various criteria.
@@ -254,6 +257,102 @@ public class VehicleService {
                     "Minimum " + fieldName + " (" + min + ") must not exceed maximum " + fieldName + " (" + max + ")"
             );
         }
+    }
+
+    // Compares 2–3 vehicles by ID and returns the list along with the recommended vehicle and a reason.
+    @Transactional(readOnly = true)
+    public CompareResponseDTO compareVehicles(List<Integer> vehicleIds) {
+        if (vehicleIds == null || vehicleIds.size() < 2 || vehicleIds.size() > 3) {
+            throw new IllegalArgumentException("Please select between 2 and 3 vehicles to compare.");
+        }
+        List<Vehicle> vehicles = vehicleIds.stream()
+                .map(this::findVehicleOrThrow)
+                .toList();
+
+        Vehicle recommended = pickBestVehicle(vehicles);
+        String reason = buildRecommendationReason(vehicles, recommended);
+
+        List<VehicleResponseDTO> dtos = vehicles.stream().map(this::toResponseDTO).toList();
+        return new CompareResponseDTO(dtos, recommended.getVehicleId(), reason);
+    }
+
+    // Scores each vehicle across price, mileage, emissions, and fuel usage and picks the highest scorer.
+    private Vehicle pickBestVehicle(List<Vehicle> vehicles) {
+        double maxPrice    = vehicles.stream().mapToDouble(v -> v.getPrice().doubleValue()).max().orElse(1);
+        double minPrice    = vehicles.stream().mapToDouble(v -> v.getPrice().doubleValue()).min().orElse(0);
+        double maxMileage  = vehicles.stream().mapToDouble(Vehicle::getMileage).max().orElse(1);
+        double minMileage  = vehicles.stream().mapToDouble(Vehicle::getMileage).min().orElse(0);
+        double maxEmission = vehicles.stream().mapToDouble(Vehicle::getEmissionScore).max().orElse(1);
+        double minEmission = vehicles.stream().mapToDouble(Vehicle::getEmissionScore).min().orElse(0);
+        double maxFuel     = vehicles.stream().mapToDouble(Vehicle::getFuelUsage).max().orElse(1);
+        double minFuel     = vehicles.stream().mapToDouble(Vehicle::getFuelUsage).min().orElse(0);
+
+        return vehicles.stream()
+                .max(Comparator.comparingDouble(v -> {
+                    double priceScore    = normalizeScore(v.getPrice().doubleValue(), minPrice, maxPrice, true);
+                    double mileageScore  = normalizeScore(v.getMileage(), minMileage, maxMileage, false);
+                    double emissionScore = normalizeScore(v.getEmissionScore(), minEmission, maxEmission, true);
+                    double fuelScore     = normalizeScore(v.getFuelUsage(), minFuel, maxFuel, true);
+                    double total = 0.35 * priceScore + 0.25 * mileageScore + 0.20 * emissionScore + 0.20 * fuelScore;
+                    if (v.isInStock()) total += 0.05;
+                    if (v.isOnSale())  total += 0.03;
+                    return total;
+                }))
+                .orElse(vehicles.get(0));
+    }
+
+    // Returns a score in [0, 1]. lowerIsBetter=true means a lower raw value yields a higher score.
+    private double normalizeScore(double value, double min, double max, boolean lowerIsBetter) {
+        if (max == min) return 0.5;
+        double normalized = (value - min) / (max - min);
+        return lowerIsBetter ? (1.0 - normalized) : normalized;
+    }
+
+    // Builds a human-readable sentence explaining why the vehicle was recommended.
+    private String buildRecommendationReason(List<Vehicle> vehicles, Vehicle recommended) {
+        boolean hasLowestPrice = vehicles.stream()
+                .filter(v -> v.getVehicleId() != recommended.getVehicleId())
+                .allMatch(v -> recommended.getPrice().compareTo(v.getPrice()) <= 0);
+        boolean hasLowestEmission = vehicles.stream()
+                .filter(v -> v.getVehicleId() != recommended.getVehicleId())
+                .allMatch(v -> recommended.getEmissionScore() <= v.getEmissionScore());
+        boolean hasBestMileage = vehicles.stream()
+                .filter(v -> v.getVehicleId() != recommended.getVehicleId())
+                .allMatch(v -> recommended.getMileage() >= v.getMileage());
+
+        if (hasLowestPrice && hasLowestEmission) {
+            return "Lowest price and best emission score across all compared vehicles.";
+        } else if (hasLowestPrice && hasBestMileage) {
+            return "Lowest price and highest mileage range across all compared vehicles.";
+        } else if (hasLowestPrice) {
+            return "Most affordable option with a strong balance of efficiency and range.";
+        } else if (hasLowestEmission) {
+            return "Cleanest emission profile, making it the most eco-friendly choice.";
+        } else if (hasBestMileage) {
+            return "Longest range, ideal for drivers who prioritize distance per charge or tank.";
+        }
+        return "Best overall value across price, mileage, efficiency, and stock availability.";
+    }
+
+    // Maps a Vehicle entity to a VehicleResponseDTO.
+    private VehicleResponseDTO toResponseDTO(Vehicle vehicle) {
+        return new VehicleResponseDTO(
+                vehicle.getVehicleId(),
+                vehicle.getBrand(),
+                vehicle.getMake(),
+                vehicle.getModel(),
+                vehicle.getYear(),
+                vehicle.getColor(),
+                vehicle.getDoors(),
+                vehicle.getSeats(),
+                vehicle.getEmissionScore(),
+                vehicle.getFuelUsage(),
+                vehicle.getMileage(),
+                vehicle.isOnSale(),
+                vehicle.isInStock(),
+                vehicle.getAmountInStock(),
+                vehicle.getPrice()
+        );
     }
 }
 
