@@ -15,11 +15,10 @@ import {
 import { useNavigate } from 'react-router-dom'
 import Nav from '../components/Nav'
 import { Footer } from '../components'
+import { fmtCAD, FALLBACK_IMG } from '../utils/vehicleUtils'
 import { VEHICLE_IMAGES } from '../assets/vehicleImages'
 
 const API = 'http://localhost:8080'
-const FALLBACK_IMG =
-  'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=75'
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -56,8 +55,6 @@ interface SpecRow {
   format: (n: number) => string
   bestIsLowest: boolean
 }
-
-const fmtCAD = (n: number) => '$' + Number(n).toLocaleString('en-CA')
 
 const SPEC_ROWS: SpecRow[] = [
   {
