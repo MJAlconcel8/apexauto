@@ -6,6 +6,21 @@ export const FALLBACK_IMG =
 
 export const fmtCAD = (n: number) => '$' + n.toLocaleString('en-CA')
 
+/**
+ * Body-shape/category per model. The backend Vehicle has no category column,
+ * so the catalogue's Category filter is driven by this map. Add a model here
+ * whenever a new vehicle is introduced (same pattern as VEHICLE_IMAGES).
+ * Unmapped models are left uncategorised and only appear under "All".
+ */
+export const VEHICLE_CATEGORIES: Record<string, string> = {
+  'Nexus S': 'Sedan',
+  'Vector GT': 'Sports',
+  'Terrain X': 'SUV',
+  'Kestrel EV Sport': 'Sports',
+  'Volen Lumen': 'Luxury',
+  'Meridian Bolt': 'Sedan',
+}
+
 export interface VehicleApiResponse {
   vehicleId: number
   brand: string
@@ -39,6 +54,7 @@ export function mapVehicle(v: VehicleApiResponse): Vehicle {
     marque: v.brand,
     model: v.model,
     year: v.year,
+    category: VEHICLE_CATEGORIES[v.model] ?? VEHICLE_CATEGORIES[modelName],
     img:
       VEHICLE_IMAGES[v.model] ??
       VEHICLE_IMAGES[modelName] ??
