@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Logo from '../components/Logo'
-import { Btn } from '../components'
+import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
 
 interface RegistrationProps { onNavigate?: GoFn }
@@ -71,119 +70,75 @@ export default function Registration({ onNavigate }: RegistrationProps) {
 
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      <div className="w-full max-w-sm">
-        {isSuccess ? (
-          <>
-            <div className="flex flex-col items-center mb-8">
-              <Logo />
-              <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">Check Your Email</h1>
-              <p className="text-sm text-muted-foreground text-center">A verification token has been sent to your inbox</p>
-            </div>
-            <div className="bg-card border border-card-border rounded-2xl p-6 flex flex-col items-center gap-3">
-              <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <p className="text-foreground font-semibold text-center">Account created!</p>
-              <p className="text-sm text-muted-foreground text-center">Copy the token from your email and paste it into the verification page.</p>
-              <button
-                type="button"
-                onClick={() => go('/verify-email')}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 py-3.5 px-6.5 text-[15px] bg-apex-voltage hover:bg-apex-voltage-ink text-white border border-transparent"
-              >
-                Verify Email
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-          <div className="flex flex-col items-center mb-6">
-            <Logo />
-            <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">Create Account</h1>
-            <p className="text-sm text-muted-foreground">Join the Apex community</p>
-          </div>
+    <AuthShell toast={toast}>
+      {isSuccess ? (
+        <>
+          <AuthHeader title="Check Your Email" subtitle="A verification token has been sent to your inbox" />
+          <AuthCard>
+            <ConfirmationCard
+              icon="email"
+              title="Account created!"
+              description="Copy the token from your email and paste it into the verification page."
+              buttonLabel="Verify Email"
+              onAction={() => go('/verify-email')}
+            />
+          </AuthCard>
+        </>
+      ) : (
+        <>
+          <AuthHeader title="Create Account" subtitle="Join the Apex community" />
 
-          {/* Card */}
-          <div className="bg-card border border-card-border rounded-xl p-6">
+          <AuthCard>
             <form onSubmit={handleSubmit}>
               {/* First Name + Last Name */}
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleFormChange}
-                    className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleFormChange}
-                    className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                <FormField
+                  label="First Name"
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleFormChange}
-                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  wrapperClassName=""
+                />
+                <FormField
+                  label="Last Name"
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleFormChange}
+                  wrapperClassName=""
                 />
               </div>
 
-              {/* Password */}
-              <div className="mb-4">
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleFormChange}
-                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
+              <FormField
+                label="Email Address"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleFormChange}
+              />
 
-              {/* Confirm Password */}
-              <div className="mb-5">
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleFormChange}
-                  className="w-full bg-secondary text-foreground placeholder-muted-foreground px-3 py-2.5 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
+              <FormField
+                label="Password"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleFormChange}
+              />
 
-              {/* Message */}
+              <FormField
+                label="Confirm Password"
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleFormChange}
+                wrapperClassName="mb-5"
+              />
+
               {message && (
                 <p className="text-sm text-center mb-4 text-red-400">{message}</p>
               )}
 
-              {/* Terms checkbox */}
               <div className="flex items-start gap-2 mb-5 text-sm text-muted-foreground">
                 <input type="checkbox" className="mt-0.5 accent-blue-500" />
                 <span>
@@ -194,25 +149,16 @@ export default function Registration({ onNavigate }: RegistrationProps) {
                 </span>
               </div>
 
-              {/* Submit */}
               <Btn type="submit" fullWidth size="lg">Create Account</Btn>
             </form>
-          </div>
+          </AuthCard>
 
-          {/* Sign in link */}
           <p className="text-center text-sm text-gray-400 mt-4">
             Already have an account?{' '}
             <button type="button" onClick={() => go('/login')} className="text-blue-400 font-semibold hover:underline">Sign in</button>
           </p>
         </>
-        )}
-      </div>
-
-      {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg z-50 pointer-events-none">
-          {toast}
-        </div>
       )}
-    </div>
+    </AuthShell>
   )
 }

@@ -8,6 +8,11 @@ export { Badge } from "./Badge";
 export { VehicleCard } from "./VehicleCard";
 export { Reveal } from "./Reveal";
 export { CartLineItem } from "./CartLineItem";
+export { FormField } from "./FormField";
+export { AuthShell } from "./AuthShell";
+export { AuthHeader } from "./AuthHeader";
+export { AuthCard } from "./AuthCard";
+export { ConfirmationCard } from "./ConfirmationCard";
 export type {
   BadgeTone,
   LucideIcon,
