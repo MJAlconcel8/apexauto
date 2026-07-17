@@ -124,7 +124,15 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        String normalizedRole = roleName == null || roleName.isBlank()
+                ? "USER"
+                : roleName.trim().toUpperCase(Locale.ROOT);
+
+        String authority = normalizedRole.startsWith("ROLE_")
+                ? normalizedRole
+                : "ROLE_" + normalizedRole;
+
+        return Collections.singletonList(new SimpleGrantedAuthority(authority));
     }
 
     @Override

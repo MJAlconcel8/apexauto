@@ -18,7 +18,7 @@ import { Footer } from '../components'
 import { fmtCAD, FALLBACK_IMG } from '../utils/vehicleUtils'
 import { VEHICLE_IMAGES } from '../assets/vehicleImages'
 
-const API = 'http://localhost:8080'
+const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -652,6 +652,7 @@ export default function Compare() {
     try {
       const res = await fetch(`${API}/vehicles/compare`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vehicleIds: selected }),
       })

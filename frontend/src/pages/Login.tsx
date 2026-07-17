@@ -2,6 +2,9 @@ import { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Btn, AuthShell, AuthHeader, AuthCard, FormField } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
+import { useAuth } from '../auth/AuthContext'
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 interface LoginProps { onNavigate?: GoFn }
 
@@ -16,6 +19,7 @@ export default function Login({ onNavigate }: LoginProps) {
   const toastTimer = useRef<number | undefined>(undefined)
   const navigate = useNavigate()
   const location = useLocation()
+  const { refreshUser } = useAuth()
   const locationState = location.state as Record<string, unknown> | null
   const returnTo = locationState?.returnTo as string | undefined
 
@@ -42,7 +46,9 @@ export default function Login({ onNavigate }: LoginProps) {
     e.preventDefault()
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
+      setMessage('')
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -51,10 +57,16 @@ export default function Login({ onNavigate }: LoginProps) {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => ({})) as { error?: string }
 
       if (response.ok) {
-        await fetch(`http://localhost:8080/users/me/carts`, {
+        const authenticatedUser = await refreshUser()
+        if (!authenticatedUser) {
+          setMessage('Sign in succeeded, but the session could not be restored. Please try again.')
+          return
+        }
+
+        await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -62,12 +74,17 @@ export default function Login({ onNavigate }: LoginProps) {
           },
         }).catch(() => {})
 
-        if (returnTo) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { returnTo: _rt, hideNav: _hn, ...returnState } = locationState ?? {}
-          navigate(returnTo, { state: returnState })
+        const safeReturnTo = returnTo?.startsWith('/') && !returnTo.startsWith('//')
+          ? returnTo
+          : undefined
+
+        if (safeReturnTo) {
+          const returnState = { ...(locationState ?? {}) }
+          delete returnState.returnTo
+          delete returnState.hideNav
+          navigate(safeReturnTo, { replace: true, state: returnState })
         } else {
-          go('/home')
+          navigate('/catalogue', { replace: true })
         }
       } else {
         setMessage(data.error || 'Login failed. Please try again.')

@@ -49,7 +49,7 @@ public class VehicleController {
 
     // POST /vehicles — creates a new vehicle
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VehicleResponseDTO> createVehicle(@RequestBody CreateVehicleDTO dto) {
         try {
             Vehicle vehicle = vehicleService.createVehicle(toEntity(dto));
@@ -61,7 +61,7 @@ public class VehicleController {
 
     // PUT /vehicles/{vehicleId} — updates an existing vehicle
     @PutMapping("/{vehicleId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VehicleResponseDTO> updateVehicle(
             @PathVariable int vehicleId,
             @RequestBody CreateVehicleDTO dto
@@ -76,7 +76,7 @@ public class VehicleController {
 
     // PATCH /vehicles/{vehicleId} — partially updates an existing vehicle
     @PatchMapping("/{vehicleId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VehicleResponseDTO> patchVehicle(
             @PathVariable int vehicleId,
             @RequestBody PatchVehicleDTO dto
@@ -91,7 +91,7 @@ public class VehicleController {
 
     // DELETE /vehicles/{vehicleId} — deletes a vehicle
     @DeleteMapping("/{vehicleId}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteVehicle(@PathVariable int vehicleId) {
         try {
             vehicleService.deleteVehicle(vehicleId);

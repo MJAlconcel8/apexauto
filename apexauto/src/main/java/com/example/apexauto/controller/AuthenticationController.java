@@ -7,6 +7,7 @@ import com.example.apexauto.services.JWTService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,22 +33,17 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginUserDTO loginUserDTO) {
         User authenticatedUser = authenticationService.authenticate(loginUserDTO);
-
-        String jwtToken = jwtService.generateToken(authenticatedUser);
-
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt", jwtToken)
-                .httpOnly(true)
-                .secure(false)   // set to true in production (requires HTTPS)
-                .path("/")
-                .maxAge(jwtService.getExpirationTime() / 1000)
-                .sameSite("Lax")
-                .build();
-
         LoginResponseDTO response = new LoginResponseDTO(jwtService.getExpirationTime(), authenticatedUser.getUserId());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, createJwtCookie(authenticatedUser).toString())
                 .body(response);
+    }
+
+    // Returns the signed-in user.
+    @GetMapping("/me")
+    public ResponseEntity<AuthenticatedUserDTO> currentUser(@AuthenticationPrincipal User authenticatedUser) {
+        return ResponseEntity.ok(AuthenticatedUserDTO.from(authenticatedUser));
     }
 
     // POST /auth/logout — clears the JWT cookie
@@ -61,7 +57,7 @@ public class AuthenticationController {
                 .sameSite("Lax")
                 .build();
 
-        return ResponseEntity.ok()
+        return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
                 .build();
     }
@@ -94,5 +90,15 @@ public class AuthenticationController {
         return ResponseEntity.ok("Password reset successfully");
     }
 
-}
+    private ResponseCookie createJwtCookie(User user) {
+        String jwtToken = jwtService.generateToken(user);
 
+        return ResponseCookie.from("jwt", jwtToken)
+                .httpOnly(true)
+                .secure(false) // Enable with HTTPS.
+                .path("/")
+                .maxAge(jwtService.getExpirationTime() / 1000)
+                .sameSite("Lax")
+                .build();
+    }
+}
