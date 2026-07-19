@@ -16,8 +16,9 @@ import {
 import Nav from '../components/Nav'
 import { Badge, RangeGauge, SpecReadout, Btn, Footer } from '../components'
 import type { Vehicle } from '../components'
-import { fmtCAD, mapVehicle, FALLBACK_IMG } from '../utils/vehicleUtils'
+import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
+import { useAuth } from '../auth/AuthContext'
 
 /* ── Stat block ───────────────────────────────────────────────── */
 interface StatBlockProps {
@@ -48,6 +49,7 @@ export default function VehicleInfoPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
+  const { isAuthenticated } = useAuth()
   const hideNav = (location.state as { hideNav?: boolean } | null)?.hideNav ?? false
   const stateVehicle = (location.state as { vehicle?: Vehicle } | null)?.vehicle ?? null
 
@@ -157,8 +159,8 @@ export default function VehicleInfoPage() {
 
   return (
     <>
-      {!hideNav && <Nav />}
-      <main className={`min-h-screen flex flex-col${hideNav ? '' : ' pt-16'}`} style={{ background: '#030c1a' }}>
+      {(!hideNav || isAuthenticated) && <Nav />}
+      <main className={`min-h-screen flex flex-col${hideNav && !isAuthenticated ? '' : ' pt-16'}`} style={{ background: '#030c1a' }}>
 
         {/* ─── Sub-header band ─────────────────────────────────── */}
         <div style={{ background: '#040f20', borderBottom: '1px solid rgba(30,58,95,0.8)' }}>
@@ -310,14 +312,14 @@ export default function VehicleInfoPage() {
                   <Btn
                     variant="primary"
                     size="md"
-                    onClick={() => navigate('/login', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
+                    onClick={() => navigate('/register', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
                   >
                     Create Free Account
                   </Btn>
                   <Btn
                     variant="outline"
                     size="md"
-                    onClick={() => navigate('/registration', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
+                    onClick={() => navigate('/login', { state: { returnTo: `/vehicle/${id}`, vehicle: stateVehicle, hideNav: true } })}
                   >
                     Log In
                   </Btn>

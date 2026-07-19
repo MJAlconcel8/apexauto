@@ -21,7 +21,7 @@ public class JWTService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.expiration-time:3600000}")
+    @Value("${security.jwt.expiration-time:2592000000}")
     private long jwtExpiration;
 
     // This method extracts the username (email) from the JWT token.

@@ -2,6 +2,7 @@ package com.example.apexauto.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -42,9 +43,25 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/health", "/error", "/index.html", "/auth/**", "/api/chatbot/**").permitAll()
+                        .requestMatchers("/", "/health", "/error", "/index.html", "/api/chatbot/**").permitAll()
+                        .requestMatchers(
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/logout",
+                                "/auth/verify-email",
+                                "/auth/account-status",
+                                "/auth/forgot-password",
+                                "/auth/reset-password"
+                        ).permitAll()
                         .requestMatchers("/static/**", "/assets/**", "/css/**", "/js/**").permitAll()
-                        .requestMatchers("/vehicles/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/vehicles", "/vehicles/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/vehicles/compare").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/vehicles").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/vehicles/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/vehicles/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/vehicles/**").hasRole("ADMIN")
+                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

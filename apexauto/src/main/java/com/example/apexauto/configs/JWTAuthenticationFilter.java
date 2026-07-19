@@ -1,86 +1,65 @@
 package com.example.apexauto.configs;
 
 import com.example.apexauto.services.JWTService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import jakarta.servlet.http.Cookie;
 import java.io.IOException;
 
 @Component
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
-    // This variable is used to hold the JWTService instance for validating JWT tokens
-    private final HandlerExceptionResolver handlerExceptionResolver;
-
-    // This variable is used to hold the UserDetailsService instance for loading user details
     private final JWTService jwtService;
-
-    // This variable is used to hold the UserDetailsService instance for loading user details
     private final UserDetailsService userDetailsService;
 
-    // This is a constructor for the JWTAuthenticationFilter class that initializes the handlerExceptionResolver, jwtService, and userDetailsService variables
     public JWTAuthenticationFilter(
             JWTService jwtService,
-            UserDetailsService userDetailsService,
-            HandlerExceptionResolver handlerExceptionResolver
+            UserDetailsService userDetailsService
     ) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
-        this.handlerExceptionResolver = handlerExceptionResolver;
     }
 
-    // This function is used to filter incoming HTTP requests and authenticate users based on JWT tokens
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
+        String jwt = resolveJwt(request);
 
-        // Resolve JWT from Authorization header or httpOnly cookie
-        String jwt = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-        } else {
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("jwt".equals(cookie.getName())) {
-                        jwt = cookie.getValue();
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (jwt == null) {
+        if (jwt == null || jwt.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            final String userEmail = jwtService.extractUsername(jwt);
+            String userEmail = jwtService.extractUsername(jwt);
+            Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
 
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (userEmail != null && currentAuthentication == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-            if (userEmail != null && authentication == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-                if (jwtService.isTokenValid(jwt, userDetails)) {
+                if (jwtService.isTokenValid(jwt, userDetails)
+                        && userDetails.isEnabled()
+                        && userDetails.isAccountNonLocked()
+                        && userDetails.isAccountNonExpired()
+                        && userDetails.isCredentialsNonExpired()) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
@@ -91,10 +70,34 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-
-            filterChain.doFilter(request, response);
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException exception) {
+            // Treat invalid tokens as signed out.
+            SecurityContextHolder.clearContext();
         } catch (Exception exception) {
-            handlerExceptionResolver.resolveException(request, response, null, exception);
+            throw new AuthenticationServiceException("Could not validate authentication token", exception);
         }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String resolveJwt(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if ("jwt".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 }
