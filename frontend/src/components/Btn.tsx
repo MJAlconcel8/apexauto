@@ -13,13 +13,14 @@ const variantClass = {
   quiet:     "bg-transparent hover:bg-apex-paper text-apex-ink border border-apex-line",
 } as const;
 
-export function Btn({ variant = "primary", size = "md", icon: Icon, children, onClick, ariaLabel, type = "button", fullWidth }: BtnProps) {
+export function Btn({ variant = "primary", size = "md", icon: Icon, children, onClick, ariaLabel, type = "button", fullWidth, disabled }: BtnProps) {
   return (
     <button
       type={type}
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`av-focus inline-flex items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 ${sizeClass[size]} ${variantClass[variant]}${fullWidth ? " w-full" : ""}`}
+      disabled={disabled}
+      className={`av-focus inline-flex items-center justify-center gap-2 font-semibold font-body cursor-pointer whitespace-nowrap rounded-[10px] transition-all duration-150 ${sizeClass[size]} ${variantClass[variant]}${fullWidth ? " w-full" : ""}${disabled ? " opacity-50 cursor-not-allowed" : ""}`}
     >
       {children}
       {Icon && <Icon size={16} strokeWidth={2} />}

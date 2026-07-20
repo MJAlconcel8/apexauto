@@ -79,7 +79,8 @@ public class GlobalVehicleHistoryController {
                 vehicleHistory.getVehicleHistoryId(),
                 vehicleHistory.getUser().getUserId(),
                 vehicleHistory.getVehicle().getVehicleId(),
-                vehicleHistory.getVehicleHistoryComments()
+                vehicleHistory.getVehicleHistoryComments(),
+                vehicleHistory.getCreatedAt()
         );
     }
 

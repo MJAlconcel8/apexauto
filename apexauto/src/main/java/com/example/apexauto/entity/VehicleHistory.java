@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.util.Date;
 
 // This is the VehicleHistory entity class that represents the history of vehicles in the application. It contains fields for vehicle history information and a relationship to the Vehicle entity.
 @Table(name = "vehicleHistory")
@@ -40,4 +43,11 @@ public class VehicleHistory {
     @Setter
     @Column(nullable = false)
     private String vehicleHistoryComments;
+
+    // The timestamp when this vehicle history entry was posted, automatically set by the database.
+    @Getter
+    @Setter
+    @CreationTimestamp
+    @Column(updatable = false, name = "created_at")
+    private Date createdAt;
 }

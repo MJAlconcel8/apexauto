@@ -41,6 +41,7 @@ export interface BtnProps {
   ariaLabel?: string;
   type?: "button" | "submit" | "reset";
   fullWidth?: boolean;
+  disabled?: boolean;
 }
 
 export interface EyebrowProps {

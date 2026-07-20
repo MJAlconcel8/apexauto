@@ -28,7 +28,7 @@ public class Review {
     private Vehicle vehicle;
 
     // The foreign key relationship to the User entity, indicating which user made the review
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     @Getter
     @Setter

@@ -16,5 +16,7 @@ public class ReviewResponseDTO {
     private int userId;
     private int vehicleId;
     private String reviewComments;
+    private String userFirstName;
+    private String userLastName;
 }
 
