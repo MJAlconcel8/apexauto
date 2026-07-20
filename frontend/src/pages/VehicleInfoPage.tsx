@@ -12,6 +12,7 @@ import {
   Calendar,
   Palette,
   Lock,
+  History as HistoryIcon,
 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { Badge, RangeGauge, SpecReadout, Btn, Footer } from '../components'
@@ -19,7 +20,173 @@ import type { Vehicle } from '../components'
 import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
 import { useAuth } from '../auth/AuthContext'
+import {
+  type ReviewData,
+  getVehicleReviews,
+  createReview,
+  updateReview,
+  deleteReview,
+  deleteVehicleReviews,
+} from '../services/reviewApi'
+import {
+  type VehicleHistoryData,
+  getVehicleHistory,
+  createVehicleHistory,
+  deleteVehicleHistory,
+} from '../services/vehicleHistoryApi'
 
+/* ── Review Card ─────────────────────────────────────────────────────── */
+interface ReviewCardProps {
+  review: ReviewData
+  canEdit: boolean
+  canDelete: boolean
+  onDelete: () => void
+  onSave: (newText: string) => Promise<void>
+}
+
+function ReviewCard({ review, canEdit, canDelete, onDelete, onSave }: ReviewCardProps) {
+  const [editing, setEditing] = useState(false)
+  const [editText, setEditText] = useState(review.reviewComments)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (!editText.trim()) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      await onSave(editText.trim())
+      setEditing(false)
+    } catch {
+      setSaveError('Failed to save changes.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="p-5 rounded-xl border"
+      style={{ background: 'rgba(7,20,40,0.4)', borderColor: 'rgba(30,58,95,0.6)' }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="font-mono text-[12px] font-semibold text-white mb-2">
+            {review.userFirstName} {review.userLastName}
+          </p>
+          {editing ? (
+            <>
+              <textarea
+                value={editText}
+                onChange={e => setEditText(e.target.value)}
+                rows={3}
+                className="w-full bg-transparent border rounded-lg px-3 py-2 font-body text-[13px] text-white resize-none focus:outline-none focus:border-[#0066ff]"
+                style={{ borderColor: 'rgba(30,58,95,0.8)' }}
+              />
+              {saveError && (
+                <p className="font-mono text-[11px] mt-1" style={{ color: '#f87171' }}>{saveError}</p>
+              )}
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={handleSave}
+                  disabled={saving || !editText.trim()}
+                  className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border bg-[#0066ff] text-white border-[#0066ff] hover:bg-[#0052cc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setEditing(false); setEditText(review.reviewComments) }}
+                  className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border transition-colors hover:bg-[rgba(30,58,95,0.3)]"
+                  style={{ color: 'rgba(126,179,255,0.6)', borderColor: 'rgba(30,58,95,0.8)' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="font-body text-[14px] leading-relaxed" style={{ color: 'rgba(126,179,255,0.8)' }}>
+              {review.reviewComments}
+            </p>
+          )}
+        </div>
+        {!editing && (canEdit || canDelete) && (
+          <div className="flex gap-2 shrink-0">
+            {canEdit && (
+              <button
+                onClick={() => setEditing(true)}
+                className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border transition-colors hover:bg-[rgba(0,102,255,0.1)]"
+                style={{ color: 'rgba(126,179,255,0.6)', borderColor: 'rgba(30,58,95,0.8)' }}
+              >
+                Edit
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={onDelete}
+                className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border transition-colors hover:bg-[rgba(248,113,113,0.1)]"
+                style={{ color: 'rgba(248,113,113,0.7)', borderColor: 'rgba(248,113,113,0.3)' }}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── Vehicle history card ────────────────────────────────────────────── */
+interface VehicleHistoryCardProps {
+  entry: VehicleHistoryData
+}
+
+function VehicleHistoryCard({ entry }: VehicleHistoryCardProps) {
+  const postedDate = entry.createdAt
+    ? new Date(entry.createdAt).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : null
+
+  return (
+    <div
+      className="p-5 rounded-xl border"
+      style={{ background: 'rgba(7,20,40,0.4)', borderColor: 'rgba(30,58,95,0.6)' }}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border"
+          style={{ background: 'rgba(0,102,255,0.08)', borderColor: 'rgba(0,102,255,0.24)', color: '#7eb3ff' }}
+        >
+          <HistoryIcon size={17} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <p
+              className="font-mono text-[11px] tracking-[0.14em] uppercase"
+              style={{ color: 'rgba(126,179,255,0.5)' }}
+            >
+              History Entry #{entry.vehicleHistoryId}
+            </p>
+            {postedDate && (
+              <p
+                className="font-mono text-[11px] tracking-[0.06em] shrink-0"
+                style={{ color: 'rgba(126,179,255,0.4)' }}
+              >
+                {postedDate}
+              </p>
+            )}
+          </div>
+          <p className="font-body text-[14px] leading-relaxed" style={{ color: 'rgba(126,179,255,0.8)' }}>
+            {entry.vehicleHistoryComments}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 /* ── Stat block ───────────────────────────────────────────────── */
 interface StatBlockProps {
   icon: React.ReactNode
@@ -49,7 +216,7 @@ export default function VehicleInfoPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user, isAdmin } = useAuth()
   const hideNav = (location.state as { hideNav?: boolean } | null)?.hideNav ?? false
   const stateVehicle = (location.state as { vehicle?: Vehicle } | null)?.vehicle ?? null
 
@@ -58,6 +225,18 @@ export default function VehicleInfoPage() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [addingToCart, setAddingToCart] = useState(false)
   const [cartMsg, setCartMsg] = useState<string | null>(null)
+
+  const [reviews, setReviews] = useState<ReviewData[]>([])
+  const [newReviewText, setNewReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+
+  const [activeInfoTab, setActiveInfoTab] = useState<'reviews' | 'history'>('reviews')
+  const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryData[]>([])
+  const [vehicleHistoryLoading, setVehicleHistoryLoading] = useState(false)
+  const [newVehicleHistoryText, setNewVehicleHistoryText] = useState('')
+  const [submittingVehicleHistory, setSubmittingVehicleHistory] = useState(false)
+  const [vehicleHistoryError, setVehicleHistoryError] = useState<string | null>(null)
 
   useEffect(() => {
     if (stateVehicle) return
@@ -76,6 +255,92 @@ export default function VehicleInfoPage() {
         setLoading(false)
       })
   }, [id, stateVehicle])
+
+  useEffect(() => {
+    if (!vehicle) return
+    let active = true
+    getVehicleReviews(Number(vehicle.id))
+      .then(data => { if (active) setReviews(data) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [vehicle])
+
+  useEffect(() => {
+    if (!vehicle) return
+    let active = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setVehicleHistoryLoading(true)
+    setVehicleHistoryError(null)
+    getVehicleHistory(Number(vehicle.id))
+      .then(data => { if (active) setVehicleHistory(data) })
+      .catch(() => { if (active) setVehicleHistoryError('Could not load vehicle history.') })
+      .finally(() => { if (active) setVehicleHistoryLoading(false) })
+    return () => { active = false }
+  }, [vehicle])
+
+  const handleSubmitReview = async () => {
+    if (!user || !vehicle || !newReviewText.trim()) return
+    setSubmittingReview(true)
+    setReviewError(null)
+    try {
+      const created = await createReview(user.userId, Number(vehicle.id), newReviewText.trim())
+      setReviews(prev => [created, ...prev])
+      setNewReviewText('')
+    } catch {
+      setReviewError('Failed to submit review. Please try again.')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  const handleDeleteReview = async (reviewId: number, reviewUserId: number) => {
+    try {
+      await deleteReview(reviewUserId, reviewId)
+      setReviews(prev => prev.filter(r => r.reviewId !== reviewId))
+    } catch {
+      // silently retain the list on failure
+    }
+  }
+
+  const handleUpdateReview = async (reviewId: number, reviewUserId: number, newText: string) => {
+    const updated = await updateReview(reviewUserId, reviewId, newText)
+    setReviews(prev => prev.map(r => r.reviewId === reviewId ? updated : r))
+  }
+
+  const handleDeleteVehicleReviews = async () => {
+    if (!vehicle) return
+    try {
+      await deleteVehicleReviews(Number(vehicle.id))
+      setReviews([])
+    } catch {
+      // silently fail
+    }
+  }
+
+  const handleSubmitVehicleHistory = async () => {
+    if (!user || !vehicle || !newVehicleHistoryText.trim()) return
+    setSubmittingVehicleHistory(true)
+    setVehicleHistoryError(null)
+    try {
+      const created = await createVehicleHistory(user.userId, Number(vehicle.id), newVehicleHistoryText.trim())
+      setVehicleHistory(prev => [created, ...prev])
+      setNewVehicleHistoryText('')
+    } catch {
+      setVehicleHistoryError('Failed to create vehicle history. Please try again.')
+    } finally {
+      setSubmittingVehicleHistory(false)
+    }
+  }
+
+  const handleDeleteVehicleHistory = async () => {
+    if (!vehicle) return
+    try {
+      await deleteVehicleHistory(Number(vehicle.id))
+      setVehicleHistory([])
+    } catch {
+      setVehicleHistoryError('Failed to clear vehicle history.')
+    }
+  }
 
   const handleFinance = () => {
     if (!vehicle) return
@@ -304,7 +569,7 @@ export default function VehicleInfoPage() {
               >
                 <div className="flex items-start gap-2.5">
                   <Lock size={15} strokeWidth={2} className="shrink-0 mt-0.5" style={{ color: '#0066ff' }} />
-                  <p className="font-body text-[13px] leading-[1.5]" style={{ color: 'rgba(126,179,255,0.85)' }}>
+                  <p className="font-body text-[13px] leading-normal" style={{ color: 'rgba(126,179,255,0.85)' }}>
                     Create Free Account or Log In to finance or purchase this vehicle.
                   </p>
                 </div>
@@ -346,6 +611,182 @@ export default function VehicleInfoPage() {
                   Finance
                 </Btn>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* ─── Info Tabs ─────────────────────────────────────────── */}
+        <div className="border-t" style={{ borderColor: 'rgba(30,58,95,0.6)' }}>
+          <div className="max-w-7xl w-full mx-auto px-6 lg:px-8 py-10">
+            <div className="mb-8 flex flex-wrap gap-2 border-b" style={{ borderColor: 'rgba(30,58,95,0.6)' }}>
+              <button
+                type="button"
+                onClick={() => setActiveInfoTab('reviews')}
+                className="av-focus px-4 py-3 font-mono text-[12px] tracking-widest uppercase transition-colors"
+                style={{
+                  color: activeInfoTab === 'reviews' ? '#ffffff' : 'rgba(126,179,255,0.55)',
+                  borderBottom: activeInfoTab === 'reviews' ? '2px solid #0066ff' : '2px solid transparent',
+                  background: 'transparent',
+                }}
+              >
+                Reviews
+                {reviews.length > 0 && <span className="ml-2">({reviews.length})</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveInfoTab('history')}
+                className="av-focus px-4 py-3 font-mono text-[12px] tracking-widest uppercase transition-colors"
+                style={{
+                  color: activeInfoTab === 'history' ? '#ffffff' : 'rgba(126,179,255,0.55)',
+                  borderBottom: activeInfoTab === 'history' ? '2px solid #0066ff' : '2px solid transparent',
+                  background: 'transparent',
+                }}
+              >
+                Vehicle History
+                {vehicleHistory.length > 0 && <span className="ml-2">({vehicleHistory.length})</span>}
+              </button>
+            </div>
+
+            {activeInfoTab === 'reviews' ? (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-heading font-bold text-2xl text-white">Reviews</h2>
+                  {isAdmin && reviews.length > 0 && (
+                    <Btn variant="outline" size="sm" onClick={handleDeleteVehicleReviews}>
+                      Clear Vehicle Reviews
+                    </Btn>
+                  )}
+                </div>
+
+                {isAuthenticated && !hideNav && (
+                  <div
+                    className="mb-8 p-5 rounded-xl border"
+                    style={{ background: 'rgba(7,20,40,0.6)', borderColor: 'rgba(30,58,95,0.6)' }}
+                  >
+                    <p
+                      className="font-mono text-[11px] tracking-[0.14em] uppercase mb-3"
+                      style={{ color: 'rgba(126,179,255,0.5)' }}
+                    >
+                      Write a Review
+                    </p>
+                    <textarea
+                      value={newReviewText}
+                      onChange={e => setNewReviewText(e.target.value)}
+                      placeholder="Share your experience with this vehicle…"
+                      rows={3}
+                      className="w-full bg-transparent border rounded-lg px-4 py-3 font-body text-[14px] text-white placeholder:text-[rgba(126,179,255,0.3)] resize-none focus:outline-none focus:border-[#0066ff]"
+                      style={{ borderColor: 'rgba(30,58,95,0.8)' }}
+                    />
+                    {reviewError && (
+                      <p className="font-mono text-[12px] mt-2" style={{ color: '#f87171' }}>
+                        {reviewError}
+                      </p>
+                    )}
+                    <div className="mt-3 flex justify-end">
+                      <Btn
+                        variant="primary"
+                        size="sm"
+                        onClick={handleSubmitReview}
+                        disabled={submittingReview || !newReviewText.trim()}
+                      >
+                        {submittingReview ? 'Submitting…' : 'Submit Review'}
+                      </Btn>
+                    </div>
+                  </div>
+                )}
+
+                {reviews.length === 0 ? (
+                  <p
+                    className="font-mono text-[13px] text-center py-8"
+                    style={{ color: 'rgba(126,179,255,0.35)' }}
+                  >
+                    No reviews yet.{isAuthenticated && !hideNav ? ' Be the first to share your experience!' : ''}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {reviews.map(review => (
+                      <ReviewCard
+                        key={review.reviewId}
+                        review={review}
+                        canEdit={user?.userId === review.userId}
+                        canDelete={user?.userId === review.userId || isAdmin}
+                        onDelete={() => handleDeleteReview(review.reviewId, review.userId)}
+                        onSave={(newText) => handleUpdateReview(review.reviewId, review.userId, newText)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                  <h2 className="font-heading font-bold text-2xl text-white">Vehicle History</h2>
+                  {isAdmin && vehicleHistory.length > 0 && (
+                    <div className="flex flex-wrap gap-3">
+                      <Btn variant="outline" size="sm" onClick={handleDeleteVehicleHistory}>
+                        Clear Vehicle History
+                      </Btn>
+                    </div>
+                  )}
+                </div>
+
+                {isAdmin && !hideNav && (
+                  <div
+                    className="mb-8 p-5 rounded-xl border"
+                    style={{ background: 'rgba(7,20,40,0.6)', borderColor: 'rgba(30,58,95,0.6)' }}
+                  >
+                    <p
+                      className="font-mono text-[11px] tracking-[0.14em] uppercase mb-3"
+                      style={{ color: 'rgba(126,179,255,0.5)' }}
+                    >
+                      Add Vehicle History
+                    </p>
+                    <textarea
+                      value={newVehicleHistoryText}
+                      onChange={e => setNewVehicleHistoryText(e.target.value)}
+                      placeholder="Add maintenance, accident, ownership, or service notes…"
+                      rows={3}
+                      className="w-full bg-transparent border rounded-lg px-4 py-3 font-body text-[14px] text-white placeholder:text-[rgba(126,179,255,0.3)] resize-none focus:outline-none focus:border-[#0066ff]"
+                      style={{ borderColor: 'rgba(30,58,95,0.8)' }}
+                    />
+                    <div className="mt-3 flex justify-end">
+                      <Btn
+                        variant="primary"
+                        size="sm"
+                        onClick={handleSubmitVehicleHistory}
+                        disabled={submittingVehicleHistory || !newVehicleHistoryText.trim()}
+                      >
+                        {submittingVehicleHistory ? 'Adding…' : 'Add History'}
+                      </Btn>
+                    </div>
+                  </div>
+                )}
+
+                {vehicleHistoryError && (
+                  <p className="font-mono text-[12px] mb-4" style={{ color: '#f87171' }}>
+                    {vehicleHistoryError}
+                  </p>
+                )}
+
+                {vehicleHistoryLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 size={24} className="animate-spin" style={{ color: '#0066ff' }} />
+                  </div>
+                ) : vehicleHistory.length === 0 ? (
+                  <p
+                    className="font-mono text-[13px] text-center py-8"
+                    style={{ color: 'rgba(126,179,255,0.35)' }}
+                  >
+                    No vehicle history has been added yet.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {vehicleHistory.map(entry => (
+                      <VehicleHistoryCard key={entry.vehicleHistoryId} entry={entry} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -3,9 +3,11 @@ package com.example.apexauto.controller;
 import com.example.apexauto.DTO.CreateReviewDTO;
 import com.example.apexauto.DTO.ReviewResponseDTO;
 import com.example.apexauto.entity.Review;
+import com.example.apexauto.entity.User;
 import com.example.apexauto.services.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -53,8 +55,12 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<ReviewResponseDTO> createReview(
             @PathVariable int userId,
-            @RequestBody CreateReviewDTO request
+            @RequestBody CreateReviewDTO request,
+            @AuthenticationPrincipal User principal
     ) {
+        if (!isOwnerOrAdmin(principal, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         try {
             Review saved = reviewService.createReview(userId, request.getVehicleId(), request.getReviewComments());
             return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(saved));
@@ -68,8 +74,12 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDTO> updateReview(
             @PathVariable int userId,
             @PathVariable int reviewId,
-            @RequestBody CreateReviewDTO request
+            @RequestBody CreateReviewDTO request,
+            @AuthenticationPrincipal User principal
     ) {
+        if (!isOwnerOrAdmin(principal, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         try {
             Review updated = reviewService.updateReviewCommentsByIdAndUserId(reviewId, userId, request.getReviewComments());
             return ResponseEntity.ok(toResponseDTO(updated));
@@ -78,12 +88,16 @@ public class ReviewController {
         }
     }
 
-    // DELETE /users/{userId}/reviews/{reviewId} — deletes a specific review made by a user
+    // DELETE /users/{userId}/reviews/{reviewId} — deletes a specific review made by a user (owner or admin)
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReviewByIdAndUserId(
             @PathVariable int userId,
-            @PathVariable int reviewId
+            @PathVariable int reviewId,
+            @AuthenticationPrincipal User principal
     ) {
+        if (!isOwnerOrAdmin(principal, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         try {
             reviewService.deleteReviewByIdAndUserId(reviewId, userId);
             return ResponseEntity.noContent().build();
@@ -94,7 +108,13 @@ public class ReviewController {
 
     // DELETE /users/{userId}/reviews — deletes all reviews made by a specific user
     @DeleteMapping
-    public ResponseEntity<Void> deleteReviewsByUserId(@PathVariable int userId) {
+    public ResponseEntity<Void> deleteReviewsByUserId(
+            @PathVariable int userId,
+            @AuthenticationPrincipal User principal
+    ) {
+        if (!isOwnerOrAdmin(principal, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         try {
             reviewService.deleteReviewsByUserId(userId);
             return ResponseEntity.noContent().build();
@@ -103,12 +123,21 @@ public class ReviewController {
         }
     }
 
+    private boolean isOwnerOrAdmin(User principal, int userId) {
+        if (principal == null) return false;
+        if (principal.getUserId() == userId) return true;
+        return principal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+
     private ReviewResponseDTO toResponseDTO(Review review) {
         return new ReviewResponseDTO(
                 review.getReviewId(),
                 review.getUser().getUserId(),
                 review.getVehicle().getVehicleId(),
-                review.getReviewComments()
+                review.getReviewComments(),
+                review.getUser().getFirstName(),
+                review.getUser().getLastName()
         );
     }
 

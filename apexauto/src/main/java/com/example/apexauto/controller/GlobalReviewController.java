@@ -75,7 +75,9 @@ public class GlobalReviewController {
                 review.getReviewId(),
                 review.getUser().getUserId(),
                 review.getVehicle().getVehicleId(),
-                review.getReviewComments()
+                review.getReviewComments(),
+                review.getUser().getFirstName(),
+                review.getUser().getLastName()
         );
     }
 
