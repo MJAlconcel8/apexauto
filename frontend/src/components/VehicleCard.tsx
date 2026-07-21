@@ -86,10 +86,10 @@ export function VehicleCard({ v, dark = false, hideFinance = false, hideAddToCar
 
       {/* Body */}
       <div className="flex flex-col p-4.5 gap-3.5 flex-1">
-        <div className="flex items-center gap-1 text-apex-green">
+        <div className={`flex items-center gap-1 ${v.stock > 0 ? 'text-apex-green' : 'text-apex-red'}`}>
           <MapPin size={12} strokeWidth={2} />
           <span className="font-mono text-[11px]">
-            {v.stock} in stock · {v.history}
+            {v.stock > 0 ? `${v.stock} in stock · ${v.history}` : `Out of Stock · ${v.history}`}
           </span>
         </div>
 

@@ -4,30 +4,16 @@ import { ArrowLeft, ArrowRight, Car, Check, CreditCard, Truck } from 'lucide-rea
 import { useLocation, useNavigate } from 'react-router-dom'
 import Nav from '../components/Nav'
 import { ConfirmModal, FormField } from '../components'
+import type { CartLine } from '../components'
 import { VEHICLE_IMAGES } from '../assets/vehicleImages'
 
-interface OrderLine {
-  orderLineId: number
-  orderId: number
-  vehicleId: number
-  brand: string
-  make: string
-  model: string
-  year: number
-  price: number
-  quantity: number
-  financingSelected: boolean
-  lineTotalCost: number | null
-}
-
-interface OrderData {
-  orderId: number
+interface CartData {
+  cartId: number
   userId: number
-  orderStatusId: number
-  orderStatusName: string
-  totalAmount: number
-  deliveryDate: string | null
-  orderLines: OrderLine[]
+  cartStatusId: number
+  cartStatusName: string
+  totalItemsInCart: number
+  cartLines: CartLine[]
 }
 
 interface PersonalInfo {
@@ -69,8 +55,8 @@ function detectCardBrand(cardNumber: string): string {
 
 export default function Checkout() {
   const navigate = useNavigate()
-  const location = useLocation() as { state?: { order?: OrderData } }
-  const order = location.state?.order
+  const location = useLocation() as { state?: { cart?: CartData } }
+  const cart = location.state?.cart
 
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
@@ -89,12 +75,14 @@ export default function Checkout() {
     cvv: '',
   })
   const [confirmingOrder, setConfirmingOrder] = useState(false)
+  const [placingOrder, setPlacingOrder] = useState(false)
+  const [placeOrderError, setPlaceOrderError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!order) navigate('/cart', { replace: true })
-  }, [order, navigate])
+    if (!cart) navigate('/cart', { replace: true })
+  }, [cart, navigate])
 
-  if (!order) return null
+  if (!cart) return null
 
   const updatePersonalInfo = (field: keyof PersonalInfo) => (e: ChangeEvent<HTMLInputElement>) =>
     setPersonalInfo((prev) => ({ ...prev, [field]: e.target.value }))
@@ -115,7 +103,10 @@ export default function Checkout() {
     payment.expiry.trim() !== '' &&
     payment.cvv.trim() !== ''
 
-  const subtotal = order.totalAmount
+  const subtotal = cart.cartLines.reduce((sum, line) => {
+    const unitTotal = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
+    return sum + unitTotal * line.quantity
+  }, 0)
   const tax = subtotal * TAX_RATE
   const total = subtotal + tax + DELIVERY_FEE
   const last4 = payment.cardNumber.replace(/\D/g, '').slice(-4).padStart(4, '*')
@@ -127,9 +118,37 @@ export default function Checkout() {
 
   const handleContinue = () => setStep((s) => (s === 1 ? 2 : 3))
 
-  const handlePlaceOrder = () => {
-    setConfirmingOrder(false)
-    navigate('/order-confirmation', { state: { order, personalInfo, payment } })
+  const handlePlaceOrder = async () => {
+    if (placingOrder) return
+
+    setPlaceOrderError(null)
+    setPlacingOrder(true)
+
+    try {
+      const res = await fetch(`http://localhost:8080/carts/${cart.cartId}/checkout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (res.status === 401) {
+        navigate('/login')
+        return
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.message ?? 'Could not complete checkout. Please try again.')
+      }
+
+      const order = await res.json()
+      window.dispatchEvent(new CustomEvent('cart-updated'))
+      setConfirmingOrder(false)
+      navigate('/order-confirmation', { state: { order, personalInfo, payment } })
+    } catch (err) {
+      setPlaceOrderError(err instanceof Error ? err.message : 'Could not complete checkout. Please try again.')
+    } finally {
+      setPlacingOrder(false)
+    }
   }
 
   return (
@@ -361,11 +380,11 @@ export default function Checkout() {
             <aside className="h-fit rounded-xl border border-card-border bg-card p-6">
               <p className="font-heading text-base font-semibold">Order Summary</p>
               <ul className="mt-4 space-y-3">
-                {order.orderLines.map((line) => {
+                {cart.cartLines.map((line) => {
                   const img = VEHICLE_IMAGES[line.model]
                   const unitPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
                   return (
-                    <li key={line.orderLineId} className="flex items-center gap-3">
+                    <li key={line.cartLineId} className="flex items-center gap-3">
                       <div className="h-10 w-14 shrink-0 overflow-hidden rounded-md bg-sub-header">
                         {img ? (
                           <img
@@ -421,8 +440,13 @@ export default function Checkout() {
         title="Confirm your purchase"
         message={`You're about to place an order for ${fmtCAD(total)} (including tax and delivery), charged to the card ending in ${last4}. This action cannot be undone.`}
         confirmLabel="Confirm Purchase"
-        onConfirm={handlePlaceOrder}
-        onCancel={() => setConfirmingOrder(false)}
+        loading={placingOrder}
+        error={placeOrderError}
+        onConfirm={() => void handlePlaceOrder()}
+        onCancel={() => {
+          setConfirmingOrder(false)
+          setPlaceOrderError(null)
+        }}
       />
     </div>
   )

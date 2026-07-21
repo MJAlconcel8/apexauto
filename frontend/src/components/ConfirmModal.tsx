@@ -8,6 +8,7 @@ export interface ConfirmModalProps {
   cancelLabel?: string
   danger?: boolean
   loading?: boolean
+  error?: string | null
   onConfirm: () => void
   onCancel: () => void
 }
@@ -20,6 +21,7 @@ export function ConfirmModal({
   cancelLabel = 'Cancel',
   danger = false,
   loading = false,
+  error = null,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -47,6 +49,8 @@ export function ConfirmModal({
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">{message}</p>
+
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
         <div className="mt-6 flex justify-end gap-3">
           <button

@@ -1,7 +1,11 @@
 package com.example.apexauto;
 
 import com.example.apexauto.DTO.CreateVehicleDTO;
+import com.example.apexauto.entity.CartStatus;
+import com.example.apexauto.entity.OrderStatus;
 import com.example.apexauto.entity.Vehicle;
+import com.example.apexauto.repository.CartStatusRepository;
+import com.example.apexauto.repository.OrderStatusRepository;
 import com.example.apexauto.repository.VehicleRepository;
 import com.example.apexauto.services.VehicleService;
 import org.springframework.boot.CommandLineRunner;
@@ -10,21 +14,63 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.List;
 
-// Seeds the vehicles table with the 3 default Apex Auto listings on every fresh database.
-// Runs on startup; skips seeding if any vehicles already exist.
+// Seeds lookup/reference tables on every fresh database.
+// Runs on startup; each section skips seeding if its table already has rows.
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private static final List<String> DEFAULT_ORDER_STATUSES = List.of(
+            "PENDING", "SHIPPED", "DELIVERED", "CANCELLED"
+    );
+    private static final List<String> DEFAULT_CART_STATUSES = List.of(
+            "ACTIVE", "CHECKED_OUT", "ABANDONED"
+    );
+
     private final VehicleRepository vehicleRepository;
     private final VehicleService vehicleService;
+    private final OrderStatusRepository orderStatusRepository;
+    private final CartStatusRepository cartStatusRepository;
 
-    public DataInitializer(VehicleRepository vehicleRepository, VehicleService vehicleService) {
+    public DataInitializer(
+            VehicleRepository vehicleRepository,
+            VehicleService vehicleService,
+            OrderStatusRepository orderStatusRepository,
+            CartStatusRepository cartStatusRepository
+    ) {
         this.vehicleRepository = vehicleRepository;
         this.vehicleService = vehicleService;
+        this.orderStatusRepository = orderStatusRepository;
+        this.cartStatusRepository = cartStatusRepository;
     }
 
     @Override
     public void run(String... args) {
+        seedOrderStatuses();
+        seedCartStatuses();
+        seedVehicles();
+    }
+
+    private void seedOrderStatuses() {
+        if (orderStatusRepository.count() > 0) return;
+
+        for (String name : DEFAULT_ORDER_STATUSES) {
+            OrderStatus orderStatus = new OrderStatus();
+            orderStatus.setOrderStatusName(name);
+            orderStatusRepository.save(orderStatus);
+        }
+    }
+
+    private void seedCartStatuses() {
+        if (cartStatusRepository.count() > 0) return;
+
+        for (String name : DEFAULT_CART_STATUSES) {
+            CartStatus cartStatus = new CartStatus();
+            cartStatus.setCartStatusName(name);
+            cartStatusRepository.save(cartStatus);
+        }
+    }
+
+    private void seedVehicles() {
         if (vehicleRepository.count() > 0) return;
 
         List<CreateVehicleDTO> defaults = List.of(
