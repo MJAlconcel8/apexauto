@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, ShieldCheck, ShoppingCart, UserRound, ZapIcon } from 'lucide-react'
+import { LogOut, Package, ShieldCheck, ShoppingCart, UserRound, ZapIcon } from 'lucide-react'
 import type { GoFn, ViewParams } from './types'
 import { useAuth } from '../auth/AuthContext'
 
@@ -22,6 +22,7 @@ const adminLinks = [
   { label: 'Dashboard', view: '/admin/dashboard' },
   { label: 'Users', view: '/admin/users' },
   { label: 'Listings', view: '/admin/listings' },
+  { label: 'Orders', view: '/admin/orders' },
 ]
 
 interface NavProps { onNavigate?: GoFn }
@@ -179,8 +180,14 @@ export default function Nav({ onNavigate }: NavProps) {
                     <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-[#7eb3ff]">{user?.roleName}</p>
                   </div>
                   <button
-                    onClick={() => void handleLogout()}
+                    onClick={() => go('/orders')}
                     className="mt-1 flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-secondary hover:text-foreground"
+                  >
+                    <Package size={16} /> My Orders
+                  </button>
+                  <button
+                    onClick={() => void handleLogout()}
+                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-secondary hover:text-foreground"
                   >
                     <LogOut size={16} /> Sign out
                   </button>

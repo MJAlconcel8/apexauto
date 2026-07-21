@@ -32,6 +32,7 @@ import java.util.Locale;
 public class OrderService {
 
     private static final String DEFAULT_ORDER_STATUS = "PENDING";
+    private static final String CHECKED_OUT_CART_STATUS = "CHECKED_OUT";
 
     private final OrdersRepository ordersRepository;
     private final OrderStatusRepository orderStatusRepository;
@@ -101,8 +102,7 @@ public class OrderService {
         reduceStockFromCartLines(cartLines);
         
         // Change cart status to CHECKED_OUT
-        CartStatus checkedOutStatus = cartStatusRepository.findByCartStatusNameIgnoreCase("CHECKED_OUT")
-                .orElseThrow(() -> new IllegalArgumentException("CHECKED_OUT status not found"));
+        CartStatus checkedOutStatus = getOrCreateCheckedOutCartStatus();
         cart.setCartStatus(checkedOutStatus);
         cartsRepository.save(cart);
 
@@ -202,15 +202,32 @@ public class OrderService {
         return ordersRepository.save(order);
     }
 
+    // Deletes any order. Restricted to admins at the controller/security layer.
     @Transactional
     public void deleteOrder(int orderId) {
         Orders order = validateOrderExists(orderId);
+        deleteOrderInternal(order);
+    }
 
-        if (paymentRepository.existsByOrderOrderId(orderId)) {
+    // Deletes an order only if it belongs to the given user.
+    @Transactional
+    public void deleteOwnOrder(int userId, int orderId) {
+        Orders order = validateOrderExists(orderId);
+
+        User currentUser = getCurrentAuthenticatedUser();
+        if (currentUser.getUserId() != userId || order.getUser().getUserId() != userId) {
+            throw new IllegalArgumentException("You do not have permission to delete this order");
+        }
+
+        deleteOrderInternal(order);
+    }
+
+    private void deleteOrderInternal(Orders order) {
+        if (paymentRepository.existsByOrderOrderId(order.getOrderId())) {
             throw new IllegalArgumentException("Cannot delete order with existing payment");
         }
 
-        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(orderId);
+        List<OrderLine> orderLines = orderLineRepository.findByOrderOrderIdOrderByOrderLineIdAsc(order.getOrderId());
         restoreStockFromOrderLines(orderLines);
         orderLineRepository.deleteAll(orderLines);
         ordersRepository.delete(order);
@@ -370,6 +387,15 @@ public class OrderService {
                     OrderStatus orderStatus = new OrderStatus();
                     orderStatus.setOrderStatusName(DEFAULT_ORDER_STATUS.toUpperCase(Locale.ROOT));
                     return orderStatusRepository.save(orderStatus);
+                });
+    }
+
+    private CartStatus getOrCreateCheckedOutCartStatus() {
+        return cartStatusRepository.findByCartStatusNameIgnoreCase(CHECKED_OUT_CART_STATUS)
+                .orElseGet(() -> {
+                    CartStatus cartStatus = new CartStatus();
+                    cartStatus.setCartStatusName(CHECKED_OUT_CART_STATUS);
+                    return cartStatusRepository.save(cartStatus);
                 });
     }
 

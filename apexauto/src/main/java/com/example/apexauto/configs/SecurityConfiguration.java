@@ -64,6 +64,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/vehicles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/reviews").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/reviews/vehicles/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/orders").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/orders/**").hasRole("ADMIN")
                         .requestMatchers("/auth/me").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

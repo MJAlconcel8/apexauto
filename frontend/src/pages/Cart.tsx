@@ -17,48 +17,47 @@ interface CartData {
 const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+async function fetchActiveCart(): Promise<CartData | null> {
+  const res = await fetch(`http://localhost:8080/users/me/carts/active`, {
+    credentials: 'include',
+  })
+
+  if (res.status === 401) throw new Error('UNAUTHENTICATED')
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error('Failed to load cart.')
+
+  const data = (await res.json()) as CartData
+  const normalizedLines = data.cartLines.map((line) => ({
+    ...line,
+    quantity: Math.max(1, line.quantity ?? 1),
+  }))
+
+  return {
+    ...data,
+    cartLines: normalizedLines,
+    totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
+  }
+}
+
 export default function Cart() {
   const navigate = useNavigate()
   const [cart, setCart] = useState<CartData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`http://localhost:8080/users/me/carts/active`, {
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (res.status === 401) {
+    fetchActiveCart()
+      .then((data) => setCart(data))
+      .catch((err) => {
+        if (err instanceof Error && err.message === 'UNAUTHENTICATED') {
           navigate('/login')
-          return null
-        }
-        if (res.status === 404) return null
-        if (!res.ok) throw new Error('Failed to load cart.')
-        return res.json() as Promise<CartData>
-      })
-      .then((data) => {
-        if (!data) {
-          setCart(null)
-          setLoading(false)
           return
         }
-
-        const normalizedLines = data.cartLines.map((line) => ({
-          ...line,
-          quantity: Math.max(1, line.quantity ?? 1),
-        }))
-
-        setCart({
-          ...data,
-          cartLines: normalizedLines,
-          totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
-        })
-        setLoading(false)
-      })
-      .catch(() => {
         setError('Could not load your cart. Please try again.')
-        setLoading(false)
       })
+      .finally(() => setLoading(false))
   }, [navigate])
 
   const handleRemove = async (cartLineId: number) => {
@@ -85,7 +84,45 @@ export default function Cart() {
     }
   }
 
-  const handleCheckout = () => navigate('/checkout')
+  const handleCheckout = async () => {
+    if (!cart || checkingOut) return
+
+    setCheckoutError(null)
+    setCheckingOut(true)
+
+    try {
+      const res = await fetch(`http://localhost:8080/carts/${cart.cartId}/checkout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (res.status === 401) {
+        navigate('/login')
+        return
+      }
+
+      if (res.status === 404) {
+        // The cart we had loaded no longer exists on the server (e.g. session/data reset).
+        // Refresh it so the user retries with a valid, up-to-date cart.
+        const refreshed = await fetchActiveCart().catch(() => null)
+        setCart(refreshed)
+        throw new Error('Your cart session had expired, so we refreshed it. Please try checkout again.')
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.message ?? 'Could not start checkout. Please try again.')
+      }
+
+      const order = await res.json()
+      window.dispatchEvent(new CustomEvent('cart-updated'))
+      navigate('/checkout', { state: { order } })
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+    } finally {
+      setCheckingOut(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -166,14 +203,28 @@ export default function Cart() {
                 <span>Subtotal ({totalItems} {totalItems === 1 ? 'item' : 'items'})</span>
                 <span className="font-medium text-foreground">{fmtCAD(grandTotal)}</span>
               </div>
+              {checkoutError && (
+                <p className="mt-4 text-right text-sm text-red-400">{checkoutError}</p>
+              )}
+
               <div className="mt-5 flex justify-end">
                 <button
                   type="button"
                   onClick={handleCheckout}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#0066ff] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0055d9]"
+                  disabled={checkingOut}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#0066ff] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0055d9] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Proceed to Checkout
-                  <ArrowRight size={16} />
+                  {checkingOut ? (
+                    <>
+                      Starting checkout
+                      <Loader2 className="animate-spin" size={16} />
+                    </>
+                  ) : (
+                    <>
+                      Proceed to Checkout
+                      <ArrowRight size={16} />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
