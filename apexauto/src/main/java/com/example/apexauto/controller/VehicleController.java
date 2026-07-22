@@ -144,7 +144,8 @@ public class VehicleController {
                 vehicle.isOnSale(),
                 vehicle.isInStock(),
                 vehicle.getAmountInStock(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                vehicle.getImageUrl()
         );
     }
 
@@ -169,7 +170,8 @@ public class VehicleController {
                 dto.isOnSale(),
                 amountInStock > 0,
                 amountInStock,
-                dto.getPrice()
+                dto.getPrice(),
+                dto.getImageUrl()
         );
     }
 

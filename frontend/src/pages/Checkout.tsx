@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { ArrowLeft, ArrowRight, Car, Check, CreditCard, Truck } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CreditCard, Truck } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Nav from '../components/Nav'
 import { ConfirmModal, FormField } from '../components'
 import type { CartLine } from '../components'
-import { VEHICLE_IMAGES } from '../assets/vehicleImages'
+import { resolveVehicleImage } from '../utils/vehicleUtils'
 
 interface CartData {
   cartId: number
@@ -381,22 +381,16 @@ export default function Checkout() {
               <p className="font-heading text-base font-semibold">Order Summary</p>
               <ul className="mt-4 space-y-3">
                 {cart.cartLines.map((line) => {
-                  const img = VEHICLE_IMAGES[line.model]
+                  const img = resolveVehicleImage(line.imageUrl, line.make, line.model)
                   const unitPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
                   return (
                     <li key={line.cartLineId} className="flex items-center gap-3">
                       <div className="h-10 w-14 shrink-0 overflow-hidden rounded-md bg-sub-header">
-                        {img ? (
-                          <img
-                            src={img}
-                            alt={`${line.year} ${line.brand} ${line.model}`}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center">
-                            <Car size={16} className="text-card-border" />
-                          </div>
-                        )}
+                        <img
+                          src={img}
+                          alt={`${line.year} ${line.brand} ${line.model}`}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">

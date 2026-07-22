@@ -121,6 +121,7 @@ public class DataInitializer implements CommandLineRunner {
                 dto.getBrand(), dto.getMake(), dto.getModel(), dto.getYear(),
                 dto.getColor(), dto.getDoors(), dto.getSeats(),
                 dto.getEmissionScore(), dto.getFuelUsage(), dto.getMileage(),
-                dto.isOnSale(), amountInStock > 0, amountInStock, dto.getPrice());
+                dto.isOnSale(), amountInStock > 0, amountInStock, dto.getPrice(),
+                dto.getImageUrl());
     }
 }

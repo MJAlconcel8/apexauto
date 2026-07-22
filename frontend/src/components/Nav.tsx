@@ -21,7 +21,7 @@ const guestNavLinks = [
 const adminLinks = [
   { label: 'Admin Dashboard', view: '/admin/dashboard' },
   { label: 'User Management', view: '/admin/users' },
-  { label: 'Listings', view: '/admin/listings' },
+  { label: 'Car Inventory', view: '/admin/listings' },
   { label: 'Orders', view: '/admin/orders' },
 ]
 

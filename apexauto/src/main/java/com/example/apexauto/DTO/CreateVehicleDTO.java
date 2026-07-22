@@ -26,5 +26,6 @@ public class CreateVehicleDTO {
     private boolean isInStock;
     private Integer amountInStock;
     private BigDecimal price;
+    private String imageUrl;
 }
 

@@ -6,6 +6,21 @@ export const FALLBACK_IMG =
 
 export const fmtCAD = (n: number) => '$' + n.toLocaleString('en-CA')
 
+export function resolveVehicleImage(
+  imageUrl: string | null | undefined,
+  make: string,
+  model: string,
+): string {
+  const modelName = [make, model].filter(Boolean).join(' ')
+  return (
+    imageUrl?.trim() ||
+    VEHICLE_IMAGES[model] ||
+    VEHICLE_IMAGES[modelName] ||
+    VEHICLE_IMAGES[make] ||
+    FALLBACK_IMG
+  )
+}
+
 /**
  * Body-shape/category per model. The backend Vehicle has no category column,
  * so the catalogue's Category filter is driven by this map. Add a model here
@@ -37,6 +52,7 @@ export interface VehicleApiResponse {
   inStock: boolean
   amountInStock: number
   price: number
+  imageUrl?: string | null
 }
 
 export function mapVehicle(v: VehicleApiResponse): Vehicle {
@@ -57,11 +73,7 @@ export function mapVehicle(v: VehicleApiResponse): Vehicle {
     model: v.model,
     year: v.year,
     category: VEHICLE_CATEGORIES[v.model] ?? VEHICLE_CATEGORIES[modelName],
-    img:
-      VEHICLE_IMAGES[v.model] ??
-      VEHICLE_IMAGES[modelName] ??
-      VEHICLE_IMAGES[v.make] ??
-      FALLBACK_IMG,
+    img: resolveVehicleImage(v.imageUrl, v.make, v.model),
     price: v.price,
     mileage: v.mileage,
     emissionScore: v.emissionScore,

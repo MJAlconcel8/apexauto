@@ -15,8 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import Nav from '../components/Nav'
 import { Footer } from '../components'
-import { fmtCAD, FALLBACK_IMG } from '../utils/vehicleUtils'
-import { VEHICLE_IMAGES } from '../assets/vehicleImages'
+import { fmtCAD, resolveVehicleImage } from '../utils/vehicleUtils'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
@@ -38,6 +37,7 @@ interface VehicleDTO {
   inStock: boolean
   amountInStock: number
   price: number
+  imageUrl?: string | null
 }
 
 interface CompareResponse {
@@ -94,8 +94,7 @@ const SPEC_ROWS: SpecRow[] = [
   },
 ]
 
-const getImg = (v: VehicleDTO) =>
-  VEHICLE_IMAGES[v.model] ?? VEHICLE_IMAGES[v.make] ?? FALLBACK_IMG
+const getImg = (v: VehicleDTO) => resolveVehicleImage(v.imageUrl, v.make, v.model)
 
 /* ── Empty state ──────────────────────────────────────────────── */
 

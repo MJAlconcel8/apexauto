@@ -29,5 +29,6 @@ public class VehicleResponseDTO {
     private boolean isInStock;
     private int amountInStock;
     private BigDecimal price;
+    private String imageUrl;
 }
 

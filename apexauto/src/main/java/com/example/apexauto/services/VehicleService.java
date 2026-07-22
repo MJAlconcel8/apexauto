@@ -68,6 +68,7 @@ public class VehicleService {
         vehicle.setAmountInStock(incoming.getAmountInStock());
         vehicle.setInStock(incoming.getAmountInStock() > 0);
         vehicle.setPrice(incoming.getPrice());
+        vehicle.setImageUrl(incoming.getImageUrl());
 
         return vehicleRepository.save(vehicle);
     }
@@ -148,6 +149,9 @@ public class VehicleService {
                 throw new IllegalArgumentException("Vehicle price must not be negative");
             }
             vehicle.setPrice(patch.getPrice());
+        }
+        if (patch.getImageUrl() != null) {
+            vehicle.setImageUrl(patch.getImageUrl());
         }
 
         validateVehicle(vehicle);
@@ -351,7 +355,8 @@ public class VehicleService {
                 vehicle.isOnSale(),
                 vehicle.isInStock(),
                 vehicle.getAmountInStock(),
-                vehicle.getPrice()
+                vehicle.getPrice(),
+                vehicle.getImageUrl()
         );
     }
 }

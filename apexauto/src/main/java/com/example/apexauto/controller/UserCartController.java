@@ -101,7 +101,8 @@ public class UserCartController {
                 cartLine.getTermMonths(),
                 cartLine.getMonthlyPayment(),
                 cartLine.getLineTotalCost(),
-                cartLine.getTotalInterest()
+                cartLine.getTotalInterest(),
+                vehicle.getImageUrl()
         );
     }
 
