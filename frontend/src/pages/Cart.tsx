@@ -18,15 +18,19 @@ const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 async function fetchActiveCart(): Promise<CartData | null> {
-  const res = await fetch(`http://localhost:8080/users/me/carts/active`, {
+  // Uses the carts list (always 200, even when empty) instead of /active,
+  // which returns 404 for a brand-new user with no cart yet.
+  const res = await fetch(`http://localhost:8080/users/me/carts`, {
     credentials: 'include',
   })
 
   if (res.status === 401) throw new Error('UNAUTHENTICATED')
-  if (res.status === 404) return null
   if (!res.ok) throw new Error('Failed to load cart.')
 
-  const data = (await res.json()) as CartData
+  const carts = (await res.json()) as CartData[]
+  const data = carts.find((cart) => cart.cartStatusName?.toUpperCase() === 'ACTIVE')
+  if (!data) return null
+
   const normalizedLines = data.cartLines.map((line) => ({
     ...line,
     quantity: Math.max(1, line.quantity ?? 1),

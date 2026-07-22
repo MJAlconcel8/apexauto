@@ -19,9 +19,9 @@ const guestNavLinks = [
 ]
 
 const adminLinks = [
-  { label: 'Dashboard', view: '/admin/dashboard' },
-  { label: 'Users', view: '/admin/users' },
-  { label: 'Listings', view: '/admin/listings' },
+  { label: 'Admin Dashboard', view: '/admin/dashboard' },
+  { label: 'User Management', view: '/admin/users' },
+  { label: 'Car Inventory', view: '/admin/listings' },
   { label: 'Orders', view: '/admin/orders' },
 ]
 
@@ -42,11 +42,16 @@ export default function Nav({ onNavigate }: NavProps) {
     if (!isAuthenticated) return
 
     const fetchCartCount = () => {
-      fetch('http://localhost:8080/users/me/carts/active', {
+      // Uses the carts list (always 200, even when empty) instead of /active,
+      // which returns 404 for a brand-new user with no cart yet.
+      fetch('http://localhost:8080/users/me/carts', {
         credentials: 'include',
       })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => setCartCount(data?.totalItemsInCart ?? 0))
+        .then((res) => (res.ok ? res.json() : []))
+        .then((carts: { cartStatusName: string; totalItemsInCart: number }[]) => {
+          const activeCart = carts.find((cart) => cart.cartStatusName?.toUpperCase() === 'ACTIVE')
+          setCartCount(activeCart?.totalItemsInCart ?? 0)
+        })
         .catch(() => setCartCount(0))
     }
 

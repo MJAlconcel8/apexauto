@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Car, Loader2, PackageSearch, Trash2 } from 'lucide-react'
+import { Loader2, PackageSearch, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Nav from '../components/Nav'
 import { ConfirmModal } from '../components'
 import { useAuth } from '../auth/AuthContext'
-import { VEHICLE_IMAGES } from '../assets/vehicleImages'
+import { resolveVehicleImage } from '../utils/vehicleUtils'
 
 interface OrderLine {
   orderLineId: number
@@ -18,6 +18,7 @@ interface OrderLine {
   quantity: number
   financingSelected: boolean
   lineTotalCost: number | null
+  imageUrl?: string | null
 }
 
 interface OrderData {
@@ -203,22 +204,16 @@ export default function Orders() {
                   </div>
                   <ul className="mt-4 space-y-3">
                     {order.orderLines.map((line) => {
-                      const img = VEHICLE_IMAGES[line.model]
+                      const img = resolveVehicleImage(line.imageUrl, line.make, line.model)
                       const unitPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
                       return (
                         <li key={line.orderLineId} className="flex items-center gap-3">
                           <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-sub-header">
-                            {img ? (
-                              <img
-                                src={img}
-                                alt={`${line.year} ${line.brand} ${line.model}`}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center">
-                                <Car size={18} className="text-card-border" />
-                              </div>
-                            )}
+                            <img
+                              src={img}
+                              alt={`${line.year} ${line.brand} ${line.model}`}
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium text-foreground">

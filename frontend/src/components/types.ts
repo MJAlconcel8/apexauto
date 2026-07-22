@@ -102,6 +102,7 @@ export interface CartLine {
   monthlyPayment: number | null
   lineTotalCost: number | null
   totalInterest: number | null
+  imageUrl?: string | null
 }
 
 export interface CartLineItemProps {

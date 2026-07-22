@@ -155,7 +155,8 @@ public class CartController {
                 cartLine.getTermMonths(),
                 cartLine.getMonthlyPayment(),
                 cartLine.getLineTotalCost(),
-                cartLine.getTotalInterest()
+                cartLine.getTotalInterest(),
+                vehicle.getImageUrl()
         );
     }
 
@@ -194,7 +195,8 @@ public class CartController {
                 orderLine.getTermMonths(),
                 orderLine.getMonthlyPayment(),
                 orderLine.getLineTotalCost(),
-                orderLine.getTotalInterest()
+                orderLine.getTotalInterest(),
+                vehicle.getImageUrl()
         );
     }
 

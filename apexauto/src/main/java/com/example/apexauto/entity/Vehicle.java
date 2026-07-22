@@ -107,4 +107,10 @@ public class Vehicle {
     @Setter
     @Column(nullable = false)
     private BigDecimal price;
+
+    // Optional image for the vehicle (URL or data URI). Null/blank means the frontend falls back to a default image.
+    @Getter
+    @Setter
+    @Column(columnDefinition = "LONGTEXT")
+    private String imageUrl;
 }

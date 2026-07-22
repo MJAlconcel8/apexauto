@@ -1,12 +1,12 @@
-import { Car, Trash2 } from 'lucide-react'
-import { VEHICLE_IMAGES } from '../assets/vehicleImages'
+import { Trash2 } from 'lucide-react'
+import { resolveVehicleImage } from '../utils/vehicleUtils'
 import type { CartLineItemProps } from './types'
 
 const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export function CartLineItem({ line, onRemove }: CartLineItemProps) {
-  const img = VEHICLE_IMAGES[line.model]
+  const img = resolveVehicleImage(line.imageUrl, line.make, line.model)
   const unitPrice = line.financingSelected ? (line.lineTotalCost ?? line.price) : line.price
   const displayPrice = unitPrice * line.quantity
 
@@ -14,18 +14,12 @@ export function CartLineItem({ line, onRemove }: CartLineItemProps) {
     <li className="flex flex-col rounded-xl border border-card-border bg-card overflow-hidden sm:flex-row sm:items-stretch">
       {/* Vehicle image */}
       <div className="relative h-44 shrink-0 overflow-hidden sm:h-auto sm:w-52">
-        {img ? (
-          <img
-            src={img}
-            alt={`${line.year} ${line.brand} ${line.model}`}
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-sub-header">
-            <Car size={40} className="text-card-border" strokeWidth={1.2} />
-          </div>
-        )}
+        <img
+          src={img}
+          alt={`${line.year} ${line.brand} ${line.model}`}
+          loading="lazy"
+          className="w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,#071428_2%,rgba(7,20,40,0.10)_50%,transparent_100%)] sm:hidden" />
       </div>
 

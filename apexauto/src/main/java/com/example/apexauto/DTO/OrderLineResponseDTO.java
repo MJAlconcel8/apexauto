@@ -30,4 +30,5 @@ public class OrderLineResponseDTO {
     private BigDecimal monthlyPayment;
     private BigDecimal lineTotalCost;
     private BigDecimal totalInterest;
+    private String imageUrl;
 }

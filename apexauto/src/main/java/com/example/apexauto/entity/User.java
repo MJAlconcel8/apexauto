@@ -122,6 +122,12 @@ public class User implements UserDetails {
     @Column
     private Date emailVerificationTokenExpiresAt;
 
+    // The timestamp until which an admin has temporarily restricted (blocked) this account. Null means not restricted.
+    @Getter
+    @Setter
+    @Column(name = "restricted_until")
+    private Date restrictedUntil;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String normalizedRole = roleName == null || roleName.isBlank()
@@ -147,7 +153,15 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !isAccountLocked;
+        if (isAccountLocked) {
+            return false;
+        }
+        return restrictedUntil == null || restrictedUntil.before(new Date());
+    }
+
+    // Convenience check used outside of Spring Security to see if an admin-imposed restriction is currently active.
+    public boolean isCurrentlyRestricted() {
+        return restrictedUntil != null && restrictedUntil.after(new Date());
     }
 
     @Override

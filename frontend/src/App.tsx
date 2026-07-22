@@ -22,8 +22,10 @@ import VehicleInfoPage from './pages/VehicleInfoPage'
 import Compare from './pages/Compare'
 import Forbidden from './pages/Forbidden'
 import NotFound from './pages/NotFound'
-import AdminPage from './pages/admin/AdminPage'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUsers from './pages/admin/AdminUsers'
 import AdminOrders from './pages/admin/AdminOrders'
+import AdminListings from './pages/admin/AdminListings'
 
 const Landing = () => {
   const navigate = useNavigate()
@@ -69,7 +71,7 @@ const App = () => {
             path="/admin/dashboard"
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminPage title="Admin Dashboard" description="A secure starting point for future operational controls and reporting." />
+                <AdminDashboard />
               </ProtectedRoute>
             )}
           />
@@ -77,7 +79,7 @@ const App = () => {
             path="/admin/users"
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminPage title="User Management" description="Future tools for reviewing accounts, roles, and account status will live here." />
+                <AdminUsers />
               </ProtectedRoute>
             )}
           />
@@ -85,7 +87,7 @@ const App = () => {
             path="/admin/listings"
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminPage title="Listing Management" description="Future vehicle creation, editing, stock, and listing controls will live here." />
+                <AdminListings />
               </ProtectedRoute>
             )}
           />

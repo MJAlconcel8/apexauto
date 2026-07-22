@@ -8,7 +8,7 @@ import {
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, SectionHead, Btn, Footer } from '../components'
 import type { Vehicle, VehicleBadge, GoFn, ViewParams } from '../components'
-import { VEHICLE_IMAGES } from '../assets/vehicleImages'
+import { resolveVehicleImage, FALLBACK_IMG } from '../utils/vehicleUtils'
 
 const fmtCAD = (n: number) => '$' + n.toLocaleString('en-CA')
 
@@ -28,9 +28,8 @@ interface VehicleApiResponse {
   inStock: boolean
   amountInStock: number
   price: number
+  imageUrl?: string | null
 }
-
-const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=800&q=75'
 
 function mapVehicle(v: VehicleApiResponse): Vehicle {
   const modelName = [v.make, v.model].filter(Boolean).join(' ')
@@ -49,7 +48,7 @@ function mapVehicle(v: VehicleApiResponse): Vehicle {
     marque: v.brand,
     model: modelName,
     year: v.year,
-    img: VEHICLE_IMAGES[v.model] ?? VEHICLE_IMAGES[modelName] ?? VEHICLE_IMAGES[v.make] ?? FALLBACK_IMG,
+    img: resolveVehicleImage(v.imageUrl, v.make, v.model),
     price: v.price,
     mileage: v.mileage,
     emissionScore: v.emissionScore,

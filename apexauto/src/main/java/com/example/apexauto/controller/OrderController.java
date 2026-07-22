@@ -164,7 +164,8 @@ public class OrderController {
                 orderLine.getTermMonths(),
                 orderLine.getMonthlyPayment(),
                 orderLine.getLineTotalCost(),
-                orderLine.getTotalInterest()
+                orderLine.getTotalInterest(),
+                vehicle.getImageUrl()
         );
     }
 

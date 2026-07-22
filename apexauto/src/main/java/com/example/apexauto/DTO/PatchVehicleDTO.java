@@ -26,5 +26,6 @@ public class PatchVehicleDTO {
     private Boolean isInStock;
     private Integer amountInStock;
     private BigDecimal price;
+    private String imageUrl;
 }
 
