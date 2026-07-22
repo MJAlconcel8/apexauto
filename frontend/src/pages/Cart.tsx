@@ -17,6 +17,28 @@ interface CartData {
 const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+async function fetchActiveCart(): Promise<CartData | null> {
+  const res = await fetch(`http://localhost:8080/users/me/carts/active`, {
+    credentials: 'include',
+  })
+
+  if (res.status === 401) throw new Error('UNAUTHENTICATED')
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error('Failed to load cart.')
+
+  const data = (await res.json()) as CartData
+  const normalizedLines = data.cartLines.map((line) => ({
+    ...line,
+    quantity: Math.max(1, line.quantity ?? 1),
+  }))
+
+  return {
+    ...data,
+    cartLines: normalizedLines,
+    totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
+  }
+}
+
 export default function Cart() {
   const navigate = useNavigate()
   const [cart, setCart] = useState<CartData | null>(null)
@@ -24,41 +46,16 @@ export default function Cart() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`http://localhost:8080/users/me/carts/active`, {
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (res.status === 401) {
+    fetchActiveCart()
+      .then((data) => setCart(data))
+      .catch((err) => {
+        if (err instanceof Error && err.message === 'UNAUTHENTICATED') {
           navigate('/login')
-          return null
-        }
-        if (res.status === 404) return null
-        if (!res.ok) throw new Error('Failed to load cart.')
-        return res.json() as Promise<CartData>
-      })
-      .then((data) => {
-        if (!data) {
-          setCart(null)
-          setLoading(false)
           return
         }
-
-        const normalizedLines = data.cartLines.map((line) => ({
-          ...line,
-          quantity: Math.max(1, line.quantity ?? 1),
-        }))
-
-        setCart({
-          ...data,
-          cartLines: normalizedLines,
-          totalItemsInCart: normalizedLines.reduce((sum, line) => sum + line.quantity, 0),
-        })
-        setLoading(false)
-      })
-      .catch(() => {
         setError('Could not load your cart. Please try again.')
-        setLoading(false)
       })
+      .finally(() => setLoading(false))
   }, [navigate])
 
   const handleRemove = async (cartLineId: number) => {
@@ -85,7 +82,10 @@ export default function Cart() {
     }
   }
 
-  const handleCheckout = () => navigate('/checkout')
+  const handleCheckout = () => {
+    if (!cart) return
+    navigate('/checkout', { state: { cart } })
+  }
 
   if (loading) {
     return (

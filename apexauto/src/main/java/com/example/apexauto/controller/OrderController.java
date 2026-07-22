@@ -137,6 +137,7 @@ public class OrderController {
         return new OrderResponseDTO(
                 order.getOrderId(),
                 order.getUser().getUserId(),
+                order.getUser().getFirstName() + " " + order.getUser().getLastName(),
                 order.getOrderStatus().getOrderStatusId(),
                 order.getOrderStatus().getOrderStatusName(),
                 order.getTotalAmount(),

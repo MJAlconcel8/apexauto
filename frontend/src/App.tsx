@@ -10,6 +10,9 @@ import ForgotPassword from './pages/ForgotPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import ResetPassword from './pages/ResetPassword'
 import Cart from './pages/Cart'
+import Checkout from './pages/Checkout'
+import OrderConfirmation from './pages/OrderConfirmation'
+import Orders from './pages/Orders'
 import Home from './pages/Home'
 import ChatbotPage from './pages/ChatbotPage'
 import LoanCalc from './pages/LoanCalc'
@@ -20,6 +23,7 @@ import Compare from './pages/Compare'
 import Forbidden from './pages/Forbidden'
 import NotFound from './pages/NotFound'
 import AdminPage from './pages/admin/AdminPage'
+import AdminOrders from './pages/admin/AdminOrders'
 
 const Landing = () => {
   const navigate = useNavigate()
@@ -54,6 +58,9 @@ const App = () => {
           <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/catalogue" element={<ProtectedRoute><Catalogue /></ProtectedRoute>} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="/order-confirmation" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
           <Route path="/finance" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/loan-calc" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
@@ -79,6 +86,14 @@ const App = () => {
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminPage title="Listing Management" description="Future vehicle creation, editing, stock, and listing controls will live here." />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/admin/orders"
+            element={(
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminOrders />
               </ProtectedRoute>
             )}
           />

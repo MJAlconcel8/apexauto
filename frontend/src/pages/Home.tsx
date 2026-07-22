@@ -35,9 +35,11 @@ const FALLBACK_IMG = 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?
 function mapVehicle(v: VehicleApiResponse): Vehicle {
   const modelName = [v.make, v.model].filter(Boolean).join(' ')
   let badge: VehicleBadge
-  if (v.onSale) {
+  if (v.amountInStock <= 0) {
+    badge = { label: 'Out of Stock', tone: 'hot' }
+  } else if (v.onSale) {
     badge = { label: 'On Sale', tone: 'hot' }
-  } else if (v.amountInStock <= 2 && v.amountInStock > 0) {
+  } else if (v.amountInStock <= 2) {
     badge = { label: `${v.amountInStock} left`, tone: 'amber' }
   } else {
     badge = { label: 'In Stock', tone: 'voltage' }

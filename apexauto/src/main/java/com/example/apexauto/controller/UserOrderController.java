@@ -37,6 +37,16 @@ public class UserOrderController {
         }
     }
 
+    // DELETE /users/{userId}/orders/{orderId} - lets a user delete only their own order.
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Void> deleteOwnOrder(@PathVariable int userId, @PathVariable int orderId) {
+        try {
+            orderService.deleteOwnOrder(userId, orderId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException ex) {
+            throw toHttpException(ex);
+        }
+    }
 
     private OrderResponseDTO toResponseDTO(Orders order) {
         List<OrderLineResponseDTO> orderLines = orderService.getOrderLines(order.getOrderId())
@@ -47,6 +57,7 @@ public class UserOrderController {
         return new OrderResponseDTO(
                 order.getOrderId(),
                 order.getUser().getUserId(),
+                order.getUser().getFirstName() + " " + order.getUser().getLastName(),
                 order.getOrderStatus().getOrderStatusId(),
                 order.getOrderStatus().getOrderStatusName(),
                 order.getTotalAmount(),

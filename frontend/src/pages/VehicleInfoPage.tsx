@@ -545,10 +545,13 @@ export default function VehicleInfoPage() {
             </div>
 
             {/* Stock note */}
-            <p className="font-mono text-[12px]" style={{ color: 'rgba(126,179,255,0.55)' }}>
+            <p
+              className="font-mono text-[12px]"
+              style={{ color: vehicle.stock > 0 ? 'rgba(126,179,255,0.55)' : '#f87171' }}
+            >
               {vehicle.stock > 0
                 ? `${vehicle.stock} unit${vehicle.stock !== 1 ? 's' : ''} in stock`
-                : 'Out of stock'}
+                : 'Out of Stock'}
             </p>
 
             {/* Cart feedback */}

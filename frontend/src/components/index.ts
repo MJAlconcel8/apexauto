@@ -13,6 +13,7 @@ export { AuthShell } from "./AuthShell";
 export { AuthHeader } from "./AuthHeader";
 export { AuthCard } from "./AuthCard";
 export { ConfirmationCard } from "./ConfirmationCard";
+export { ConfirmModal } from "./ConfirmModal";
 export type {
   BadgeTone,
   LucideIcon,

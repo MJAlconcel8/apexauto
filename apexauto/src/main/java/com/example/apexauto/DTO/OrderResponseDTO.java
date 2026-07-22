@@ -18,6 +18,7 @@ public class OrderResponseDTO {
 
     private int orderId;
     private int userId;
+    private String userFullName;
     private int orderStatusId;
     private String orderStatusName;
     private BigDecimal totalAmount;
