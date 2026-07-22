@@ -33,6 +33,8 @@ public class OrderService {
 
     private static final String DEFAULT_ORDER_STATUS = "PENDING";
     private static final String CHECKED_OUT_CART_STATUS = "CHECKED_OUT";
+    private static final BigDecimal TAX_RATE = new BigDecimal("0.13");
+    private static final BigDecimal DELIVERY_FEE = new BigDecimal("1250.00");
 
     private final OrdersRepository ordersRepository;
     private final OrderStatusRepository orderStatusRepository;
@@ -263,21 +265,30 @@ public class OrderService {
     }
 
     private BigDecimal calculateTotalFromCartLines(List<CartLine> cartLines) {
-        return cartLines.stream()
+        BigDecimal subtotal = cartLines.stream()
                 .map(cartLine -> resolveLineTotalCost(
                         cartLine.getLineTotalCost(),
                         cartLine.getVehicle().getPrice()
                 ).multiply(BigDecimal.valueOf(normalizeQuantity(cartLine.getQuantity()))))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return applyTaxAndDelivery(subtotal);
     }
 
     private BigDecimal calculateTotalFromOrderLines(List<OrderLine> orderLines) {
-        return orderLines.stream()
+        BigDecimal subtotal = orderLines.stream()
                 .map(orderLine -> resolveLineTotalCost(
                         orderLine.getLineTotalCost(),
                         orderLine.getVehicle().getPrice()
                 ).multiply(BigDecimal.valueOf(normalizeQuantity(orderLine.getQuantity()))))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return applyTaxAndDelivery(subtotal);
+    }
+
+    // Applies the estimated tax (13%) and flat delivery fee to a subtotal,
+    // mirroring the breakdown shown to customers at checkout.
+    private BigDecimal applyTaxAndDelivery(BigDecimal subtotal) {
+        BigDecimal tax = subtotal.multiply(TAX_RATE);
+        return subtotal.add(tax).add(DELIVERY_FEE).setScale(2, RoundingMode.HALF_UP);
     }
 
     private BigDecimal resolveLineTotalCost(BigDecimal lineTotalCost, BigDecimal vehiclePrice) {

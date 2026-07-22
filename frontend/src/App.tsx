@@ -23,6 +23,7 @@ import Compare from './pages/Compare'
 import Forbidden from './pages/Forbidden'
 import NotFound from './pages/NotFound'
 import AdminPage from './pages/admin/AdminPage'
+import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
 
 const Landing = () => {
@@ -69,7 +70,7 @@ const App = () => {
             path="/admin/dashboard"
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminPage title="Admin Dashboard" description="A secure starting point for future operational controls and reporting." />
+                <AdminDashboard />
               </ProtectedRoute>
             )}
           />

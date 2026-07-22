@@ -219,7 +219,7 @@ class OrderServiceTest {
 
         Orders created = orderService.createOrderFromCart(15);
 
-        assertEquals(new BigDecimal("49292.48"), created.getTotalAmount());
+        assertEquals(new BigDecimal("56950.50"), created.getTotalAmount());
         assertEquals(1, financedVehicle.getAmountInStock());
         assertEquals(1, cashVehicle.getAmountInStock());
 
@@ -314,7 +314,7 @@ class OrderServiceTest {
 
         Orders created = orderService.createOrderFromCart(15);
 
-        assertEquals(new BigDecimal("42146.24"), created.getTotalAmount());
+        assertEquals(new BigDecimal("48875.25"), created.getTotalAmount());
         assertEquals(1, vehicle.getAmountInStock());
 
         ArgumentCaptor<OrderLine> orderLineCaptor = ArgumentCaptor.forClass(OrderLine.class);
