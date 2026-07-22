@@ -24,6 +24,7 @@ import Forbidden from './pages/Forbidden'
 import NotFound from './pages/NotFound'
 import AdminPage from './pages/admin/AdminPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUsers from './pages/admin/AdminUsers'
 import AdminOrders from './pages/admin/AdminOrders'
 
 const Landing = () => {
@@ -78,7 +79,7 @@ const App = () => {
             path="/admin/users"
             element={(
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminPage title="User Management" description="Future tools for reviewing accounts, roles, and account status will live here." />
+                <AdminUsers />
               </ProtectedRoute>
             )}
           />
