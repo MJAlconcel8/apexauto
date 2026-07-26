@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../config/api'
 import { useEffect, useState } from 'react'
 import { Loader2, PackageSearch, ShieldCheck, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -62,7 +63,7 @@ export default function AdminOrders() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/orders', { credentials: 'include' })
+    fetch(`${API_BASE_URL}/orders`, { credentials: 'include' })
       .then((res) => {
         if (res.status === 401) {
           navigate('/login')
@@ -92,7 +93,7 @@ export default function AdminOrders() {
     setDeleteError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/orders/${orderToDelete}`, {
+      const res = await fetch(`${API_BASE_URL}/orders/${orderToDelete}`, {
         method: 'DELETE',
         credentials: 'include',
       })

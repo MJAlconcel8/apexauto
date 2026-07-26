@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, ShoppingCart, ChevronLeft, Calculator, Loader2 } from 'lucide-react'
@@ -56,7 +57,7 @@ export default function LoanCalc() {
 
     try {
       // Fetch the user's active cart; auto-create one if it doesn't exist yet
-      let cartRes = await fetch(`http://localhost:8080/users/me/carts/active`, {
+      let cartRes = await fetch(`${API_BASE_URL}/users/me/carts/active`, {
         credentials: 'include',
       })
       if (cartRes.status === 401) {
@@ -64,7 +65,7 @@ export default function LoanCalc() {
         return
       }
       if (cartRes.status === 404) {
-        const createRes = await fetch(`http://localhost:8080/users/me/carts`, {
+        const createRes = await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -78,7 +79,7 @@ export default function LoanCalc() {
       const cart = await cartRes.json()
 
       // POST the financed vehicle to the cart
-      const addRes = await fetch(`http://localhost:8080/carts/${cart.cartId}/cart-lines`, {
+      const addRes = await fetch(`${API_BASE_URL}/carts/${cart.cartId}/cart-lines`, {
         method: 'POST',
         credentials: 'include',
         headers: {

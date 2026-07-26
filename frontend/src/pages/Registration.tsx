@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard } from '../components'
@@ -48,7 +49,7 @@ export default function Registration({ onNavigate }: RegistrationProps) {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

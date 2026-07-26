@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import { ArrowRight, ShoppingCart, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +21,7 @@ const fmtCAD = (n: number) =>
 async function fetchActiveCart(): Promise<CartData | null> {
   // Uses the carts list (always 200, even when empty) instead of /active,
   // which returns 404 for a brand-new user with no cart yet.
-  const res = await fetch(`http://localhost:8080/users/me/carts`, {
+  const res = await fetch(`${API_BASE_URL}/users/me/carts`, {
     credentials: 'include',
   })
 
@@ -66,7 +67,7 @@ export default function Cart() {
     if (!cart) return
 
     const res = await fetch(
-      `http://localhost:8080/carts/${cart.cartId}/cart-lines/${cartLineId}`,
+      `${API_BASE_URL}/carts/${cart.cartId}/cart-lines/${cartLineId}`,
       { method: 'DELETE', credentials: 'include' },
     )
 

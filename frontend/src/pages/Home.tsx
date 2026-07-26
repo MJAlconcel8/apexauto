@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -122,7 +123,7 @@ export default function Home({ onNavigate }: HomeProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:8080/vehicles')
+    fetch(`${API_BASE_URL}/vehicles`)
       .then((res) => (res.ok ? res.json() as Promise<VehicleApiResponse[]> : Promise.reject()))
       .then((data) => setVehicles(data.map(mapVehicle)))
       .catch(() => {})

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../config/api'
 import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
@@ -108,10 +109,10 @@ export default function AdminDashboard() {
     async function loadDashboard() {
       try {
         const [ordersRes, vehiclesRes, paymentsRes, statusesRes] = await Promise.all([
-          fetch('http://localhost:8080/orders', { credentials: 'include' }),
-          fetch('http://localhost:8080/vehicles', { credentials: 'include' }),
-          fetch('http://localhost:8080/payments', { credentials: 'include' }),
-          fetch('http://localhost:8080/order-statuses', { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/orders`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/vehicles`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/payments`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/order-statuses`, { credentials: 'include' }),
         ])
 
         if ([ordersRes, vehiclesRes, paymentsRes, statusesRes].some((res) => res.status === 401)) {
@@ -198,7 +199,7 @@ export default function AdminDashboard() {
     setUpdateError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/orders/${orderId}/status`, {
+      const res = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

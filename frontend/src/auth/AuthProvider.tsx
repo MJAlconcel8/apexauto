@@ -1,9 +1,7 @@
+import { API_BASE_URL } from '../config/api'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AuthContext } from './AuthContext'
 import type { AuthContextValue, AuthUser } from './AuthContext'
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
-
 function normalizeUser(value: unknown): AuthUser | null {
   if (!value || typeof value !== 'object') return null
 

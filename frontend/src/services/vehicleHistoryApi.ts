@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '')
+import { API_BASE_URL } from '../config/api'
 
 export interface VehicleHistoryData {
   vehicleHistoryId: number
@@ -10,7 +10,7 @@ export interface VehicleHistoryData {
 
 // GET /vehicle-history/vehicles/{vehicleId} — public, newest first
 export async function getVehicleHistory(vehicleId: number): Promise<VehicleHistoryData[]> {
-  const res = await fetch(`${API_BASE}/vehicle-history/vehicles/${vehicleId}`)
+  const res = await fetch(`${API_BASE_URL}/vehicle-history/vehicles/${vehicleId}`)
   if (res.status === 404) return []
   if (!res.ok) throw new Error('Failed to load vehicle history')
   return res.json() as Promise<VehicleHistoryData[]>
@@ -22,7 +22,7 @@ export async function createVehicleHistory(
   vehicleId: number,
   vehicleHistoryComments: string,
 ): Promise<VehicleHistoryData> {
-  const res = await fetch(`${API_BASE}/users/${userId}/vehicle-history`, {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}/vehicle-history`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -34,7 +34,7 @@ export async function createVehicleHistory(
 
 // DELETE /vehicle-history/vehicles/{vehicleId} — admin only, wipes vehicle history for a vehicle
 export async function deleteVehicleHistory(vehicleId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/vehicle-history/vehicles/${vehicleId}`, {
+  const res = await fetch(`${API_BASE_URL}/vehicle-history/vehicles/${vehicleId}`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -43,7 +43,7 @@ export async function deleteVehicleHistory(vehicleId: number): Promise<void> {
 
 // DELETE /vehicle-history — admin only, wipes all vehicle history entries
 export async function deleteAllVehicleHistory(): Promise<void> {
-  const res = await fetch(`${API_BASE}/vehicle-history`, {
+  const res = await fetch(`${API_BASE_URL}/vehicle-history`, {
     method: 'DELETE',
     credentials: 'include',
   })

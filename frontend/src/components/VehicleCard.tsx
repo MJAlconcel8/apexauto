@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState } from "react";
 import { ArrowRight, MapPin, Star, BadgeDollarSign, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -23,10 +24,10 @@ export function VehicleCard({ v, dark = false, hideFinance = false, hideAddToCar
     setAdding(true);
     setCartMsg(null);
     try {
-      let cartRes = await fetch('http://localhost:8080/users/me/carts/active', { credentials: 'include' });
+      let cartRes = await fetch(`${API_BASE_URL}/users/me/carts/active`, { credentials: 'include' });
       if (cartRes.status === 401) { navigate('/login'); return; }
       if (cartRes.status === 404) {
-        const createRes = await fetch('http://localhost:8080/users/me/carts', {
+        const createRes = await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -38,7 +39,7 @@ export function VehicleCard({ v, dark = false, hideFinance = false, hideAddToCar
         throw new Error();
       }
       const cartData = await cartRes.json() as { cartId: number };
-      const addRes = await fetch(`http://localhost:8080/carts/${cartData.cartId}/cart-lines`, {
+      const addRes = await fetch(`${API_BASE_URL}/carts/${cartData.cartId}/cart-lines`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
