@@ -3,6 +3,7 @@ package com.example.apexauto;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @SpringBootApplication
+@EnableAsync
 public class ApexautoApplication {
 
 	// This is the main class for the Apexauto Spring Boot application. It serves as the entry point for the application and is responsible for bootstrapping the Spring context.
