@@ -13,6 +13,7 @@ import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import Orders from './pages/Orders'
+import AccountSettings from './pages/AccountSettings'
 import Home from './pages/Home'
 import ChatbotPage from './pages/ChatbotPage'
 import LoanCalc from './pages/LoanCalc'
@@ -35,7 +36,10 @@ const Landing = () => {
     else if (view === 'chatbot' || view === '/chatbot') {
       const prompt = typeof params?.prompt === 'string' ? params.prompt : ''
       navigate(prompt ? `/chatbot?prompt=${encodeURIComponent(prompt)}` : '/chatbot')
-    } else if (view === 'catalogue' || view === '/catalogue') navigate('/guest-catalogue')
+    } else if (view === 'catalogue' || view === '/catalogue') {
+      const category = typeof params?.category === 'string' ? params.category : ''
+      navigate(category ? `/guest-catalogue?category=${encodeURIComponent(category)}` : '/guest-catalogue')
+    }
     else if (view === 'home' || view === '/') navigate('/')
   }
   return <ApexAutoLanding onNavigate={handleNavigate} />
@@ -63,6 +67,7 @@ const App = () => {
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-confirmation" element={<ProtectedRoute><OrderConfirmation /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
           <Route path="/finance" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/loan-calc" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />

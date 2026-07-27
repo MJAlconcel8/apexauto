@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
 
@@ -12,6 +12,9 @@ export default function VerifyEmail({ onNavigate }: VerifyEmailProps) {
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | undefined>(undefined)
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as { reason?: string; email?: string } | null
+  const redirectedForUnverifiedLogin = locationState?.reason === 'unverified'
 
   const flash = (msg: string) => {
     setToast(msg)
@@ -48,7 +51,13 @@ export default function VerifyEmail({ onNavigate }: VerifyEmailProps) {
     <AuthShell toast={toast}>
       <AuthHeader
         title={step === 'done' ? 'Email Verified' : 'Verify Your Email'}
-        subtitle={step === 'verify' ? 'Check your inbox and paste the verification token below' : 'Your email address has been confirmed'}
+        subtitle={
+          step === 'done'
+            ? 'Your email address has been confirmed'
+            : redirectedForUnverifiedLogin
+              ? `Verify ${locationState?.email ?? 'your email'} to finish signing in`
+              : 'Check your inbox and paste the verification token below'
+        }
       />
 
       <AuthCard>

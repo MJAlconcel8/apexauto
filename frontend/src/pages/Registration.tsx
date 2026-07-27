@@ -1,9 +1,30 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard } from '../components'
+import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard, InfoModal } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
 
 interface RegistrationProps { onNavigate?: GoFn }
+
+const LEGAL_CONTENT: Record<'terms' | 'privacy', { title: string; body: string[] }> = {
+  terms: {
+    title: 'Terms of Service',
+    body: [
+      'By creating an account with ApexAuto, you agree to use our marketplace responsibly and to provide accurate information when browsing, comparing, or ordering vehicles.',
+      'Listings, pricing, and availability are provided for informational purposes and may change without notice. Any order placed through ApexAuto is subject to final confirmation and applicable financing terms.',
+      'You are responsible for keeping your account credentials secure and for any activity that occurs under your account.',
+      'ApexAuto reserves the right to suspend or terminate accounts that violate these terms or misuse the platform.',
+    ],
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    body: [
+      'ApexAuto collects the information you provide during registration, such as your name and email address, to create and manage your account.',
+      'We use your data to process orders, provide customer support, and improve our marketplace experience. We do not sell your personal information to third parties.',
+      'Your information is stored securely and access is limited to systems and personnel that need it to operate the service.',
+      'You may request access to, correction of, or deletion of your personal data at any time by contacting support.',
+    ],
+  },
+}
 
 export default function Registration({ onNavigate }: RegistrationProps) {
   const [formData, setFormData] = useState({
@@ -17,6 +38,7 @@ export default function Registration({ onNavigate }: RegistrationProps) {
   const [message, setMessage] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null)
   const toastTimer = useRef<number | undefined>(undefined)
   const navigate = useNavigate()
 
@@ -143,9 +165,21 @@ export default function Registration({ onNavigate }: RegistrationProps) {
                 <input type="checkbox" className="mt-0.5 accent-blue-500" />
                 <span>
                   I agree to ApexAuto's{' '}
-                  <a href="/terms" className="text-blue-400 font-semibold hover:underline">Terms of Service</a>
+                  <button
+                    type="button"
+                    onClick={() => setLegalModal('terms')}
+                    className="text-blue-400 font-semibold hover:underline"
+                  >
+                    Terms of Service
+                  </button>
                   {' '}and{' '}
-                  <a href="/privacy" className="text-blue-400 font-semibold hover:underline">Privacy Policy</a>
+                  <button
+                    type="button"
+                    onClick={() => setLegalModal('privacy')}
+                    className="text-blue-400 font-semibold hover:underline"
+                  >
+                    Privacy Policy
+                  </button>
                 </span>
               </div>
 
@@ -157,6 +191,19 @@ export default function Registration({ onNavigate }: RegistrationProps) {
             Already have an account?{' '}
             <button type="button" onClick={() => go('/login')} className="text-blue-400 font-semibold hover:underline">Sign in</button>
           </p>
+
+          <InfoModal
+            open={legalModal !== null}
+            title={legalModal ? LEGAL_CONTENT[legalModal].title : ''}
+            onClose={() => setLegalModal(null)}
+          >
+            {legalModal &&
+              LEGAL_CONTENT[legalModal].body.map((paragraph, i) => (
+                <p key={i} className={i > 0 ? 'mt-3' : ''}>
+                  {paragraph}
+                </p>
+              ))}
+          </InfoModal>
         </>
       )}
     </AuthShell>

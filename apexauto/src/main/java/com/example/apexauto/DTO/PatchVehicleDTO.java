@@ -17,6 +17,7 @@ public class PatchVehicleDTO {
     private String model;
     private Integer year;
     private String color;
+    private String category;
     private Integer doors;
     private Integer seats;
     private Double emissionScore;

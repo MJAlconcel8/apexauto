@@ -54,6 +54,12 @@ public class Vehicle {
     @Column(nullable = false)
     private String color;
 
+    // The category of the vehicle, e.g. Sedan, Sports, SUV, Luxury. Required field.
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String category;
+
     // The number of doors the vehicle has, which is a required field.
     @Getter
     @Setter
