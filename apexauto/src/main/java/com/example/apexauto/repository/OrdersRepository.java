@@ -18,4 +18,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Integer> {
     List<Orders> findByUserUserIdOrderByOrderIdDesc(int userId);
 
     List<Orders> findByOrderStatusOrderStatusIdOrderByOrderIdDesc(int orderStatusId);
+
+    // Deletes all orders belonging to a user. Order lines and payments must be deleted first to satisfy FK constraints.
+    void deleteByUserUserId(int userId);
 }
