@@ -17,4 +17,7 @@ public interface FavouritesRepository extends JpaRepository<Favourites, Integer>
 
     // This method checks if a Favourites entry exists for a given user ID and vehicle ID. It returns true if the entry exists, otherwise false.
     boolean existsByUserUserIdAndVehicleVehicleId(int userId, int vehicleId);
+
+    // Deletes all favourites entries belonging to a user, useful for account deletion or data cleanup.
+    void deleteByUserUserId(int userId);
 }

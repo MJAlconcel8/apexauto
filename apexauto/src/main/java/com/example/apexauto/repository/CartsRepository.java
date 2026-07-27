@@ -19,6 +19,9 @@ public interface CartsRepository extends JpaRepository<Carts, Integer> {
 
     List<Carts> findByCartStatusCartStatusIdOrderByCartIdDesc(int cartStatusId);
 
+    // Deletes all carts belonging to a user. Cart lines must be deleted first to satisfy the FK constraint.
+    void deleteByUserUserId(int userId);
+
     Optional<Carts> findFirstByUserUserIdAndCartStatusCartStatusNameIgnoreCaseOrderByCartIdDesc(
             int userId,
             String cartStatusName
