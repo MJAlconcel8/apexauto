@@ -17,13 +17,13 @@ import java.util.List;
 
 // Seeds lookup/reference tables and sample vehicles when explicitly enabled.
 //
-// Enable with:
+// Enable locally with:
 //   app.seed.enabled=true
 //
-// On Railway, set:
+// Enable on Railway with:
 //   APP_SEED_ENABLED=true
 //
-// Each section skips seeding when its table already contains rows.
+// Each section skips seeding if its table already contains rows.
 @Component
 @ConditionalOnProperty(
         name = "app.seed.enabled",
@@ -94,42 +94,40 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         List<CreateVehicleDTO> defaults = List.of(
-                // id '1' in the frontend (TOP_PICKS[0]) — Apex Nexus S
                 dto(
                         "Apex", "Apex", "Nexus S", 2026, "Pearl White", "Sedan",
                         4, 5, 85.0, 6.2, 459.0,
                         false, 3, new BigDecimal("89900.00")
                 ),
-
-                // id '2' in the frontend (TOP_PICKS[1]) — Apex Vector GT
                 dto(
-                        "Apex", "Apex", "Vector GT", 2026, "Alpine White", "Coupe",
+                        "Apex", "Apex", "Vector GT", 2026, "Alpine White", "Sports",
                         2, 4, 165.0, 9.8, 340.0,
                         false, 2, new BigDecimal("134500.00")
                 ),
-
-                // id '3' in the frontend (TOP_PICKS[2]) — Apex Terrain X
                 dto(
                         "Apex", "Apex", "Terrain X", 2026, "Shadow Black", "SUV",
                         4, 7, 130.0, 8.4, 370.0,
                         false, 5, new BigDecimal("74900.00")
                 ),
-
-                // Landing-page listings
                 dto(
-                        "Aster", "Aster", "Kestrel EV Sport", 2024, "Voltage Blue", "Hatchback",
+                        "Aster", "Aster", "Kestrel EV Sport", 2024, "Voltage Blue", "Sports",
                         4, 5, 77.0, 4.6, 402.0,
                         false, 4, new BigDecimal("58900.00")
                 ),
                 dto(
-                        "Halcyon", "Halcyon", "Volen Lumen", 2024, "Pearl White", "Sedan",
+                        "Halcyon", "Halcyon", "Volen Lumen", 2024, "Pearl White", "Luxury",
                         4, 5, 90.0, 3.9, 512.0,
                         false, 2, new BigDecimal("74500.00")
                 ),
                 dto(
-                        "Meridian", "Meridian", "Meridian Bolt", 2023, "Graphite", "Hatchback",
+                        "Meridian", "Meridian", "Meridian Bolt", 2023, "Graphite", "Sedan",
                         4, 5, 64.0, 5.4, 389.0,
                         true, 9, new BigDecimal("44900.00")
+                ),
+                dto(
+                        "Vantage", "Vantage", "Vantage Aero", 2024, "Pearl White", "Sports",
+                        2, 4, 58.0, 2.8, 540.0,
+                        false, 5, new BigDecimal("89900.00")
                 )
         );
 
@@ -172,7 +170,6 @@ public class DataInitializer implements CommandLineRunner {
         dto.setPrice(price);
         return dto;
     }
-
 
     private static Vehicle toEntity(CreateVehicleDTO dto) {
         int amountInStock = dto.getAmountInStock() != null
