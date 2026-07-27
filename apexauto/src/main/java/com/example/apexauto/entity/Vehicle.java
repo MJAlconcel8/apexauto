@@ -20,8 +20,7 @@ public class Vehicle {
     @Getter
     @Setter
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "vehicle_seq")
-    @SequenceGenerator(name = "vehicle_seq", sequenceName = "vehicle_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private int vehicleId;
 
