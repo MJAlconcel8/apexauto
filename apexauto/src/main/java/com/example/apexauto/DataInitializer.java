@@ -23,7 +23,7 @@ import java.util.List;
 // Enable on Railway with:
 //   APP_SEED_ENABLED=true
 //
-// Each section skips seeding if its table already contains rows.
+// Lookup tables are seeded only when empty. Vehicles are added individually when missing.
 @Component
 @ConditionalOnProperty(
         name = "app.seed.enabled",
@@ -89,10 +89,6 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedVehicles() {
-        if (vehicleRepository.count() > 0) {
-            return;
-        }
-
         List<CreateVehicleDTO> defaults = List.of(
                 dto(
                         "Apex", "Apex", "Nexus S", 2026, "Pearl White", "Sedan",
@@ -132,7 +128,14 @@ public class DataInitializer implements CommandLineRunner {
         );
 
         for (CreateVehicleDTO vehicle : defaults) {
-            vehicleService.createVehicle(toEntity(vehicle));
+            boolean alreadyExists = vehicleRepository.existsByBrandIgnoreCaseAndModelIgnoreCase(
+                    vehicle.getBrand(),
+                    vehicle.getModel()
+            );
+
+            if (!alreadyExists) {
+                vehicleService.createVehicle(toEntity(vehicle));
+            }
         }
     }
 

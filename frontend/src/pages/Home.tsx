@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, Eye, ChevronRight,
-  Car, Zap, Truck, Crown, Minimize2,
+  Car, Zap, Truck, Crown,
   BatteryCharging, ShieldCheck, Route, RefreshCw,
 } from 'lucide-react'
 import Nav from '../components/Nav'
@@ -21,6 +21,7 @@ interface VehicleApiResponse {
   model: string
   year: number
   color: string
+  category: string
   seats: number
   emissionScore: number
   fuelUsage: number
@@ -49,6 +50,7 @@ function mapVehicle(v: VehicleApiResponse): Vehicle {
     marque: v.brand,
     model: modelName,
     year: v.year,
+    category: v.category,
     img: resolveVehicleImage(v.imageUrl, v.make, v.model),
     price: v.price,
     mileage: v.mileage,
@@ -66,15 +68,14 @@ const STATS = [
   { value: '459km',   label: 'Max Mileage' },
   { value: '85g/km',  label: 'Best Emission' },
   { value: '6.2L',    label: 'Best Fuel Use' },
-  { value: '6',       label: 'Models' },
+  { value: '7',       label: 'Models' },
 ]
 
 const CATEGORIES = [
-  { name: 'Sedan',   count: 1, Icon: Car,      color: '#0066ff', bg: 'rgba(0,102,255,0.12)',  border: 'rgba(0,102,255,0.2)'  },
-  { name: 'Sports',  count: 3, Icon: Zap,      color: '#9b59b6', bg: 'rgba(155,89,182,0.12)', border: 'rgba(155,89,182,0.2)' },
-  { name: 'SUV',     count: 1, Icon: Truck,    color: '#00c7b7', bg: 'rgba(0,199,183,0.12)',  border: 'rgba(0,199,183,0.2)'  },
-  { name: 'Luxury',  count: 1, Icon: Crown,    color: '#f5a623', bg: 'rgba(245,166,35,0.12)', border: 'rgba(245,166,35,0.2)' },
-  { name: 'Compact', count: 1, Icon: Minimize2,color: '#12a26a', bg: 'rgba(18,162,106,0.12)', border: 'rgba(18,162,106,0.2)' },
+  { name: 'Sedan',  Icon: Car,   color: '#0066ff', bg: 'rgba(0,102,255,0.12)',  border: 'rgba(0,102,255,0.2)'  },
+  { name: 'Sports', Icon: Zap,   color: '#9b59b6', bg: 'rgba(155,89,182,0.12)', border: 'rgba(155,89,182,0.2)' },
+  { name: 'SUV',    Icon: Truck, color: '#00c7b7', bg: 'rgba(0,199,183,0.12)',  border: 'rgba(0,199,183,0.2)'  },
+  { name: 'Luxury', Icon: Crown, color: '#f5a623', bg: 'rgba(245,166,35,0.12)', border: 'rgba(245,166,35,0.2)' },
 ]
 
 const WHY_ITEMS = [
@@ -138,7 +139,14 @@ export default function Home({ onNavigate }: HomeProps) {
 
   const go: GoFn = (view: string, params?: ViewParams) => {
     if (typeof onNavigate === 'function') return onNavigate(view, params)
-    navigate(view)
+
+    const category = typeof params?.category === 'string' ? params.category : ''
+    if ((view === 'catalogue' || view === '/catalogue') && category) {
+      navigate(`/catalogue?category=${encodeURIComponent(category)}`)
+    } else {
+      navigate(view)
+    }
+
     flash(`→ ${view}${params ? ' ' + JSON.stringify(params) : ''}`)
   }
 
@@ -188,7 +196,7 @@ export default function Home({ onNavigate }: HomeProps) {
                 className="text-[16px] leading-[1.6] max-w-105"
                 style={{ color: 'rgba(126,179,255,0.8)' }}
               >
-                Six precision-engineered electric vehicles. Zero compromise.
+                Seven precision-engineered electric vehicles. Zero compromise.
                 Apex Auto — where performance meets sustainability.
               </p>
 
@@ -286,36 +294,42 @@ export default function Home({ onNavigate }: HomeProps) {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {CATEGORIES.map(({ name, count, Icon, color, bg, border }) => (
-              <Reveal key={name}>
-                <button
-                  onClick={() => go('/catalogue')}
-                  className="av-cat group w-full flex flex-col items-center gap-3 p-5 rounded-xl text-center"
-                  style={{
-                    background: 'rgba(7,20,40,0.60)',
-                    border: '1px solid rgba(30,58,95,0.60)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div
-                    className="w-12 h-12 flex items-center justify-center rounded-full group-hover:scale-110 transition-transform duration-200"
-                    style={{ background: bg, border: `1px solid ${border}` }}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {CATEGORIES.map(({ name, Icon, color, bg, border }) => {
+              const count = vehicles.filter(
+                (vehicle) => vehicle.category?.toLowerCase() === name.toLowerCase(),
+              ).length
+
+              return (
+                <Reveal key={name}>
+                  <button
+                    onClick={() => go('/catalogue', { category: name })}
+                    className="av-cat group w-full flex flex-col items-center gap-3 p-5 rounded-xl text-center"
+                    style={{
+                      background: 'rgba(7,20,40,0.60)',
+                      border: '1px solid rgba(30,58,95,0.60)',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <Icon size={22} style={{ color }} strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <div className="font-heading font-semibold text-[15px] text-white">{name}</div>
                     <div
-                      className="font-mono text-[11px] mt-0.5"
-                      style={{ color: 'rgba(126,179,255,0.55)' }}
+                      className="w-12 h-12 flex items-center justify-center rounded-full group-hover:scale-110 transition-transform duration-200"
+                      style={{ background: bg, border: `1px solid ${border}` }}
                     >
-                      {count} model{count !== 1 ? 's' : ''}
+                      <Icon size={22} style={{ color }} strokeWidth={1.75} />
                     </div>
-                  </div>
-                </button>
-              </Reveal>
-            ))}
+                    <div>
+                      <div className="font-heading font-semibold text-[15px] text-white">{name}</div>
+                      <div
+                        className="font-mono text-[11px] mt-0.5"
+                        style={{ color: 'rgba(126,179,255,0.55)' }}
+                      >
+                        {count} model{count !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </button>
+                </Reveal>
+              )
+            })}
           </div>
         </section>
 

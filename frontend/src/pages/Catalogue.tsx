@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config/api'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, Footer } from '../components'
@@ -105,10 +106,25 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default function Catalogue() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedCategory = searchParams.get('category')
+  const cat = CATEGORIES.includes(requestedCategory as (typeof CATEGORIES)[number])
+    ? (requestedCategory as string)
+    : 'All'
+
+  const setCat = (category: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    if (category === 'All') {
+      nextParams.delete('category')
+    } else {
+      nextParams.set('category', category)
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [cat, setCat] = useState<string>('All')
   const [priceMax, setPriceMax] = useState<number>(PRICE_MAX)
   const [sort, setSort] = useState<SortKey>('featured')
   const [query, setQuery] = useState('')
@@ -131,7 +147,9 @@ export default function Catalogue() {
   }, [])
 
   const reset = () => {
-    setCat('All')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('category')
+    setSearchParams(nextParams, { replace: true })
     setPriceMax(PRICE_MAX)
     setSort('featured')
     setQuery('')
