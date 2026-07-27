@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import Nav from '../../components/Nav'
 import { ConfirmModal, FormField } from '../../components'
-import { FALLBACK_IMG, resolveVehicleImage } from '../../utils/vehicleUtils'
+import { FALLBACK_IMG, resolveVehicleImage, VEHICLE_CATEGORIES } from '../../utils/vehicleUtils'
 import {
   createVehicle,
   deleteVehicle,
@@ -34,6 +34,7 @@ interface VehicleFormState {
   model: string
   year: string
   color: string
+  category: string
   doors: string
   seats: string
   emissionScore: string
@@ -51,6 +52,7 @@ const emptyForm = (): VehicleFormState => ({
   model: '',
   year: String(new Date().getFullYear()),
   color: '',
+  category: VEHICLE_CATEGORIES[0],
   doors: '4',
   seats: '5',
   emissionScore: '',
@@ -68,6 +70,7 @@ const toFormState = (v: VehicleData): VehicleFormState => ({
   model: v.model,
   year: String(v.year),
   color: v.color,
+  category: v.category || VEHICLE_CATEGORIES[0],
   doors: String(v.doors),
   seats: String(v.seats),
   emissionScore: String(v.emissionScore),
@@ -215,6 +218,7 @@ export default function AdminListings() {
       model: form.model.trim(),
       year,
       color: form.color.trim(),
+      category: form.category,
       doors: Math.trunc(numOr0(form.doors)),
       seats: Math.trunc(numOr0(form.seats)),
       emissionScore: numOr0(form.emissionScore),
@@ -332,6 +336,7 @@ export default function AdminListings() {
                     <th className="px-5 py-3">Vehicle</th>
                     <th className="px-5 py-3">Year</th>
                     <th className="px-5 py-3">Color</th>
+                    <th className="px-5 py-3">Category</th>
                     <th className="px-5 py-3">Price</th>
                     <th className="px-5 py-3">Stock</th>
                     <th className="px-5 py-3">Sale</th>
@@ -366,6 +371,7 @@ export default function AdminListings() {
                           </td>
                           <td className="px-5 py-4 text-muted-foreground">{vehicle.year}</td>
                           <td className="px-5 py-4 text-muted-foreground">{vehicle.color}</td>
+                          <td className="px-5 py-4 text-muted-foreground">{vehicle.category}</td>
                           <td className="px-5 py-4 font-semibold text-[#0066ff]">{fmtCAD(vehicle.price)}</td>
                           <td className="px-5 py-4">
                             <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badge.className}`}>
@@ -520,6 +526,23 @@ export default function AdminListings() {
                     onChange={(e) => setForm((prev) => ({ ...prev, color: e.target.value }))}
                     required
                   />
+                  <div className="mb-4">
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                      Category
+                    </label>
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                      required
+                      className="w-full rounded-lg bg-secondary px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      {VEHICLE_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <FormField
                     label="Doors"
                     type="number"

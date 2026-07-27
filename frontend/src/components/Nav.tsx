@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Package, ShieldCheck, ShoppingCart, UserRound, ZapIcon } from 'lucide-react'
+import { LogOut, Package, Settings, ShieldCheck, ShoppingCart, UserRound } from 'lucide-react'
 import type { GoFn, ViewParams } from './types'
 import { useAuth } from '../auth/AuthContext'
+import Logo from './Logo'
 
 const signedInNavLinks = [
   { label: 'Home', view: '/home' },
@@ -76,7 +77,7 @@ export default function Nav({ onNavigate }: NavProps) {
       setAdminOpen(false)
       setAccountOpen(false)
       setMobileOpen(false)
-      navigate('/login', { replace: true })
+      navigate('/', { replace: true })
     } catch {
       setLogoutError('Could not log out. Check the backend connection and try again.')
     }
@@ -92,11 +93,8 @@ export default function Nav({ onNavigate }: NavProps) {
       <div className="h-full px-4 sm:px-6 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <button onClick={() => go(isAuthenticated ? '/home' : '/')} className="group flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 flex items-center justify-center bg-[#0066ff] shadow-[0_0_16px_rgba(0,102,255,0.5)] group-hover:shadow-[0_0_24px_rgba(0,102,255,0.7)] transition-shadow"
-              style={{ borderRadius: '6px' }}
-            >
-              <ZapIcon size={16} className="text-white" />
+            <div className="scale-[0.67] origin-left transition-shadow">
+              <Logo />
             </div>
             <span className="text-lg font-bold tracking-[0.15em] uppercase font-heading">
               <span className="text-foreground">Apex</span>
@@ -189,6 +187,12 @@ export default function Nav({ onNavigate }: NavProps) {
                     className="mt-1 flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-secondary hover:text-foreground"
                   >
                     <Package size={16} /> My Orders
+                  </button>
+                  <button
+                    onClick={() => go('/account')}
+                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-secondary hover:text-foreground"
+                  >
+                    <Settings size={16} /> Account Settings
                   </button>
                   <button
                     onClick={() => void handleLogout()}

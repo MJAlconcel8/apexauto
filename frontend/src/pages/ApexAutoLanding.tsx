@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search, ArrowRight, BatteryCharging,
@@ -10,6 +10,10 @@ import {
 } from "../components";
 import Logo from "../components/Logo";
 import type { GoFn, ViewParams, Vehicle } from "../components";
+import { mapVehicle } from "../utils/vehicleUtils";
+import type { VehicleApiResponse } from "../utils/vehicleUtils";
+
+const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 
 interface ApexAutoLandingProps { onNavigate?: GoFn; }
@@ -48,20 +52,59 @@ const VEHICLES: Vehicle[] = [
 ];
 
 const CATEGORIES = [
-  { name: "Sedan", count: 3, note: "Long range, low drag" },
-  { name: "SUV", count: 5, note: "Space for the whole trip" },
-  { name: "Sports", count: 2, note: "Sub-4s off the line" },
-  { name: "Luxury", count: 3, note: "Flagship comfort" },
-  { name: "Compact", count: 4, note: "City-sized, quick to charge" },
+  { name: "Sedan", note: "Long range, low drag" },
+  { name: "Sports", note: "Sub-4s off the line" },
+  { name: "SUV", note: "Space for the whole trip" },
+  { name: "Luxury", note: "Flagship comfort" },
 ];
 
 const fmtUSD = (n: number) => "$" + n.toLocaleString("en-US");
 
+const DEFAULT_HERO_VEHICLE: Vehicle = {
+  id: "v-aero",
+  marque: "Vantage",
+  model: "Vantage Aero",
+  year: 2024,
+  category: "Sports",
+  img: CAR_IMAGES.roadster,
+  price: 89900,
+  mileage: 540,
+  emissionScore: 58,
+  seats: 4,
+  fuelUsage: 2.8,
+  stock: 5,
+  history: "New · 2024",
+  ext: "Pearl White",
+  badge: { label: "2024", tone: "voltage" },
+  rating: 4.9,
+};
 
 export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
   const navigate = useNavigate();
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
+  const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
+  const [heroVehicle, setHeroVehicle] = useState<Vehicle>(DEFAULT_HERO_VEHICLE);
+  const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    fetch(`${API}/vehicles`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load vehicles.');
+        return res.json() as Promise<VehicleApiResponse[]>;
+      })
+      .then((data) => {
+        const mapped = data.map(mapVehicle);
+        setAllVehicles(mapped);
+        const aero = data.find((v) => v.model === 'Vantage Aero');
+        if (aero) setHeroVehicle(mapVehicle(aero));
+        setFeaturedVehicles(mapped.filter((v) => v.model !== 'Vantage Aero').slice(0, 3));
+      })
+      .catch(() => {
+        setFeaturedVehicles([]);
+        setAllVehicles([]);
+      });
+  }, []);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -140,39 +183,39 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
                 <div>
                   <Eyebrow dark>Flagship · Longest range</Eyebrow>
                   <h3 className="mt-1.5 font-display text-[24px] font-extrabold tracking-[-0.01em] text-white">
-                    Vantage Aero
+                    {heroVehicle.model}
                   </h3>
                   <div className="flex items-center gap-1 mt-1">
                     {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={13} color="var(--color-apex-amber)" fill="var(--color-apex-amber)" />)}
-                    <span className="ml-1 font-mono text-[12px] text-[#91a9ca]">4.9</span>
+                    <span className="ml-1 font-mono text-[12px] text-[#91a9ca]">{heroVehicle.rating?.toFixed(1) ?? "4.9"}</span>
                   </div>
                 </div>
-                <Badge badge={{ label: "2024", tone: "voltage" }} />
+                <Badge badge={heroVehicle.badge} />
               </div>
 
               <div className="relative rounded-xl overflow-hidden my-4 h-52">
-                <img src={CAR_IMAGES.roadster} alt="Vantage Aero flagship electric vehicle" className="w-full h-full object-cover block" />
+                <img src={CAR_IMAGES.roadster} alt={`${heroVehicle.model} flagship electric vehicle`} className="w-full h-full object-cover block" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_top,var(--color-apex-ink)_3%,rgba(18,22,28,0.06)_55%)]" />
                 <div className="absolute right-3 bottom-2.5 bg-[rgba(18,22,28,0.62)] rounded-xl px-2 pt-1 pb-1.5 backdrop-blur-xs">
-                  <RangeGauge value={540} dark size={108} />
+                  <RangeGauge value={heroVehicle.mileage} dark size={108} />
                 </div>
                 <div className="absolute left-3.5 bottom-4">
-                  <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-apex-muted-ink">Pearl White · AWD</div>
+                  <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-apex-muted-ink">{heroVehicle.ext} · AWD</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3 border-b border-card-border pb-4">
-                <SpecReadout dark label="Battery" value={105} unit="kWh" />
-                <SpecReadout dark label="0–100" value="2.1" unit="s" />
-                <SpecReadout dark label="Seats" value={4} />
+                <SpecReadout dark label="Emission" value={heroVehicle.emissionScore} unit="g/km" />
+                <SpecReadout dark label="Fuel Use" value={heroVehicle.fuelUsage.toFixed(1)} unit="L/100" />
+                <SpecReadout dark label="Seats" value={heroVehicle.seats} />
               </div>
 
               <div className="flex items-center justify-between mt-4">
                 <div>
                   <div className="font-mono text-[11px] uppercase tracking-widest text-[#8fa8ca]">From</div>
-                  <div className="font-mono text-[24px] font-semibold text-white">{fmtUSD(89900)}</div>
+                  <div className="font-mono text-[24px] font-semibold text-white">{fmtUSD(heroVehicle.price)}</div>
                 </div>
-                <Btn variant="primary" size="md" icon={ArrowRight} onClick={() => go("vehicle-detail", { id: "v-aero" })}>View details</Btn>
+                <Btn variant="primary" size="md" icon={ArrowRight} onClick={() => navigate(`/vehicle/${heroVehicle.id}`, { state: { hideNav: true } })}>View details</Btn>
               </div>
             </div>
           </Reveal>
@@ -219,7 +262,9 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
               </span>
               <div className="font-display text-[17px] font-extrabold text-white">{cat.name}</div>
               <div className="font-body text-[13px] leading-[1.4] text-[#91a9ca]">{cat.note}</div>
-              <div className="font-mono text-[11px] text-apex-voltage mt-0.5">{cat.count} in stock →</div>
+              <div className="font-mono text-[11px] text-apex-voltage mt-0.5">
+                {allVehicles.filter((v) => v.category === cat.name).length} in stock →
+              </div>
             </button>
           ))}
         </div>
@@ -233,9 +278,9 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
             <Btn variant="ghostDark" size="sm" icon={ChevronRight} onClick={() => go("catalogue")}>See the full catalogue</Btn>
           </div>
           <div className="grid gap-6 lg:grid-cols-3 mt-7">
-            {VEHICLES.map((v, i) => (
+            {featuredVehicles.map((v, i) => (
               <Reveal key={v.id} delay={i * 90}>
-                <VehicleCard v={v} dark hideFinance cardNavigateState={{ hideNav: true, vehicle: v }} onView={(veh) => navigate(`/vehicle/${veh.id}`, { state: { hideNav: true, vehicle: veh } })} />
+                <VehicleCard v={v} dark hideFinance cardNavigateState={{ hideNav: true }} onView={(veh) => navigate(`/vehicle/${veh.id}`, { state: { hideNav: true } })} />
               </Reveal>
             ))}
           </div>

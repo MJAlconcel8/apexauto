@@ -17,6 +17,7 @@ public class CreateVehicleDTO {
     private String model;
     private int year;
     private String color;
+    private String category;
     private int doors;
     private int seats;
     private double emissionScore;

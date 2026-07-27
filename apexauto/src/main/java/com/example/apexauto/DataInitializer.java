@@ -75,15 +75,17 @@ public class DataInitializer implements CommandLineRunner {
 
         List<CreateVehicleDTO> defaults = List.of(
             // id '1' in the frontend (TOP_PICKS[0]) — Apex Nexus S
-            dto("Apex", "Apex", "Nexus S", 2026, "Pearl White", 4, 5, 85.0, 6.2, 459.0, false, 3, new BigDecimal("89900.00")),
+            dto("Apex", "Apex", "Nexus S", 2026, "Pearl White", "Sedan", 4, 5, 85.0, 6.2, 459.0, false, 3, new BigDecimal("89900.00")),
             // id '2' in the frontend (TOP_PICKS[1]) — Apex Vector GT
-            dto("Apex", "Apex", "Vector GT", 2026, "Alpine White", 2, 4, 165.0, 9.8, 340.0, false, 2, new BigDecimal("134500.00")),
+            dto("Apex", "Apex", "Vector GT", 2026, "Alpine White", "Sports", 2, 4, 165.0, 9.8, 340.0, false, 2, new BigDecimal("134500.00")),
             // id '3' in the frontend (TOP_PICKS[2]) — Apex Terrain X
-            dto("Apex", "Apex", "Terrain X", 2026, "Shadow Black", 4, 7, 130.0, 8.4, 370.0, false, 5, new BigDecimal("74900.00")),
+            dto("Apex", "Apex", "Terrain X", 2026, "Shadow Black", "SUV", 4, 7, 130.0, 8.4, 370.0, false, 5, new BigDecimal("74900.00")),
             // Landing page listings
-            dto("Aster", "Aster", "Kestrel EV Sport", 2024, "Voltage Blue", 4, 5, 77.0, 4.6, 402.0, false, 4, new BigDecimal("58900.00")),
-            dto("Halcyon", "Halcyon", "Volen Lumen", 2024, "Pearl White", 4, 5, 90.0, 3.9, 512.0, false, 2, new BigDecimal("74500.00")),
-            dto("Meridian", "Meridian", "Meridian Bolt", 2023, "Graphite", 4, 5, 64.0, 5.4, 389.0, true, 9, new BigDecimal("44900.00"))
+            dto("Aster", "Aster", "Kestrel EV Sport", 2024, "Voltage Blue", "Sports", 4, 5, 77.0, 4.6, 402.0, false, 4, new BigDecimal("58900.00")),
+            dto("Halcyon", "Halcyon", "Volen Lumen", 2024, "Pearl White", "Luxury", 4, 5, 90.0, 3.9, 512.0, false, 2, new BigDecimal("74500.00")),
+            dto("Meridian", "Meridian", "Meridian Bolt", 2023, "Graphite", "Sedan", 4, 5, 64.0, 5.4, 389.0, true, 9, new BigDecimal("44900.00")),
+            // Landing page hero showcase — Vantage Aero
+            dto("Vantage", "Vantage", "Vantage Aero", 2024, "Pearl White", "Sports", 2, 4, 58.0, 2.8, 540.0, false, 5, new BigDecimal("89900.00"))
         );
 
         for (CreateVehicleDTO d : defaults) {
@@ -92,7 +94,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private static CreateVehicleDTO dto(
-            String brand, String make, String model, int year, String color,
+            String brand, String make, String model, int year, String color, String category,
             int doors, int seats, double emissionScore, double fuelUsage,
             double mileage, boolean isOnSale, int amountInStock, BigDecimal price) {
         CreateVehicleDTO d = new CreateVehicleDTO();
@@ -101,6 +103,7 @@ public class DataInitializer implements CommandLineRunner {
         d.setModel(model);
         d.setYear(year);
         d.setColor(color);
+        d.setCategory(category);
         d.setDoors(doors);
         d.setSeats(seats);
         d.setEmissionScore(emissionScore);
@@ -119,7 +122,7 @@ public class DataInitializer implements CommandLineRunner {
                 : (dto.isInStock() ? 1 : 0);
         return new Vehicle(0,
                 dto.getBrand(), dto.getMake(), dto.getModel(), dto.getYear(),
-                dto.getColor(), dto.getDoors(), dto.getSeats(),
+                dto.getColor(), dto.getCategory(), dto.getDoors(), dto.getSeats(),
                 dto.getEmissionScore(), dto.getFuelUsage(), dto.getMileage(),
                 dto.isOnSale(), amountInStock > 0, amountInStock, dto.getPrice(),
                 dto.getImageUrl());
