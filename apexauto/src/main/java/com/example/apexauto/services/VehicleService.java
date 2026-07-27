@@ -59,6 +59,7 @@ public class VehicleService {
         vehicle.setModel(incoming.getModel());
         vehicle.setYear(incoming.getYear());
         vehicle.setColor(incoming.getColor());
+        vehicle.setCategory(incoming.getCategory());
         vehicle.setDoors(incoming.getDoors());
         vehicle.setSeats(incoming.getSeats());
         vehicle.setEmissionScore(incoming.getEmissionScore());
@@ -107,6 +108,12 @@ public class VehicleService {
                 throw new IllegalArgumentException("Vehicle color must not be blank");
             }
             vehicle.setColor(patch.getColor());
+        }
+        if (patch.getCategory() != null) {
+            if (patch.getCategory().isBlank()) {
+                throw new IllegalArgumentException("Vehicle category must not be blank");
+            }
+            vehicle.setCategory(patch.getCategory());
         }
         if (patch.getDoors() != null) {
             vehicle.setDoors(patch.getDoors());
@@ -243,6 +250,9 @@ public class VehicleService {
         if (vehicle.getColor() == null || vehicle.getColor().isBlank()) {
             throw new IllegalArgumentException("Vehicle color must not be blank");
         }
+        if (vehicle.getCategory() == null || vehicle.getCategory().isBlank()) {
+            throw new IllegalArgumentException("Vehicle category must not be blank");
+        }
         if (vehicle.getPrice() == null || vehicle.getPrice().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Vehicle price must not be negative");
         }
@@ -347,6 +357,7 @@ public class VehicleService {
                 vehicle.getModel(),
                 vehicle.getYear(),
                 vehicle.getColor(),
+                vehicle.getCategory(),
                 vehicle.getDoors(),
                 vehicle.getSeats(),
                 vehicle.getEmissionScore(),

@@ -2,15 +2,19 @@ package com.example.apexauto.controller;
 
 import com.example.apexauto.DTO.*;
 import com.example.apexauto.entity.User;
+import com.example.apexauto.exceptions.EmailNotVerifiedException;
 import com.example.apexauto.services.AuthenticationService;
 import com.example.apexauto.services.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
 
@@ -42,18 +46,49 @@ public class AuthenticationController {
         return ResponseEntity.ok(new RegisterResponseDTO(registeredUser, registeredUser.getEmailVerificationToken()));
     }
 
-    // POST /auth/login — authenticates credentials, sets JWT as HttpOnly cookie, and returns user info
+    // POST /auth/login — authenticates credentials, sets JWT as HttpOnly cookie, and returns user info.
+    // Responds with a LoginErrorDTO code so the frontend can handle specific failures.
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(
+    public ResponseEntity<?> login(
             @RequestBody LoginUserDTO loginUserDTO,
             HttpServletRequest request
     ) {
-        User authenticatedUser = authenticationService.authenticate(loginUserDTO);
-        LoginResponseDTO response = new LoginResponseDTO(jwtService.getExpirationTime(), authenticatedUser.getUserId());
+        try {
+            User authenticatedUser = authenticationService.authenticate(loginUserDTO);
+            LoginResponseDTO response = new LoginResponseDTO(
+                    jwtService.getExpirationTime(),
+                    authenticatedUser.getUserId()
+            );
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, createJwtCookie(authenticatedUser, request).toString())
-                .body(response);
+            return ResponseEntity.ok()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            createJwtCookie(authenticatedUser, request).toString()
+                    )
+                    .body(response);
+        } catch (EmailNotVerifiedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new LoginErrorDTO(
+                            "Please verify your email address before signing in.",
+                            "EMAIL_NOT_VERIFIED"
+                    ));
+        } catch (BadCredentialsException | IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginErrorDTO(
+                            "Incorrect email or password.",
+                            "INVALID_CREDENTIALS"
+                    ));
+        } catch (IllegalStateException ex) {
+            String message = ex.getMessage() == null
+                    ? ""
+                    : ex.getMessage().toLowerCase(Locale.ROOT);
+            String code = message.contains("disabled")
+                    ? "ACCOUNT_DISABLED"
+                    : "ACCOUNT_LOCKED";
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new LoginErrorDTO(ex.getMessage(), code));
+        }
     }
 
     // Returns the signed-in user.
@@ -62,7 +97,28 @@ public class AuthenticationController {
         return ResponseEntity.ok(AuthenticatedUserDTO.from(authenticatedUser));
     }
 
-    // POST /auth/logout — clears the JWT cookie using the same attributes as the login cookie
+    // PATCH /auth/me — updates the signed-in user's profile.
+    @PatchMapping("/me")
+    public ResponseEntity<AuthenticatedUserDTO> updateProfile(
+            @AuthenticationPrincipal User authenticatedUser,
+            @RequestBody UpdateProfileDTO updateProfileDTO
+    ) {
+        try {
+            User updatedUser = authenticationService.updateProfile(
+                    authenticatedUser,
+                    updateProfileDTO
+            );
+            return ResponseEntity.ok(AuthenticatedUserDTO.from(updatedUser));
+        } catch (IllegalArgumentException ex) {
+            String message = ex.getMessage() == null ? "" : ex.getMessage();
+            HttpStatus status = message.toLowerCase(Locale.ROOT).contains("already in use")
+                    ? HttpStatus.CONFLICT
+                    : HttpStatus.BAD_REQUEST;
+            throw new ResponseStatusException(status, message, ex);
+        }
+    }
+
+    // POST /auth/logout — clears the JWT cookie using the same attributes as login.
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         boolean secure = resolveCookieSecure(request);

@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../config/api'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
 import { VehicleCard, Reveal, Footer } from '../components'
 import type { Vehicle } from '../components'
 import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
@@ -102,11 +102,15 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
 
 export default function GuestCatalogue() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [cat, setCat] = useState<string>('All')
+  const [cat, setCat] = useState<string>(() => {
+    const requested = searchParams.get('category')
+    return CATEGORIES.includes(requested as (typeof CATEGORIES)[number]) ? (requested as string) : 'All'
+  })
   const [priceMax, setPriceMax] = useState<number>(PRICE_MAX)
   const [sort, setSort] = useState<SortKey>('featured')
   const [query, setQuery] = useState('')
@@ -177,6 +181,13 @@ export default function GuestCatalogue() {
       <div style={{ background: '#040f20', borderBottom: '1px solid rgba(30,58,95,0.8)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
+            <button
+              onClick={() => navigate('/')}
+              className="av-focus mb-3 inline-flex items-center gap-2 font-mono text-[12px] tracking-widest uppercase transition-colors hover:text-white"
+              style={{ color: 'rgba(126,179,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              <ArrowLeft size={14} /> Back to Landing Page
+            </button>
             <h1 className="font-heading font-bold text-3xl text-white">Vehicle Catalogue</h1>
             <p className="font-mono text-[13px] mt-1" style={{ color: 'rgba(126,179,255,0.6)' }}>
               {results.length} vehicle{results.length !== 1 ? 's' : ''} found

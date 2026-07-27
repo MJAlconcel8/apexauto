@@ -1,8 +1,11 @@
 import { API_BASE_URL } from '../config/api'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, ShoppingCart, ChevronLeft, Calculator, Loader2 } from 'lucide-react'
+import { ArrowRight, ShoppingCart, ChevronLeft, Calculator, Car, Loader2 } from 'lucide-react'
 import Nav from '../components/Nav'
+import { resolveVehicleImage } from '../utils/vehicleUtils'
+import type { VehicleApiResponse } from '../utils/vehicleUtils'
+
 
 const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -18,7 +21,39 @@ interface FinanceState {
 export default function LoanCalc() {
   const navigate = useNavigate()
   const location = useLocation()
-  const vehicle = (location.state as FinanceState | null)
+  const [vehicle, setVehicle] = useState<FinanceState | null>(location.state as FinanceState | null)
+
+  const [vehicles, setVehicles] = useState<VehicleApiResponse[]>([])
+  const [loadingVehicles, setLoadingVehicles] = useState(true)
+  const [vehiclesError, setVehiclesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (vehicle) return
+    fetch(`${API_BASE_URL}/vehicles`)
+      .then((res) => {
+        if (!res.ok) throw new Error()
+        return res.json() as Promise<VehicleApiResponse[]>
+      })
+      .then((data) => {
+        setVehicles(data)
+        setLoadingVehicles(false)
+      })
+      .catch(() => {
+        setVehiclesError('Could not load vehicles. Please try again later.')
+        setLoadingVehicles(false)
+      })
+  }, [vehicle])
+
+  const handleSelectVehicle = (v: VehicleApiResponse) => {
+    setVehicle({
+      id: String(v.vehicleId),
+      model: v.model,
+      marque: v.brand,
+      price: v.price,
+      img: resolveVehicleImage(v.imageUrl, v.make, v.model),
+    })
+    setDownPayment(Math.round(v.price * 0.2))
+  }
 
   const vehiclePrice = vehicle?.price ?? 0
 
@@ -112,6 +147,81 @@ export default function LoanCalc() {
     }
   }
 
+  /* ── No vehicle chosen yet: show a picker instead of the calculator ── */
+  if (!vehicle) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+
+        <main className="min-h-screen pt-16">
+          <section className="border-b border-card-border bg-sub-header">
+            <div className="mx-auto max-w-6xl px-6 py-6">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronLeft size={16} />
+                Back
+              </button>
+              <div className="flex items-center gap-3">
+                <Calculator size={22} className="text-[#0066ff]" strokeWidth={1.75} />
+                <h1 className="font-heading text-3xl font-bold">Finance Your Vehicle</h1>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pick a vehicle below to estimate your monthly payment.
+              </p>
+            </div>
+          </section>
+
+          <section className="mx-auto max-w-6xl px-6 py-10">
+            {loadingVehicles ? (
+              <div className="flex items-center justify-center py-24">
+                <Loader2 size={32} className="animate-spin text-[#0066ff]" />
+              </div>
+            ) : vehiclesError ? (
+              <p className="text-center text-sm text-muted-foreground py-12">{vehiclesError}</p>
+            ) : vehicles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-24 text-muted-foreground">
+                <Car size={40} strokeWidth={1.5} className="mb-4 opacity-50" />
+                <p className="text-sm">No vehicles available to finance right now.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {vehicles.map((v) => (
+                  <button
+                    key={v.vehicleId}
+                    type="button"
+                    onClick={() => handleSelectVehicle(v)}
+                    className="text-left rounded-xl overflow-hidden border border-card-border bg-card transition hover:border-[#0066ff]/50 hover:-translate-y-0.5"
+                  >
+                    <div className="h-40 overflow-hidden">
+                      <img
+                        src={resolveVehicleImage(v.imageUrl, v.make, v.model)}
+                        alt={`${v.brand} ${v.model}`}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">
+                        {v.brand} · {v.year}
+                      </p>
+                      <h2 className="font-heading text-lg font-bold mt-0.5">{v.model}</h2>
+                      <p className="font-mono text-[18px] font-semibold mt-2 text-[#0066ff]">
+                        {fmtCAD(v.price)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -132,11 +242,9 @@ export default function LoanCalc() {
               <Calculator size={22} className="text-[#0066ff]" strokeWidth={1.75} />
               <h1 className="font-heading text-3xl font-bold">Finance Your Vehicle</h1>
             </div>
-            {vehicle && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {vehicle.marque} {vehicle.model} · {fmtCAD(vehicle.price)}
-              </p>
-            )}
+            <p className="mt-1 text-sm text-muted-foreground">
+              {vehicle.marque} {vehicle.model} · {fmtCAD(vehicle.price)}
+            </p>
           </div>
         </section>
 
@@ -146,44 +254,26 @@ export default function LoanCalc() {
             {/* ── Left: Vehicle summary + inputs ── */}
             <div className="flex flex-col gap-8">
               {/* Vehicle card summary */}
-              {vehicle && (
-                <div
-                  className="rounded-xl overflow-hidden border border-card-border bg-card"
-                >
-                  {vehicle.img && (
-                    <div className="h-44 overflow-hidden">
-                      <img
-                        src={vehicle.img}
-                        alt={`${vehicle.marque} ${vehicle.model}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">
-                      {vehicle.marque}
-                    </p>
-                    <h2 className="font-heading text-xl font-bold mt-0.5">{vehicle.model}</h2>
-                    <p className="font-mono text-[22px] font-semibold mt-2 text-[#0066ff]">
-                      {fmtCAD(vehicle.price)}
-                    </p>
+              <div className="rounded-xl overflow-hidden border border-card-border bg-card">
+                {vehicle.img && (
+                  <div className="h-44 overflow-hidden">
+                    <img
+                      src={vehicle.img}
+                      alt={`${vehicle.marque} ${vehicle.model}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                )}
+                <div className="p-4">
+                  <p className="font-mono text-xs text-muted-foreground tracking-widest uppercase">
+                    {vehicle.marque}
+                  </p>
+                  <h2 className="font-heading text-xl font-bold mt-0.5">{vehicle.model}</h2>
+                  <p className="font-mono text-[22px] font-semibold mt-2 text-[#0066ff]">
+                    {fmtCAD(vehicle.price)}
+                  </p>
                 </div>
-              )}
-
-              {!vehicle && (
-                <div className="rounded-xl border border-card-border bg-card p-6 text-center text-muted-foreground text-sm">
-                  No vehicle selected. Please choose a vehicle from the{' '}
-                  <button
-                    type="button"
-                    onClick={() => navigate('/home')}
-                    className="text-[#0066ff] hover:underline"
-                  >
-                    home page
-                  </button>
-                  .
-                </div>
-              )}
+              </div>
 
               {/* Inputs */}
               <div className="flex flex-col gap-5">
@@ -332,10 +422,10 @@ export default function LoanCalc() {
 
               <button
                 type="button"
-                onClick={() => navigate('/home')}
+                onClick={() => setVehicle(null)}
                 className="inline-flex items-center justify-center gap-2 w-full rounded-lg border border-card-border bg-transparent px-6 py-3 text-sm font-medium text-muted-foreground transition hover:text-foreground hover:border-foreground/30"
               >
-                Browse Other Vehicles
+                Choose a Different Vehicle
               </button>
             </div>
 

@@ -2,10 +2,13 @@ package com.example.apexauto.services;
 
 import com.example.apexauto.DTO.LoginUserDTO;
 import com.example.apexauto.DTO.RegisterUserDTO;
+import com.example.apexauto.DTO.UpdateProfileDTO;
 import com.example.apexauto.entity.User;
+import com.example.apexauto.exceptions.EmailNotVerifiedException;
 import com.example.apexauto.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +75,13 @@ public class AuthenticationService {
 
         try {
             authenticationManager.authenticate(loginUserMapper.toAuthenticationToken(input));
+        } catch (DisabledException ex) {
+            // Spring Security checks isEnabled() (accountEnabled && emailVerified) before the
+            // password, so credentials haven't been checked yet at this point.
+            if (!user.isEmailVerified()) {
+                throw new EmailNotVerifiedException(user.getEmail(), ex);
+            }
+            throw new IllegalStateException("Account is disabled", ex);
         } catch (BadCredentialsException ex) {
             int failedAttempts = user.getFailedLoginAttempts() + 1;
             user.setFailedLoginAttempts(failedAttempts);
@@ -144,5 +154,51 @@ public class AuthenticationService {
         user.setPasswordResetToken(UUID.randomUUID().toString());
         user.setPasswordResetTokenExpiresAt(new Date(0L));
         userRepository.save(user);
+    }
+
+    // Updates the signed-in user's first name, last name, and/or email. Changing the email
+    // marks it unverified again and sends a new verification token.
+    public User updateProfile(User currentUser, UpdateProfileDTO input) {
+        User user = userRepository.findByUserId(currentUser.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String firstName = input.getFirstName();
+        String lastName = input.getLastName();
+        String email = input.getEmail();
+
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("First name must not be blank");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Last name must not be blank");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email must not be blank");
+        }
+
+        String normalizedEmail = email.trim().toLowerCase();
+        boolean emailChanged = !normalizedEmail.equalsIgnoreCase(user.getEmail());
+
+        if (emailChanged && userRepository.findByEmail(normalizedEmail).isPresent()) {
+            throw new IllegalArgumentException("Email is already in use");
+        }
+
+        user.setFirstName(firstName.trim());
+        user.setLastName(lastName.trim());
+
+        if (emailChanged) {
+            user.setEmail(normalizedEmail);
+            user.setEmailVerified(false);
+            user.setEmailVerificationToken(UUID.randomUUID().toString());
+            user.setEmailVerificationTokenExpiresAt(new Date(System.currentTimeMillis() + 86_400_000L));
+        }
+
+        User savedUser = userRepository.save(user);
+
+        if (emailChanged) {
+            emailService.sendEmailVerification(savedUser.getEmail(), savedUser.getEmailVerificationToken());
+        }
+
+        return savedUser;
     }
 }

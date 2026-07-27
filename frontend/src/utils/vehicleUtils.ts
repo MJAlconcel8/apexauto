@@ -21,20 +21,8 @@ export function resolveVehicleImage(
   )
 }
 
-/**
- * Body-shape/category per model. The backend Vehicle has no category column,
- * so the catalogue's Category filter is driven by this map. Add a model here
- * whenever a new vehicle is introduced (same pattern as VEHICLE_IMAGES).
- * Unmapped models are left uncategorised and only appear under "All".
- */
-export const VEHICLE_CATEGORIES: Record<string, string> = {
-  'Nexus S': 'Sedan',
-  'Vector GT': 'Sports',
-  'Terrain X': 'SUV',
-  'Kestrel EV Sport': 'Sports',
-  'Volen Lumen': 'Luxury',
-  'Meridian Bolt': 'Sedan',
-}
+// Body-shape/category options offered when adding or editing a vehicle.
+export const VEHICLE_CATEGORIES = ['Sedan', 'Sports', 'SUV', 'Luxury'] as const
 
 export interface VehicleApiResponse {
   vehicleId: number
@@ -43,6 +31,7 @@ export interface VehicleApiResponse {
   model: string
   year: number
   color: string
+  category?: string
   doors?: number
   seats: number
   emissionScore: number
@@ -56,7 +45,6 @@ export interface VehicleApiResponse {
 }
 
 export function mapVehicle(v: VehicleApiResponse): Vehicle {
-  const modelName = [v.make, v.model].filter(Boolean).join(' ')
   let badge: VehicleBadge
   if (v.amountInStock <= 0) {
     badge = { label: 'Out of Stock', tone: 'hot' }
@@ -72,7 +60,7 @@ export function mapVehicle(v: VehicleApiResponse): Vehicle {
     marque: v.brand,
     model: v.model,
     year: v.year,
-    category: VEHICLE_CATEGORIES[v.model] ?? VEHICLE_CATEGORIES[modelName],
+    category: v.category,
     img: resolveVehicleImage(v.imageUrl, v.make, v.model),
     price: v.price,
     mileage: v.mileage,

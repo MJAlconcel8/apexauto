@@ -16,6 +16,7 @@ export interface VehicleData {
   model: string
   year: number
   color: string
+  category: string
   doors: number
   seats: number
   emissionScore: number
@@ -35,6 +36,7 @@ export interface VehiclePayload {
   model: string
   year: number
   color: string
+  category: string
   doors: number
   seats: number
   emissionScore: number

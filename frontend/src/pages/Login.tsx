@@ -55,7 +55,7 @@ export default function Login({ onNavigate }: LoginProps) {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json().catch(() => ({})) as { error?: string }
+      const data = await response.json().catch(() => ({})) as { error?: string; code?: string }
 
       if (response.ok) {
         const authenticatedUser = await refreshUser()
@@ -84,6 +84,8 @@ export default function Login({ onNavigate }: LoginProps) {
         } else {
           navigate('/catalogue', { replace: true })
         }
+      } else if (data.code === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', { state: { reason: 'unverified', email: formData.email } })
       } else {
         setMessage(data.error || 'Login failed. Please try again.')
       }
@@ -125,17 +127,6 @@ export default function Login({ onNavigate }: LoginProps) {
 
           <div className="mb-5">
             <Btn type="submit" fullWidth size="lg">Sign In</Btn>
-          </div>
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-card-border" />
-            <span className="text-xs text-muted-foreground">or continue with</span>
-            <div className="flex-1 h-px bg-card-border" />
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Btn variant="ghostDark" fullWidth>Continue with Google</Btn>
-            <Btn variant="ghostDark" fullWidth>Continue with Apple</Btn>
           </div>
         </form>
       </AuthCard>
