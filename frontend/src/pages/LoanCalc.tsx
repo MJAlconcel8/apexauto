@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useMemo, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, ShoppingCart, ChevronLeft, Calculator, Car, Loader2 } from 'lucide-react'
@@ -5,7 +6,6 @@ import Nav from '../components/Nav'
 import { resolveVehicleImage } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
 
-const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 const fmtCAD = (n: number) =>
   '$' + n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -29,7 +29,7 @@ export default function LoanCalc() {
 
   useEffect(() => {
     if (vehicle) return
-    fetch(`${API}/vehicles`)
+    fetch(`${API_BASE_URL}/vehicles`)
       .then((res) => {
         if (!res.ok) throw new Error()
         return res.json() as Promise<VehicleApiResponse[]>
@@ -92,7 +92,7 @@ export default function LoanCalc() {
 
     try {
       // Fetch the user's active cart; auto-create one if it doesn't exist yet
-      let cartRes = await fetch(`http://localhost:8080/users/me/carts/active`, {
+      let cartRes = await fetch(`${API_BASE_URL}/users/me/carts/active`, {
         credentials: 'include',
       })
       if (cartRes.status === 401) {
@@ -100,7 +100,7 @@ export default function LoanCalc() {
         return
       }
       if (cartRes.status === 404) {
-        const createRes = await fetch(`http://localhost:8080/users/me/carts`, {
+        const createRes = await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -114,7 +114,7 @@ export default function LoanCalc() {
       const cart = await cartRes.json()
 
       // POST the financed vehicle to the cart
-      const addRes = await fetch(`http://localhost:8080/carts/${cart.cartId}/cart-lines`, {
+      const addRes = await fetch(`${API_BASE_URL}/carts/${cart.cartId}/cart-lines`, {
         method: 'POST',
         credentials: 'include',
         headers: {

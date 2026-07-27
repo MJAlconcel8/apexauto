@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '')
+import { API_BASE_URL } from '../config/api'
 
 export interface ReviewData {
   reviewId: number
@@ -11,7 +11,7 @@ export interface ReviewData {
 
 // GET /reviews/vehicles/{vehicleId} — public, newest first
 export async function getVehicleReviews(vehicleId: number): Promise<ReviewData[]> {
-  const res = await fetch(`${API_BASE}/reviews/vehicles/${vehicleId}`)
+  const res = await fetch(`${API_BASE_URL}/reviews/vehicles/${vehicleId}`)
   if (!res.ok) throw new Error('Failed to load reviews')
   return res.json() as Promise<ReviewData[]>
 }
@@ -22,7 +22,7 @@ export async function createReview(
   vehicleId: number,
   reviewComments: string,
 ): Promise<ReviewData> {
-  const res = await fetch(`${API_BASE}/users/${userId}/reviews`, {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}/reviews`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +38,7 @@ export async function updateReview(
   reviewId: number,
   reviewComments: string,
 ): Promise<ReviewData> {
-  const res = await fetch(`${API_BASE}/users/${userId}/reviews/${reviewId}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}/reviews/${reviewId}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -50,7 +50,7 @@ export async function updateReview(
 
 // DELETE /users/{userId}/reviews/{reviewId} — authenticated owner or admin
 export async function deleteReview(userId: number, reviewId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/users/${userId}/reviews/${reviewId}`, {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}/reviews/${reviewId}`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -59,7 +59,7 @@ export async function deleteReview(userId: number, reviewId: number): Promise<vo
 
 // DELETE /reviews — admin only, wipes all reviews
 export async function deleteAllReviews(): Promise<void> {
-  const res = await fetch(`${API_BASE}/reviews`, {
+  const res = await fetch(`${API_BASE_URL}/reviews`, {
     method: 'DELETE',
     credentials: 'include',
   })
@@ -68,7 +68,7 @@ export async function deleteAllReviews(): Promise<void> {
 
 // DELETE /reviews/vehicles/{vehicleId} — admin only, wipes all reviews for a vehicle
 export async function deleteVehicleReviews(vehicleId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/reviews/vehicles/${vehicleId}`, {
+  const res = await fetch(`${API_BASE_URL}/reviews/vehicles/${vehicleId}`, {
     method: 'DELETE',
     credentials: 'include',
   })

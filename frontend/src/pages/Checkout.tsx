@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { ArrowLeft, ArrowRight, Check, CreditCard, Truck } from 'lucide-react'
@@ -125,7 +126,7 @@ export default function Checkout() {
     setPlacingOrder(true)
 
     try {
-      const res = await fetch(`http://localhost:8080/carts/${cart.cartId}/checkout`, {
+      const res = await fetch(`${API_BASE_URL}/carts/${cart.cartId}/checkout`, {
         method: 'POST',
         credentials: 'include',
       })

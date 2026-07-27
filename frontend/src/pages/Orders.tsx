@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import { Loader2, PackageSearch, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -67,7 +68,7 @@ export default function Orders() {
   useEffect(() => {
     if (!user) return
 
-    fetch(`http://localhost:8080/users/${user.userId}/orders`, {
+    fetch(`${API_BASE_URL}/users/${user.userId}/orders`, {
       credentials: 'include',
     })
       .then((res) => {
@@ -95,7 +96,7 @@ export default function Orders() {
     setDeleteError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/users/${user.userId}/orders/${orderToDelete}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${user.userId}/orders/${orderToDelete}`, {
         method: 'DELETE',
         credentials: 'include',
       })

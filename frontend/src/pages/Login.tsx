@@ -1,11 +1,9 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Btn, AuthShell, AuthHeader, AuthCard, FormField } from '../components'
 import type { GoFn, ViewParams } from '../components/types'
 import { useAuth } from '../auth/AuthContext'
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
-
 interface LoginProps { onNavigate?: GoFn }
 
 export default function Login({ onNavigate }: LoginProps) {

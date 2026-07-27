@@ -3,6 +3,7 @@ package com.example.apexauto;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @SpringBootApplication
+@EnableAsync
 public class ApexautoApplication {
 
 	// This is the main class for the Apexauto Spring Boot application. It serves as the entry point for the application and is responsible for bootstrapping the Spring context.
@@ -35,18 +37,24 @@ public class ApexautoApplication {
 					.ignoreIfMissing()
 					.load();
 
-		applyIfMissing(dotenv, "SPRING_DATASOURCE_URL");
-		applyIfMissing(dotenv, "SPRING_DATASOURCE_USERNAME");
-		applyIfMissing(dotenv, "SPRING_DATASOURCE_PASSWORD");
-		applyIfMissing(dotenv, "JWT_SECRET_KEY");
-		applyIfMissing(dotenv, "JWT_EXPIRATION_TIME");
-		applyIfMissing(dotenv, "MAIL_HOST");
-		applyIfMissing(dotenv, "MAIL_PORT");
-		applyIfMissing(dotenv, "MAIL_USERNAME");
-		applyIfMissing(dotenv, "MAIL_PASSWORD");
-		applyIfMissing(dotenv, "GEMINI_API_KEY");
-		applyIfMissing(dotenv, "GEMINI_MODEL");
-		applyIfMissing(dotenv, "CHATBOT_MAX_OUTPUT_TOKENS");
+			applyIfMissing(dotenv, "SPRING_DATASOURCE_URL");
+			applyIfMissing(dotenv, "SPRING_DATASOURCE_USERNAME");
+			applyIfMissing(dotenv, "SPRING_DATASOURCE_PASSWORD");
+			applyIfMissing(dotenv, "JPA_DDL_AUTO");
+			applyIfMissing(dotenv, "JPA_SHOW_SQL");
+			applyIfMissing(dotenv, "JPA_FORMAT_SQL");
+			applyIfMissing(dotenv, "CORS_ALLOWED_ORIGINS");
+			applyIfMissing(dotenv, "AUTH_COOKIE_SECURE");
+			applyIfMissing(dotenv, "AUTH_COOKIE_SAME_SITE");
+			applyIfMissing(dotenv, "JWT_SECRET_KEY");
+			applyIfMissing(dotenv, "JWT_EXPIRATION_TIME");
+			applyIfMissing(dotenv, "MAIL_HOST");
+			applyIfMissing(dotenv, "MAIL_PORT");
+			applyIfMissing(dotenv, "MAIL_USERNAME");
+			applyIfMissing(dotenv, "MAIL_PASSWORD");
+			applyIfMissing(dotenv, "GEMINI_API_KEY");
+			applyIfMissing(dotenv, "GEMINI_MODEL");
+			applyIfMissing(dotenv, "CHATBOT_MAX_OUTPUT_TOKENS");
 			break;
 		}
 	}

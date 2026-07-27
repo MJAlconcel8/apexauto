@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
@@ -241,7 +242,7 @@ export default function VehicleInfoPage() {
   useEffect(() => {
     if (stateVehicle) return
     if (!id) return
-    fetch(`http://localhost:8080/vehicles/${id}`)
+    fetch(`${API_BASE_URL}/vehicles/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error('Vehicle not found.')
         return res.json() as Promise<VehicleApiResponse>
@@ -359,7 +360,7 @@ export default function VehicleInfoPage() {
     if (!vehicle) return
     setAddingToCart(true)
     try {
-      let cartRes = await fetch('http://localhost:8080/users/me/carts/active', {
+      let cartRes = await fetch(`${API_BASE_URL}/users/me/carts/active`, {
         credentials: 'include',
       })
       if (cartRes.status === 401) {
@@ -367,7 +368,7 @@ export default function VehicleInfoPage() {
         return
       }
       if (cartRes.status === 404) {
-        const createRes = await fetch('http://localhost:8080/users/me/carts', {
+        const createRes = await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -379,7 +380,7 @@ export default function VehicleInfoPage() {
         throw new Error()
       }
       const cartData = await cartRes.json() as { cartId: number }
-      const addRes = await fetch(`http://localhost:8080/carts/${cartData.cartId}/cart-lines`, {
+      const addRes = await fetch(`${API_BASE_URL}/carts/${cartData.cartId}/cart-lines`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

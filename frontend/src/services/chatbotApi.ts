@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 export type ChatHistoryMessage = {
   role: 'user' | 'assistant'
   content: string
@@ -8,9 +9,6 @@ type ChatbotApiResponse = {
   detail?: string
   error?: string
 }
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '')
-
 export async function sendChatbotMessage(
   message: string,
   history: ChatHistoryMessage[],

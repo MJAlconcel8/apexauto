@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import {
   GitCompareArrows,
@@ -17,7 +18,6 @@ import Nav from '../components/Nav'
 import { Footer } from '../components'
 import { fmtCAD, resolveVehicleImage } from '../utils/vehicleUtils'
 
-const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -314,10 +314,10 @@ function ComparisonTable({
     setAdding(true)
     setCartMsg(null)
     try {
-      let cartRes = await fetch(`${API}/users/me/carts/active`, { credentials: 'include' })
+      let cartRes = await fetch(`${API_BASE_URL}/users/me/carts/active`, { credentials: 'include' })
       if (cartRes.status === 401) { navigate('/login'); return }
       if (cartRes.status === 404) {
-        const createRes = await fetch(`${API}/users/me/carts`, {
+        const createRes = await fetch(`${API_BASE_URL}/users/me/carts`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -329,7 +329,7 @@ function ComparisonTable({
         throw new Error()
       }
       const cartData = (await cartRes.json()) as { cartId: number }
-      const addRes = await fetch(`${API}/carts/${cartData.cartId}/cart-lines`, {
+      const addRes = await fetch(`${API_BASE_URL}/carts/${cartData.cartId}/cart-lines`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -621,7 +621,7 @@ export default function Compare() {
   const [compareResult, setCompareResult] = useState<CompareResponse | null>(null)
 
   useEffect(() => {
-    fetch(`${API}/vehicles`)
+    fetch(`${API_BASE_URL}/vehicles`)
       .then((res) => {
         if (!res.ok) throw new Error()
         return res.json() as Promise<VehicleDTO[]>
@@ -649,7 +649,7 @@ export default function Compare() {
     setCompareLoading(true)
     setCompareError(null)
     try {
-      const res = await fetch(`${API}/vehicles/compare`, {
+      const res = await fetch(`${API_BASE_URL}/vehicles/compare`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../../config/api'
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, ShieldCheck, ShieldOff, Trash2, Users as UsersIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -57,7 +58,7 @@ export default function AdminUsers() {
   const [pendingRestriction, setPendingRestriction] = useState<{ user: UserData; rawValue: string } | null>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/admin/users', { credentials: 'include' })
+    fetch(`${API_BASE_URL}/admin/users`, { credentials: 'include' })
       .then((res) => {
         if (res.status === 401) {
           navigate('/login')
@@ -100,7 +101,7 @@ export default function AdminUsers() {
     setActionError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/admin/users/${targetUser.userId}/role`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${targetUser.userId}/role`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +142,7 @@ export default function AdminUsers() {
     setActionError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/admin/users/${targetUser.userId}/restrict`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${targetUser.userId}/restrict`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -191,7 +192,7 @@ export default function AdminUsers() {
     setActionError(null)
 
     try {
-      const res = await fetch(`http://localhost:8080/admin/users/${userToDelete.userId}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${userToDelete.userId}`, {
         method: 'DELETE',
         credentials: 'include',
       })

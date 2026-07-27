@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '')
+import { API_BASE_URL } from '../config/api'
 
 export class VehicleApiError extends Error {
   status: number
@@ -59,14 +59,14 @@ async function throwApiError(res: Response, fallback: string): Promise<never> {
 
 // GET /vehicles — public, returns every vehicle
 export async function getAllVehicles(): Promise<VehicleData[]> {
-  const res = await fetch(`${API_BASE}/vehicles`)
+  const res = await fetch(`${API_BASE_URL}/vehicles`)
   if (!res.ok) throw new VehicleApiError('Failed to load vehicles.', res.status)
   return res.json() as Promise<VehicleData[]>
 }
 
 // POST /vehicles — admin only, create a new vehicle
 export async function createVehicle(payload: VehiclePayload): Promise<VehicleData> {
-  const res = await fetch(`${API_BASE}/vehicles`, {
+  const res = await fetch(`${API_BASE_URL}/vehicles`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -78,7 +78,7 @@ export async function createVehicle(payload: VehiclePayload): Promise<VehicleDat
 
 // PATCH /vehicles/{vehicleId} — admin only, partially update an existing vehicle
 export async function patchVehicle(vehicleId: number, payload: VehiclePatchPayload): Promise<VehicleData> {
-  const res = await fetch(`${API_BASE}/vehicles/${vehicleId}`, {
+  const res = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -90,7 +90,7 @@ export async function patchVehicle(vehicleId: number, payload: VehiclePatchPaylo
 
 // DELETE /vehicles/{vehicleId} — admin only, delete a vehicle
 export async function deleteVehicle(vehicleId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/vehicles/${vehicleId}`, {
+  const res = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
     method: 'DELETE',
     credentials: 'include',
   })

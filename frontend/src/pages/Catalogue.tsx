@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useMemo, useState } from 'react'
 import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
 import Nav from '../components/Nav'
@@ -114,7 +115,7 @@ export default function Catalogue() {
   const [showFilter, setShowFilter] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:8080/vehicles')
+    fetch(`${API_BASE_URL}/vehicles`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load vehicles.')
         return res.json() as Promise<VehicleApiResponse[]>

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, Package, Settings, ShieldCheck, ShoppingCart, UserRound } from 'lucide-react'
@@ -45,7 +46,7 @@ export default function Nav({ onNavigate }: NavProps) {
     const fetchCartCount = () => {
       // Uses the carts list (always 200, even when empty) instead of /active,
       // which returns 404 for a brand-new user with no cart yet.
-      fetch('http://localhost:8080/users/me/carts', {
+      fetch(`${API_BASE_URL}/users/me/carts`, {
         credentials: 'include',
       })
         .then((res) => (res.ok ? res.json() : []))

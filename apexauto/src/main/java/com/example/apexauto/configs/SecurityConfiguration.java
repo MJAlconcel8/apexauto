@@ -1,5 +1,6 @@
 package com.example.apexauto.configs;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -30,10 +32,24 @@ public class SecurityConfiguration {
     // This variable holds the JWTAuthenticationFilter bean that validates JWT tokens on every request
     private final JWTAuthenticationFilter jwtAuthenticationFilter;
 
+    private final List<String> allowedOriginPatterns;
+
     // This is a constructor that takes an AuthenticationProvider and JWTAuthenticationFilter as parameters
-    public SecurityConfiguration(AuthenticationProvider authenticationProvider, JWTAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfiguration(
+            AuthenticationProvider authenticationProvider,
+            JWTAuthenticationFilter jwtAuthenticationFilter,
+            @Value("${app.cors.allowed-origin-patterns:http://localhost:*}") String allowedOriginPatterns
+    ) {
         this.authenticationProvider = authenticationProvider;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+
+        List<String> configuredPatterns = Arrays.stream(allowedOriginPatterns.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .toList();
+        this.allowedOriginPatterns = configuredPatterns.isEmpty()
+                ? List.of("http://localhost:*")
+                : configuredPatterns;
     }
 
     // This function is used to configure the security filter chain for the application
@@ -85,10 +101,11 @@ public class SecurityConfiguration {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 

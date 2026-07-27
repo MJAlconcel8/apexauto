@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/api'
 import { useState, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Btn, AuthShell, AuthHeader, AuthCard, FormField, ConfirmationCard } from '../components'
@@ -34,7 +35,7 @@ export default function VerifyEmail({ onNavigate }: VerifyEmailProps) {
 
     try {
       const response = await fetch(
-        `http://localhost:8080/auth/verify-email?token=${encodeURIComponent(token)}`
+        `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`
       )
 
       if (response.ok) {
