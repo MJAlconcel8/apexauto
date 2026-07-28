@@ -1,11 +1,14 @@
 import { API_BASE_URL } from '../config/api'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, Footer } from '../components'
 import type { Vehicle } from '../components'
 import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
+import { getAllReviews } from '../services/reviewApi'
+import { addReviewSummaries } from '../utils/reviewUtils'
 
 const CATEGORIES = ['All', 'Sedan', 'Sports', 'SUV', 'Luxury'] as const
 
@@ -105,33 +108,53 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default function Catalogue() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedCategory = searchParams.get('category')
+  const cat = CATEGORIES.includes(requestedCategory as (typeof CATEGORIES)[number])
+    ? (requestedCategory as string)
+    : 'All'
+
+  const setCat = (category: string) => {
+    const nextParams = new URLSearchParams(searchParams)
+    if (category === 'All') {
+      nextParams.delete('category')
+    } else {
+      nextParams.set('category', category)
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [cat, setCat] = useState<string>('All')
   const [priceMax, setPriceMax] = useState<number>(PRICE_MAX)
   const [sort, setSort] = useState<SortKey>('featured')
   const [query, setQuery] = useState('')
   const [showFilter, setShowFilter] = useState(true)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/vehicles`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load vehicles.')
-        return res.json() as Promise<VehicleApiResponse[]>
-      })
-      .then((data) => {
-        setVehicles(data.map(mapVehicle))
-        setLoading(false)
-      })
-      .catch(() => {
+    const loadCatalogue = async () => {
+      try {
+        const vehicleResponse = await fetch(`${API_BASE_URL}/vehicles`)
+        if (!vehicleResponse.ok) throw new Error('Failed to load vehicles.')
+
+        const vehicleData = await vehicleResponse.json() as VehicleApiResponse[]
+        const reviews = await getAllReviews().catch(() => [])
+        setVehicles(addReviewSummaries(vehicleData.map(mapVehicle), reviews))
+      } catch {
         setFetchError('Could not load vehicles. Please try again later.')
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    void loadCatalogue()
   }, [])
 
   const reset = () => {
-    setCat('All')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('category')
+    setSearchParams(nextParams, { replace: true })
     setPriceMax(PRICE_MAX)
     setSort('featured')
     setQuery('')

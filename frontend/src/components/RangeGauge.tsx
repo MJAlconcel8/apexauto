@@ -8,6 +8,22 @@ export function RangeGauge({ value, max = 560, size = 132, dark }: RangeGaugePro
   const startAngle = 135;
   const sweep = 270;
   const pct = Math.max(0, Math.min(1, value / max));
+  const compact = size <= 80;
+  const valueLength = String(Math.round(value)).length;
+  const valueFontSize = compact
+    ? valueLength >= 5
+      ? 13
+      : valueLength >= 4
+        ? 16
+        : 20
+    : valueLength >= 5
+      ? 19
+      : valueLength >= 4
+        ? 22
+        : 26;
+  const valueY = compact ? cy - 3 : cy - 2;
+  const labelFontSize = compact ? 7 : 10;
+  const labelY = compact ? cy + 13 : cy + 18;
 
   const polar = (deg: number): [number, number] => {
     const a = (deg - 90) * (Math.PI / 180);
@@ -45,19 +61,19 @@ export function RangeGauge({ value, max = 560, size = 132, dark }: RangeGaugePro
       />
       <text
         x={cx}
-        y={cy - 2}
+        y={valueY}
         textAnchor="middle"
-        fontSize={26}
+        fontSize={valueFontSize}
         className={`font-mono font-semibold ${dark ? "fill-white" : "fill-apex-ink"}`}
       >
         {value}
       </text>
       <text
         x={cx}
-        y={cy + 18}
+        y={labelY}
         textAnchor="middle"
-        fontSize={10}
-        className={`font-mono tracking-[0.14em] ${dark ? "fill-apex-muted-ink" : "fill-apex-muted"}`}
+        fontSize={labelFontSize}
+        className={`font-mono tracking-[0.1em] ${dark ? "fill-apex-muted-ink" : "fill-apex-muted"}`}
       >
         MILEAGE
       </text>

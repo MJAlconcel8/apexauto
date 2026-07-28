@@ -6,6 +6,7 @@ export { SpecReadout } from "./SpecReadout";
 export { RangeGauge } from "./RangeGauge";
 export { Badge } from "./Badge";
 export { VehicleCard } from "./VehicleCard";
+export { StarRating } from "./StarRating";
 export { Reveal } from "./Reveal";
 export { CartLineItem } from "./CartLineItem";
 export { FormField } from "./FormField";

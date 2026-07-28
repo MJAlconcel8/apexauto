@@ -31,14 +31,16 @@ public class ReviewService {
 
     // This method creates a new review entry by a user. It first validates that the user exists, then creates a new Review object, sets the user and vehicle, and saves it to the database using the ReviewRepository.
     @Transactional
-    public Review createReview(int userId, int vehicleId, String reviewComments) {
+    public Review createReview(int userId, int vehicleId, String reviewComments, Integer rating) {
         User user = validateUserExists(userId);
         Vehicle vehicle = validateVehicleExists(vehicleId);
+        validateReviewInput(reviewComments, rating);
 
         Review review = new Review();
         review.setUser(user);
         review.setVehicle(vehicle);
-        review.setReviewComments(reviewComments);
+        review.setReviewComments(reviewComments.trim());
+        review.setRating(rating);
 
         return reviewRepository.save(review);
     }
@@ -93,13 +95,15 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    // This method updates the review comments of a specific review entry made by a user by the review ID and user ID.
+    // This method updates both the comments and star rating of a review made by a user.
     @Transactional
-    public Review updateReviewCommentsByIdAndUserId(int reviewId, int userId, String newComments) {
+    public Review updateReviewByIdAndUserId(int reviewId, int userId, String newComments, Integer rating) {
         validateUserExists(userId);
+        validateReviewInput(newComments, rating);
         Review review = reviewRepository.findByReviewIdAndUserUserId(reviewId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Review not found for the given user"));
-        review.setReviewComments(newComments);
+        review.setReviewComments(newComments.trim());
+        review.setRating(rating);
         return reviewRepository.save(review);
     }
 
@@ -111,6 +115,15 @@ public class ReviewService {
     }
     
     
+    private void validateReviewInput(String reviewComments, Integer rating) {
+        if (reviewComments == null || reviewComments.isBlank()) {
+            throw new IllegalArgumentException("Review comments must not be blank");
+        }
+        if (rating == null || rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Review rating must be between 1 and 5");
+        }
+    }
+
     private User validateUserExists(int userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

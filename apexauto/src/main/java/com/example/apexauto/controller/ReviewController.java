@@ -62,7 +62,12 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {
-            Review saved = reviewService.createReview(userId, request.getVehicleId(), request.getReviewComments());
+            Review saved = reviewService.createReview(
+                    userId,
+                    request.getVehicleId(),
+                    request.getReviewComments(),
+                    request.getRating()
+            );
             return ResponseEntity.status(HttpStatus.CREATED).body(toResponseDTO(saved));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
@@ -81,7 +86,12 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         try {
-            Review updated = reviewService.updateReviewCommentsByIdAndUserId(reviewId, userId, request.getReviewComments());
+            Review updated = reviewService.updateReviewByIdAndUserId(
+                    reviewId,
+                    userId,
+                    request.getReviewComments(),
+                    request.getRating()
+            );
             return ResponseEntity.ok(toResponseDTO(updated));
         } catch (IllegalArgumentException ex) {
             throw toHttpException(ex);
@@ -136,6 +146,7 @@ public class ReviewController {
                 review.getUser().getUserId(),
                 review.getVehicle().getVehicleId(),
                 review.getReviewComments(),
+                review.getRating(),
                 review.getUser().getFirstName(),
                 review.getUser().getLastName()
         );

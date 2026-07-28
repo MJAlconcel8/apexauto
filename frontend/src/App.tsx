@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import type { ViewParams } from './components/types'
 import { AuthProvider } from './auth/AuthProvider'
+import { FavoritesProvider } from './favorites/FavoritesProvider'
 import ProtectedRoute from './auth/ProtectedRoute'
 import GuestOnlyRoute from './auth/GuestOnlyRoute'
 import ApexAutoLanding from './pages/ApexAutoLanding'
@@ -21,6 +22,7 @@ import Catalogue from './pages/Catalogue'
 import GuestCatalogue from './pages/GuestCatalogue'
 import VehicleInfoPage from './pages/VehicleInfoPage'
 import Compare from './pages/Compare'
+import Favorites from './pages/Favorites'
 import Forbidden from './pages/Forbidden'
 import NotFound from './pages/NotFound'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -49,7 +51,8 @@ const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <FavoritesProvider>
+          <Routes>
           <Route path="/" element={<GuestOnlyRoute><Landing /></GuestOnlyRoute>} />
           <Route path="/chatbot" element={<ChatbotPage />} />
           <Route path="/login" element={<GuestOnlyRoute><Login /></GuestOnlyRoute>} />
@@ -71,6 +74,7 @@ const App = () => {
           <Route path="/finance" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/loan-calc" element={<ProtectedRoute><LoanCalc /></ProtectedRoute>} />
           <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
+          <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
 
           <Route
             path="/admin/dashboard"
@@ -106,7 +110,8 @@ const App = () => {
           />
 
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </FavoritesProvider>
       </AuthProvider>
     </BrowserRouter>
   )

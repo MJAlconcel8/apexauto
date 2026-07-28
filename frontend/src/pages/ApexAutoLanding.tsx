@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 import {
   Search, ArrowRight, BatteryCharging,
   Calculator, Check, ChevronRight, Star, ShieldCheck, Clock,
@@ -12,8 +13,6 @@ import Logo from "../components/Logo";
 import type { GoFn, ViewParams, Vehicle } from "../components";
 import { mapVehicle } from "../utils/vehicleUtils";
 import type { VehicleApiResponse } from "../utils/vehicleUtils";
-
-const API = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
 
 
 interface ApexAutoLandingProps { onNavigate?: GoFn; }
@@ -61,7 +60,7 @@ const CATEGORIES = [
 const fmtUSD = (n: number) => "$" + n.toLocaleString("en-US");
 
 const DEFAULT_HERO_VEHICLE: Vehicle = {
-  id: "v-aero",
+  id: "",
   marque: "Vantage",
   model: "Vantage Aero",
   year: 2024,
@@ -85,10 +84,11 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
   const toastTimer = useRef<number | undefined>(undefined);
   const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
   const [heroVehicle, setHeroVehicle] = useState<Vehicle>(DEFAULT_HERO_VEHICLE);
+  const [heroVehicleLoading, setHeroVehicleLoading] = useState(true);
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
 
   useEffect(() => {
-    fetch(`${API}/vehicles`)
+    fetch(`${API_BASE_URL}/vehicles`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load vehicles.');
         return res.json() as Promise<VehicleApiResponse[]>;
@@ -103,7 +103,8 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
       .catch(() => {
         setFeaturedVehicles([]);
         setAllVehicles([]);
-      });
+      })
+      .finally(() => setHeroVehicleLoading(false));
   }, []);
 
   const flash = (msg: string) => {
@@ -114,6 +115,15 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
   const go: GoFn = (view: string, params?: ViewParams) => {
     if (typeof onNavigate === "function") return onNavigate(view, params);
     flash(`→ ${view}${params ? " " + JSON.stringify(params) : ""}`);
+  };
+
+  const openHeroDetails = () => {
+    if (heroVehicle.id) {
+      navigate(`/vehicle/${heroVehicle.id}`, { state: { hideNav: true } });
+      return;
+    }
+
+    go("catalogue", { category: "Sports" });
   };
 
   const stats = [
@@ -215,7 +225,15 @@ export default function ApexAutoLanding({ onNavigate }: ApexAutoLandingProps) {
                   <div className="font-mono text-[11px] uppercase tracking-widest text-[#8fa8ca]">From</div>
                   <div className="font-mono text-[24px] font-semibold text-white">{fmtUSD(heroVehicle.price)}</div>
                 </div>
-                <Btn variant="primary" size="md" icon={ArrowRight} onClick={() => navigate(`/vehicle/${heroVehicle.id}`, { state: { hideNav: true } })}>View details</Btn>
+                <Btn
+                  variant="primary"
+                  size="md"
+                  icon={ArrowRight}
+                  disabled={heroVehicleLoading}
+                  onClick={openHeroDetails}
+                >
+                  {heroVehicleLoading ? "Loading..." : heroVehicle.id ? "View details" : "Browse sports"}
+                </Btn>
               </div>
             </div>
           </Reveal>

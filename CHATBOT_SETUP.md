@@ -1,6 +1,6 @@
 # Gemini Chatbot Setup
 
-Amp sends chat messages from the React frontend to the Spring Boot backend. The backend adds the ApexAuto project notes and calls Gemini. The Gemini API key is only used by the backend.
+Amp sends chat messages from the React frontend to the Spring Boot backend. The backend adds a customer-facing ApexAuto guide and calls Gemini. The guide uses the same menu, button, tab, icon, and section names shown in the interface. The Gemini API key is only used by the backend.
 
 ## Files used by the chatbot
 
@@ -15,7 +15,6 @@ Frontend:
 
 ```text
 frontend/src/pages/ChatbotPage.tsx
-frontend/src/pages/ChatbotPage.css
 frontend/src/services/chatbotApi.ts
 ```
 
@@ -118,8 +117,13 @@ Open the Vite address shown in the terminal, then go to `/chatbot` or use the **
 2. Send a suggested question and confirm that only one message is submitted.
 3. Ask a follow-up question to confirm that recent chat history is included.
 4. Clear the conversation and send a new message.
-5. Ask whether Amp can see a cart, payment, password, or account details. It should explain that it has no access to private or live data.
-6. Stop the backend and confirm that the frontend shows an error instead of failing silently.
+5. Ask “How do I save a vehicle?” and confirm Amp directs the user to the visible heart button and **Favorites** navigation item without relying on an internal route.
+6. Ask “How do Compare and Loan Calc work?” and confirm Amp uses the visible button and section names.
+7. Ask “Is checkout a real payment?” and confirm Amp clearly describes checkout, financing, orders, delivery, and payment fields as simulations.
+8. Ask about the architecture and confirm Amp explains React, TypeScript, Vite, Spring Boot, MySQL, Vercel, Railway, and the server-side Gemini connection.
+9. Ask whether Amp can see a cart, payment, password, or account details. It should explain that it has no access to private or live data.
+10. Ask for an administrator workflow. Amp should explain that its guide is limited to customer-facing features.
+11. Stop the backend and confirm that the frontend shows an error instead of failing silently.
 
 ## Common errors
 
@@ -143,4 +147,6 @@ Amp reads its project information from:
 apexauto/src/main/resources/chatbot/apexauto-site-knowledge.txt
 ```
 
-Update this file when a route or feature changes. Keep it limited to information that is already implemented, and restart the backend after editing it. Do not put secrets, credentials, payment data, or user information in this file.
+Update this file whenever a customer-facing feature, visible label, navigation item, or technology choice changes. Describe navigation using the exact labels customers see, such as **Catalogue**, **Favorites**, **Finance**, and **Add to Cart**. Avoid internal route paths unless they are needed for a technical architecture explanation.
+
+Keep the guide limited to implemented customer features. Clearly identify simulated payments, financing, orders, stock, and delivery. Do not add administrator instructions, secrets, credentials, payment data, or user information. Restart the backend after editing the knowledge file.

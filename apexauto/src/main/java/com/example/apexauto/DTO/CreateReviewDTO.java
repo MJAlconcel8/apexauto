@@ -13,5 +13,6 @@ public class CreateReviewDTO {
     private int userId;
     private int vehicleId;
     private String reviewComments;
+    private Integer rating;
 }
 
