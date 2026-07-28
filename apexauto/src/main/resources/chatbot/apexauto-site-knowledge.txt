@@ -1,29 +1,188 @@
-Project
-- ApexAuto is an electric-vehicle marketplace application.
-- The frontend uses React, TypeScript, Vite, React Router, and Tailwind CSS.
-- The backend uses Java 21, Spring Boot, Spring Security, JWT authentication, JPA, and MySQL.
+APEXAUTO CUSTOMER GUIDE
 
-Frontend routes
-- / is the landing page.
-- /home is the main user home page.
-- /cart is the cart page.
-- /chatbot is the Amp chatbot page.
-- /login, /register, /forgot-password, /verify-email, and /reset-password are authentication pages.
-- The landing page also presents vehicle comparison, financing, checkout, delivery, and vehicle-detail concepts. These do not have separate routes in App.tsx yet.
+Purpose and scope
+- ApexAuto is an educational electric-vehicle marketplace project and demonstration website.
+- It lets regular customers explore vehicles and try simulated shopping features.
+- It is not a real dealership, lender, payment processor, or delivery service.
+- Prices, financing results, stock, checkout, orders, delivery estimates, and payment screens are project simulations.
+- Users should use test information only and should not enter real card details.
+- This guide covers customer-facing features only. Do not give instructions for administrator tools.
 
-Accounts
-- Users can register, sign in, verify their email address, request a password reset, and set a new password.
-- Backend authentication routes use the /auth path.
-- Amp cannot access passwords, reset tokens, JWTs, or private account details.
+How to explain the interface
+- Use the exact words customers can see on the screen, such as Catalogue, Favorites, Compare, Loan Calc, Finance, Add to Cart, and Place Order.
+- Give short steps based on visible buttons, menu items, icons, headings, and sections.
+- Say where the control is, for example: “Select Catalogue in the top navigation.”
+- Do not normally mention internal page addresses such as slash routes. Only discuss routes when the user is asking a technical architecture question.
+- If a feature requires an account, clearly say that the customer must sign in first.
+- The top navigation changes slightly depending on whether the customer is signed in and whether the screen is desktop or mobile.
+- On smaller screens, customers open the menu button to see navigation choices.
 
-Vehicles and shopping
-- The backend contains APIs for vehicles, filters, favourites, reviews, search history, vehicle history, carts, cart lines, orders, loan calculations, and payments.
-- Vehicle filters include brand, make, model, color, year, price, sale status, and stock status.
-- Cart-line financing includes a down payment, annual interest rate, and term in months.
-- The chatbot is not connected to these records. It cannot read live inventory or user data, and it cannot create or update records.
+Main navigation and icons
+- Home returns customers to the main landing or signed-in home page.
+- Catalogue opens the vehicle catalogue.
+- Favorites opens the signed-in customer’s saved vehicles.
+- Compare opens the vehicle comparison tool.
+- Loan Calc opens the financing calculator.
+- The speech-bubble icon opens Amp, the ApexAuto chatbot.
+- The shopping-cart icon opens Your Cart and may show the number of cart items.
+- The round account icon opens a menu containing My Orders, Account Settings, and Log out.
+- Customers who are signed out see Sign in and can select Create account from the mobile menu or registration prompts.
 
-Chatbot
-- The React page sends messages to POST /api/chatbot/messages.
-- The Spring Boot backend includes these project notes in the Gemini request.
-- The Gemini API key is read from the backend .env file and is not sent to the browser.
-- Restart the backend after changing this file.
+Landing page for signed-out visitors
+- The landing page introduces ApexAuto and highlights example vehicles and EV-shopping ideas.
+- Create Free Account opens registration.
+- Sign In or Log In opens the sign-in page.
+- View all and See the full catalogue open the public vehicle catalogue.
+- Category cards let visitors browse vehicle types such as Sedan, Sports, SUV, and Luxury.
+- Featured vehicle cards can open vehicle information.
+- Chat with Amp opens the chatbot.
+- Suggested Amp questions on the landing page send that question to the chatbot.
+- Some landing-page comparisons, financing figures, delivery claims, and vehicle examples are presentation content for the project, not real offers.
+
+Accounts and sign-in
+- Create Account asks for the customer’s profile and account information.
+- After registration, the customer verifies the email using the verification token sent by the backend email service.
+- Verify Email accepts the token from the verification email.
+- Sign In uses the registered email and password.
+- Forgot password? starts the password-reset process.
+- Continue on the forgot-password page requests a reset token.
+- Reset Password accepts the reset token and a new password.
+- Account Settings is available from the round account icon after sign-in.
+- The Profile section lets customers update their first and last name with Save Changes.
+- Account Status shows verification, enabled, locked, or restricted account information.
+- Verify Email may also appear in Account Settings when verification is still required.
+- Change Password lets customers select Send Reset Code and then Update Password.
+- Log out ends the current session and returns to the public landing page.
+
+Signed-in Home page
+- Browse Vehicles opens the Catalogue.
+- View Nexus S opens the highlighted example vehicle.
+- Browse By Type or category cards open the Catalogue with a vehicle type selected.
+- Top Picks presents featured vehicles that can be opened for more information.
+- Why Choose ApexAuto describes project benefits and customer-shopping concepts.
+
+Vehicle Catalogue
+- The Catalogue displays available vehicle cards and the number of vehicles found.
+- Search models… filters by the vehicle make and model shown on the card.
+- Category choices include All, Sedan, Sports, SUV, and Luxury.
+- Max Price changes the maximum displayed vehicle price.
+- Sort By includes Featured and price-order choices.
+- Hide Filters hides the filter panel, and Show Filters displays it again.
+- Reset Filters clears the current catalogue filters.
+- A vehicle card can show stock status, vehicle class, make and model, stock count, condition, year, mileage, emissions, fuel use, seats, average star rating, review count, and price.
+- Select the vehicle card or View to open the vehicle details page.
+- Select the heart button to save or remove the vehicle from Favorites.
+- A filled heart means the vehicle is saved. An outline heart means it is not saved.
+- Select Finance to open Loan Calc with that vehicle already selected.
+- Select Add to Cart to add the vehicle as a cash purchase.
+- Customers must sign in to save Favorites, use financing, compare vehicles, add to cart, review vehicles, or place simulated orders.
+- If no vehicle matches the filters, the Catalogue offers a Reset Filters action.
+
+Favorites
+- Favorites requires a signed-in customer account.
+- Customers save a vehicle by selecting the heart beside its name on a Catalogue card or vehicle details page.
+- Select Favorites in the top navigation to see all saved vehicles.
+- Selecting a filled heart removes that vehicle from Favorites.
+- Saved vehicles remain associated with the customer account when the page is refreshed or the customer signs in again.
+- If there are no saved vehicles, the page shows No favorite vehicles yet and a Browse Catalogue button.
+- A saved vehicle may still appear if it becomes out of stock, but its current availability controls whether it can be added to the cart.
+
+Vehicle details
+- Select a vehicle card to see a larger image, vehicle name, price, availability, condition, year, stock, mileage, emissions, fuel use, seats, and other specifications.
+- The heart beside the vehicle name saves or removes it from Favorites.
+- Add to Cart adds a cash-purchase line to the current cart when stock is available.
+- Finance opens Loan Calc for that vehicle.
+- Back returns to the previous page.
+- Reviews and Vehicle History are separate tabs near the bottom of the page.
+- Reviews show customer comments and, when provided, ratings from 1 to 5 stars.
+- The vehicle page shows an average rating based on rated reviews.
+- A signed-in customer can use Write a Review, select 1 to 5 stars, enter a comment, and select Submit Review.
+- Customers may submit multiple reviews for the same vehicle.
+- Customers can select Edit or Delete on their own reviews.
+- Older reviews created before star ratings may appear as Unrated review until edited.
+- Vehicle History lets customers read available history notes associated with the vehicle.
+
+Compare
+- Compare requires sign-in.
+- Select Compare in the top navigation.
+- Choose two or three vehicle cards. Selected vehicles show a selection indicator.
+- Select Compare 2 Vehicles or Compare 3 Vehicles when enough vehicles are selected.
+- The result page shows a Side-by-Side Comparison and marks the best value in comparison rows.
+- ApexAuto also displays a project recommendation based on price, range or mileage information, efficiency, and availability.
+- New Comparison clears the result and lets the customer choose again.
+- Add to Cart adds an available recommended vehicle as a cash purchase.
+- Finance opens Loan Calc for the selected recommended vehicle.
+- Compare is a project decision aid and not professional purchasing advice.
+
+Loan Calc and financing
+- Loan Calc requires sign-in.
+- Customers can select Loan Calc in the top navigation or select Finance on a vehicle card or details page.
+- When Finance is selected from a vehicle, that vehicle is preselected in the calculator.
+- The Loan Details section lets customers adjust down payment, loan term, and annual interest rate.
+- The supported term control ranges from 12 to 84 months.
+- The annual-rate control ranges from 0% to 20%.
+- Payment Summary displays estimated monthly payment and related financing totals.
+- Select Add to Cart to save the chosen financing scenario as a financed cart line.
+- The calculator is an educational estimate. It is not a loan application, approval, credit check, or offer from a lender.
+- Actual financing would depend on a real lender, taxes, fees, credit history, and final contract terms.
+
+Your Cart
+- Select the shopping-cart icon to open Your Cart.
+- The cart can contain cash-purchase lines and financed lines.
+- Financed lines can show monthly payment and total financed cost.
+- Remove deletes a line from the cart.
+- Continue Shopping returns to vehicle browsing.
+- Proceed to Checkout opens the simulated checkout when the cart contains items.
+- Cart totals and stock are part of the project simulation.
+
+Checkout and simulated ordering
+- Checkout has three visible steps: Personal Info, Payment, and Review & Confirm.
+- Personal Info collects the name, contact information, and delivery address for the demonstration flow.
+- Select Continue to move to the next step and Back to return to the previous step.
+- Payment displays card-entry fields, but ApexAuto does not connect them to a real payment processor.
+- Customers should use test or fictional payment details only and should never enter a real card number or security code.
+- Review & Confirm summarizes the displayed address, simulated payment method, vehicles, subtotal, tax, delivery fee, and total.
+- Place Order creates a simulated ApexAuto order. It does not charge a card, create real financing, reserve a real vehicle, or arrange actual delivery.
+- The displayed delivery estimate is a project example and not a real commitment.
+- The confirmation page displays Order Confirmed, an order ID, status, and buttons such as Back to Home or Browse More Vehicles.
+
+My Orders
+- Open the round account icon and select My Orders.
+- My Orders lists simulated orders created through checkout, their status, vehicle lines, and totals.
+- Customers can return to the Catalogue when there are no orders.
+- Deleting an eligible unpaid simulated order removes it from the customer order list and may restore project inventory.
+- Order status and delivery information are demonstration data, not real fulfilment tracking.
+
+Amp chatbot
+- Customers open Amp by selecting the speech-bubble icon in the navigation or Chat with Amp on the landing page.
+- Suggested-question buttons send a prepared question.
+- Customers type in the Message Amp box and select the send-arrow button or press Enter.
+- Shift+Enter creates a new line.
+- Clear removes the visible conversation from the current page.
+- Amp can explain ApexAuto customer features, visible buttons, general project architecture, and basic EV-shopping topics.
+- Amp can answer in another language when the customer writes clearly in that language, but English is the default.
+- Amp cannot see the customer’s live account, favorites, cart, orders, payments, database records, or current inventory values.
+- Amp cannot click buttons, submit forms, save vehicles, place orders, change passwords, or perform actions for the customer.
+- Amp must never request passwords, verification tokens, reset tokens, API keys, JWTs, access tokens, or payment-card details.
+
+Architecture and technology stack
+- ApexAuto is a full-stack client-server application.
+- The customer interface is a React and TypeScript single-page application built with Vite.
+- React Router controls page navigation in the browser.
+- Tailwind CSS utility classes and project components provide the visual design.
+- The frontend is deployed on Vercel.
+- The backend is a Java 21 Spring Boot REST API.
+- Spring Security and JWT-based authentication protect signed-in features. Authentication is carried through a secure HTTP-only cookie in production.
+- Spring Data JPA and Hibernate connect the backend to a MySQL database.
+- The backend is containerized with Docker and deployed on Railway.
+- The frontend calls backend REST endpoints for accounts, vehicles, filters, favorites, reviews, vehicle history, comparisons, loan calculations, carts, checkout, and orders.
+- The backend also contains payment-related project data services, but the customer checkout is not connected to a real payment processor.
+- Amp sends chatbot messages to the Spring Boot backend. The backend adds this customer guide and calls the Gemini API.
+- The Gemini API key remains on the backend and is not sent to the browser.
+- Amp receives recent conversation text and this static guide, but it is not connected to live customer or inventory records.
+
+General EV guidance
+- Amp may provide basic educational explanations about EV range, charging, batteries, efficiency, cold weather, ownership considerations, and used-EV shopping.
+- General EV answers should be practical and easy to understand.
+- Amp should distinguish general educational information from ApexAuto’s simulated vehicle data and features.
+- Amp should not present general information as professional mechanical, financial, legal, or safety advice.

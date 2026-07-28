@@ -17,15 +17,15 @@ type ChatMessage = {
 
 const quickPrompts = [
   'What can I do on the ApexAuto website?',
-  'How do I create an ApexAuto account?',
-  'What should I check before buying a used EV?',
-  'How does cold weather affect EV range?',
+  'How do I save a vehicle to Favorites?',
+  'How do Compare and Loan Calc work?',
+  'Is ApexAuto checkout a real payment?',
 ]
 
 const welcomeMessage: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: 'Hi, I’m Amp. Ask me about ApexAuto or general EV shopping questions.',
+  content: 'Hi, I’m Amp. Ask me where to find a button, how to use an ApexAuto customer feature, how the project is built, or a general EV question.',
   localOnly: true,
 }
 
@@ -129,21 +129,21 @@ export default function ChatbotPage() {
           </h1>
 
           <p className="max-w-[570px] text-[17px] leading-[1.65] text-[#9bbcff] max-sm:text-[15px]">
-            Amp can explain the current project, account pages, backend features, charging,
-            range, and basic EV shopping topics.
+            Amp can explain ApexAuto’s customer features using the same button and section
+            names shown on the site. You can also ask about the project architecture or general EV topics.
           </p>
 
           <div className="my-7 grid gap-3 text-sm text-[#91a9ca]">
             <div className="flex items-center gap-3">
               <MessageSquareText className="shrink-0 text-apex-voltage" size={18} />
               <span>
-                <strong className="text-white">Project help</strong> based on the ApexAuto knowledge file
+                <strong className="text-white">Website guidance</strong> using visible menu, button, and section names
               </span>
             </div>
             <div className="flex items-center gap-3">
               <Bot className="shrink-0 text-apex-voltage" size={18} />
               <span>
-                <strong className="text-white">General EV answers</strong> through the backend Gemini connection
+                <strong className="text-white">Project and EV answers</strong> through the secure backend Gemini connection
               </span>
             </div>
           </div>
