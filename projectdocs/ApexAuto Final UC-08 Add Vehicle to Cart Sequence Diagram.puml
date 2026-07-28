@@ -1,0 +1,76 @@
+@startuml
+title UC-08 — Add Vehicle to Cart
+
+hide footbox
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 17
+skinparam BoxPadding 10
+skinparam maxMessageSize 70
+
+actor "Registered Customer" as Customer
+
+box "React Frontend" #EEF5FF
+boundary "Catalogue, Vehicle Details,\nCompare or Loan Calc Page" as UI
+end box
+
+box "Spring Boot Backend" #F4F4F4
+control "Spring Security" as Security
+control "UserCartController" as UserCartController
+control "CartLineController" as CartLineController
+control "CartService" as CartService
+control "LoanService" as LoanService
+end box
+
+database "JPA Repositories /\nRailway MySQL" as Data
+
+Customer -> UI : Select Add to Cart
+UI -> Security : GET /users/me/carts/active\nwith JWT cookie
+Security -> UserCartController : Forward authenticated request
+UserCartController -> CartService : getActiveCartByUserId(userId)
+CartService -> Data : Find latest ACTIVE cart
+Data --> CartService : Active cart or not found
+
+alt No active cart exists
+  CartService --> UserCartController : Active cart not found
+  UserCartController --> UI : 404 Not Found
+  UI -> Security : POST /users/me/carts
+  Security -> UserCartController : Forward authenticated request
+  UserCartController -> CartService : createCartForUser(userId)
+  CartService -> Data : Save new ACTIVE cart
+  Data --> CartService : Created cart
+  CartService --> UserCartController : Cart response
+  UserCartController --> UI : 201 Created and cart ID
+else Active cart exists
+  CartService --> UserCartController : Active cart
+  UserCartController --> UI : 200 OK and cart ID
+end
+
+UI -> Security : POST /carts/{cartId}/cart-lines\nvehicle, quantity and optional financing
+Security -> CartLineController : Forward authenticated request
+CartLineController -> CartService : addVehicleToCart(...)
+CartService -> Data : Verify ownership, vehicle,\nprice and available stock
+
+alt Cart request is valid
+  Data --> CartService : Valid cart and vehicle
+
+  opt Financing is selected
+    CartService -> LoanService : Calculate financing snapshot
+    LoanService --> CartService : Monthly payment, total cost\nand total interest
+  end
+
+  CartService -> Data : Save cart line and update item count
+  Data --> CartService : Updated cart
+  CartService --> CartLineController : Cart response
+  CartLineController --> UI : 201 Created
+  UI --> Customer : Display Added to cart confirmation
+else Ownership, vehicle or stock validation fails
+  Data --> CartService : Validation error
+  CartService --> CartLineController : Add-to-cart error
+  CartLineController --> UI : Error response
+  UI --> Customer : Display add-to-cart error
+end
+
+@enduml

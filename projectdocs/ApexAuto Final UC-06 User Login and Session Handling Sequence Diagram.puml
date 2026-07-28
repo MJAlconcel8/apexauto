@@ -1,0 +1,60 @@
+@startuml
+title UC-06 — User Login and Session Handling
+
+hide footbox
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 16
+skinparam BoxPadding 10
+skinparam maxMessageSize 70
+
+actor "Guest / User" as User
+
+box "React Frontend" #EEF5FF
+boundary "Login Page" as LoginPage
+control "AuthProvider" as AuthProvider
+end box
+
+box "Spring Boot Backend" #F4F4F4
+control "AuthenticationController" as Controller
+control "AuthenticationService" as AuthService
+control "Spring Security" as Security
+control "JWTService" as JWT
+end box
+
+database "UserRepository /\nRailway MySQL" as Data
+
+User -> LoginPage : Enter email and password
+LoginPage -> Controller : POST /auth/login over HTTPS
+Controller -> AuthService : authenticate(credentials)
+AuthService -> Data : Load user account
+Data --> AuthService : User record
+AuthService -> Security : Authenticate credentials\nand verify BCrypt password
+
+alt Credentials or account state are invalid
+  Security --> AuthService : Authentication failure
+  AuthService --> Controller : Login error
+  Controller --> LoginPage : 401 or 403 response
+  LoginPage --> User : Display a readable error
+else Authentication succeeds
+  Security --> AuthService : Authentication successful
+  AuthService --> Controller : Authenticated user
+  Controller -> JWT : Generate signed token
+  JWT --> Controller : JWT and expiry
+  Controller --> LoginPage : 200 OK and HTTP-only JWT cookie
+
+  LoginPage -> AuthProvider : refreshUser()
+  AuthProvider -> Security : GET /auth/me with JWT cookie
+  Security -> JWT : Validate token
+  JWT --> Security : Valid email subject
+  Security -> Data : Load current user
+  Data --> Security : User account
+  Security -> Controller : Forward authenticated request
+  Controller --> AuthProvider : User profile and role
+  AuthProvider --> LoginPage : Session state restored
+  LoginPage --> User : Open the requested page\nor the Catalogue
+end
+
+@enduml
