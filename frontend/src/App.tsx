@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import type { ViewParams } from './components/types'
 import { AuthProvider } from './auth/AuthProvider'
-import { FavoritesProvider } from './favorites/FavoritesContext'
+import { FavoritesProvider } from './favorites/FavoritesProvider'
 import ProtectedRoute from './auth/ProtectedRoute'
 import GuestOnlyRoute from './auth/GuestOnlyRoute'
 import ApexAutoLanding from './pages/ApexAutoLanding'

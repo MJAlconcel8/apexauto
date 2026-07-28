@@ -1,18 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { addFavorite, getFavorites, removeFavorite } from '../services/favoritesApi'
-
-interface FavoritesContextValue {
-  favoriteVehicleIds: number[]
-  isLoading: boolean
-  error: string | null
-  isFavorite: (vehicleId: number) => boolean
-  isPending: (vehicleId: number) => boolean
-  toggleFavorite: (vehicleId: number) => Promise<boolean>
-  refreshFavorites: () => Promise<void>
-}
-
-const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined)
+import { FavoritesContext } from './FavoritesContext'
+import type { FavoritesContextValue } from './FavoritesContext'
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -62,7 +52,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [user, updateFavoriteIds, updatePendingIds])
 
   useEffect(() => {
-    void refreshFavorites()
+    const initialFavoritesLoad = window.setTimeout(() => {
+      void refreshFavorites()
+    }, 0)
+
+    return () => window.clearTimeout(initialFavoritesLoad)
   }, [refreshFavorites])
 
   const favoriteIdSet = useMemo(() => new Set(favoriteVehicleIds), [favoriteVehicleIds])
@@ -114,10 +108,4 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }), [error, favoriteIdSet, favoriteVehicleIds, isLoading, pendingVehicleIds, refreshFavorites, toggleFavorite])
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>
-}
-
-export function useFavorites() {
-  const context = useContext(FavoritesContext)
-  if (!context) throw new Error('useFavorites must be used inside FavoritesProvider')
-  return context
 }

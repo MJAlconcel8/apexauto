@@ -35,7 +35,11 @@ export default function Favorites() {
   }, [])
 
   useEffect(() => {
-    void loadVehicles()
+    const initialVehicleLoad = window.setTimeout(() => {
+      void loadVehicles()
+    }, 0)
+
+    return () => window.clearTimeout(initialVehicleLoad)
   }, [loadVehicles])
 
   const favoriteVehicles = useMemo(() => {
