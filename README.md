@@ -1,59 +1,189 @@
+# ApexAuto
+
+ApexAuto is a full-stack educational vehicle marketplace. It provides public vehicle browsing and a simulated customer purchase flow, including account registration, favorites, comparison, financing estimates, cart management, checkout, orders, reviews with 1–5 star ratings, and the Amp chatbot.
+
+> **Simulation notice:** ApexAuto is a project demonstration. Vehicle inventory, financing, checkout, payment fields, orders, delivery estimates, and payment records are simulated. Do not enter real payment-card information.
+
+## Current Features
+
+### Public features
+
+- Landing page and guest vehicle catalogue
+- Vehicle search, category filters, price filters, and sorting
+- Vehicle details, reviews, star-rating averages, and vehicle-history notes
+- Account registration, email verification, login, logout, and password reset
+- Amp chatbot powered by Google Gemini
+
+### Registered customer features
+
+- Save and remove favorite vehicles
+- View a dedicated Favorites page
+- Compare two or three vehicles
+- Estimate financing with adjustable down payment, term, and annual rate
+- Add cash or financed vehicle lines to a cart
+- Complete simulated checkout and view orders
+- Create, edit, and delete reviews with 1–5 star ratings
+- Update account details and password
+
+### Administrator features
+
+- Dashboard and payment summary
+- Vehicle inventory creation, editing, and deletion
+- Vehicle-history management
+- User role and restriction management
+- Order and order-status management
+- Review moderation
+
+## Technology Stack
+
+### Frontend
+
+- React 19
+- TypeScript 6
+- Vite 8
+- React Router 7
+- Tailwind CSS 4
+- Lucide React icons
+
+### Backend
+
+- Java 21
+- Spring Boot 4.1
+- Spring MVC
+- Spring Security
+- Spring Data JPA and Hibernate
+- MySQL
+- JWT authentication
+- Spring Mail
+- Google Gemini REST API integration
+
+### Deployment
+
+- Frontend: Vercel
+- Backend: Railway Docker service
+- Database: Railway-managed MySQL
+- Source collaboration: shared team GitHub repository
+- Deployment: personal GitHub fork and `deploy/vercel-railway` branch
+- Live frontend: `https://apexauto-beta.vercel.app`
+
+## Repository Structure
+
+```text
+apexauto/
+├── apexauto/                 Spring Boot backend
+│   ├── src/main/java/
+│   ├── src/main/resources/
+│   ├── src/test/java/
+│   ├── Dockerfile
+│   ├── env.example
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   └── pom.xml
+├── frontend/                 React frontend
+│   ├── src/
+│   ├── public/
+│   ├── .env.example
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vercel.json
+├── projectdocs/
+├── CHATBOT_SETUP.md
+├── railway.json
+└── README.md
+```
+
 # ApexAuto Backend Local Development
 
-This directory contains the Spring Boot backend for ApexAuto.
+The Spring Boot backend is located in the `apexauto/` directory.
 
 ## Prerequisites
 
 - Java 21
-- Maven 3.9+ (or use the bundled `mvnw` wrapper)
 - MySQL 8+
+- Maven is optional because the Maven wrapper is included
+- A valid SMTP account for registration verification and password-reset emails
+- A Gemini API key only when testing Amp
 
 ## 1) Create a local `.env`
 
-The backend loads environment values from a local `.env` file before Spring Boot starts.
-Place the file next to `pom.xml` in this directory:
+Place the backend `.env` next to `pom.xml`.
+
+### PowerShell
+
+```powershell
+cd apexauto
+Copy-Item env.example .env
+```
+
+### macOS or Linux
 
 ```bash
-cd /Users/{path-to-apex-auto}/apexauto/apexauto
+cd apexauto
 cp env.example .env
 ```
 
-Then update the values to match your machine and local database.
+Update `.env` for your local database and services.
 
-### Variables used by the backend
+### Backend environment variables
 
-- `SPRING_DATASOURCE_URL` — JDBC URL for your local MySQL database
-- `SPRING_DATASOURCE_USERNAME` — MySQL username
-- `SPRING_DATASOURCE_PASSWORD` — MySQL password
-- `JWT_SECRET_KEY` — **required** — Base64-encoded 256-bit secret used to sign JWTs (no default; the app will fail to start if missing)
-- `JWT_EXPIRATION_TIME` — JWT lifetime in milliseconds (optional, defaults to `3600000` = 1 hour)
+| Variable | Required | Purpose |
+|---|---:|---|
+| `SPRING_DATASOURCE_URL` | Yes | JDBC connection string for MySQL |
+| `SPRING_DATASOURCE_USERNAME` | Yes | MySQL username |
+| `SPRING_DATASOURCE_PASSWORD` | Yes | MySQL password |
+| `JPA_DDL_AUTO` | No | Hibernate schema behaviour; defaults to `update` |
+| `JPA_SHOW_SQL` | No | Enables SQL logging; defaults to `false` |
+| `JPA_FORMAT_SQL` | No | Formats SQL logs; defaults to `false` |
+| `CORS_ALLOWED_ORIGINS` | No | Comma-separated frontend origin patterns |
+| `AUTH_COOKIE_SECURE` | No | `auto`, `true`, or `false` |
+| `AUTH_COOKIE_SAME_SITE` | No | `auto`, `Lax`, `Strict`, or `None` |
+| `JWT_SECRET_KEY` | Yes | Base64-encoded key used to sign JWTs |
+| `JWT_EXPIRATION_TIME` | No | JWT lifetime in milliseconds; defaults to 30 days |
+| `MAIL_HOST` | Yes | SMTP server |
+| `MAIL_PORT` | No | SMTP port; defaults to `587` |
+| `MAIL_USERNAME` | Yes | SMTP username |
+| `MAIL_PASSWORD` | Yes | SMTP password or app password |
+| `GEMINI_API_KEY` | For Amp | Server-side Gemini API key |
+| `GEMINI_MODEL` | No | Defaults to `gemini-3.1-flash-lite` |
+| `CHATBOT_MAX_OUTPUT_TOKENS` | No | Defaults to `300` |
 
-Generate a secure `JWT_SECRET_KEY`:
+Generate a JWT secret:
 
 ```bash
 openssl rand -base64 32
 ```
 
-or with Node:
+Or with Node.js:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-> **Never commit a real secret key.** `.env` is already in `.gitignore`.
+> Never commit `.env`, database credentials, mail credentials, JWT secrets, or Gemini keys.
 
-## 2) Create a local MySQL database for testing
+### Local cookie settings
 
-The backend uses `spring.jpa.hibernate.ddl-auto=update`, so once the database exists,
-Hibernate will create or update the tables automatically.
+For a local frontend on `http://localhost:5173` and backend on `http://localhost:8080`, use:
 
-Example database setup:
+```text
+CORS_ALLOWED_ORIGINS=http://localhost:*
+AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SAME_SITE=Lax
+```
+
+For Vercel and Railway over HTTPS, production normally uses secure cookies and `SameSite=None`.
+
+## 2) Create a local MySQL database
+
+The backend uses `spring.jpa.hibernate.ddl-auto=update` by default. Hibernate creates or updates tables after the database itself exists.
+
+Start MySQL:
 
 ```bash
 mysql -u root -p
 ```
 
-Inside the MySQL shell:
+Then run:
 
 ```sql
 CREATE DATABASE apexauto_test;
@@ -63,164 +193,250 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-Use the same database name in `SPRING_DATASOURCE_URL`, for example:
+Use the same values in `.env`:
 
 ```text
-jdbc:mysql://localhost:3306/apexauto_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/apexauto_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=apexauto_user
+SPRING_DATASOURCE_PASSWORD=apexauto_password
 ```
 
-## 3) Run the backend
+## 3) Optional sample data
 
-From this directory:
+Sample cart statuses, order statuses, and vehicles can be seeded when the backend starts.
+
+### PowerShell
+
+```powershell
+$env:APP_SEED_ENABLED = "true"
+.\mvnw.cmd spring-boot:run
+```
+
+### macOS or Linux
+
+```bash
+export APP_SEED_ENABLED=true
+./mvnw spring-boot:run
+```
+
+Seeding is disabled by default and only inserts missing sample vehicles. It does not create a default administrator account.
+
+## 4) Run backend tests
+
+### PowerShell
+
+```powershell
+.\mvnw.cmd test
+```
+
+### macOS or Linux
+
+```bash
+chmod +x mvnw
+./mvnw test
+```
+
+Backend tests are stored under:
+
+```text
+apexauto/src/test/java/com/example/apexauto/
+```
+
+Current test areas include authentication, roles, favorites, reviews, financing, carts, orders, payments, chatbot validation, Gemini error handling, and knowledge-file loading.
+
+## 5) Run the backend
+
+### PowerShell
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+### macOS or Linux
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-If you want to run the backend tests:
-
-```bash
-./mvnw test
-```
-
-## 4) Run backend tests
-
-Backend tests are stored in:
+The backend starts at:
 
 ```text
-src/test/java/com/example/apexauto/
+http://localhost:8080
 ```
 
-Service-level tests are stored in:
+Health endpoint:
 
 ```text
-src/test/java/com/example/apexauto/services/
+GET http://localhost:8080/health
 ```
 
-Run all backend tests:
+## Backend Notes
 
-```bash
-./mvnw test
-```
+- The application searches for `.env` in the backend directory, repository root, and related parent paths.
+- Operating-system environment variables and JVM system properties take precedence over `.env`.
+- The backend uses stateless Spring Security.
+- Login sets a JWT in an HTTP-only cookie named `jwt`.
+- The API also accepts `Authorization: Bearer <token>` when a token is supplied manually.
+- Browser requests to protected endpoints must include credentials. The frontend already uses `credentials: 'include'`.
+- Registration sends an email-verification token through SMTP and currently also returns it in the registration response for project testing.
+- Changing backend environment variables requires restarting Spring Boot.
+- An administrator account is not created automatically. For local admin testing, promote a verified local user to the `ADMIN` role in the local database.
 
-### Current service test coverage
+# API Endpoints
 
-#### `OrderServiceTest`
+## Authentication and access
 
-- Blocks order-line changes after a payment exists
+### Public authentication endpoints
 
-#### `PaymentServiceTest`
-
-- Rejects duplicate payments for the same order
-
-## Notes
-
-- The application checks for `.env` in this directory, the workspace root, and a few related paths.
-- If a value is already present as an OS environment variable or JVM system property, it takes precedence over `.env`.
-- `JWT_EXPIRATION_TIME` is in milliseconds; the default fallback is `3600000` (1 hour).
-
-## API Endpoints (Current Purchase Flow)
-
-Most endpoints require a JWT in the `Authorization` header:
-
-```text
-Authorization: Bearer <token>
-```
-
-### Authentication
-
-- `POST /auth/register` — register a new user
-- `POST /auth/login` — log in and receive a JWT
-- `GET /auth/verify-email?token=...` — verify a user's email address
-- `GET /auth/account-status?email=...` — check whether an account is enabled, verified, or locked
-- `POST /auth/forgot-password` — generate a password reset token
+- `POST /auth/register` — create a user account
+- `POST /auth/login` — authenticate and set the JWT cookie
+- `POST /auth/logout` — clear the JWT cookie
+- `GET /auth/verify-email?token=...` — verify an email address
+- `GET /auth/account-status?email=...` — read verification and lock status
+- `POST /auth/forgot-password` — generate and email a reset token
 - `POST /auth/reset-password` — reset a password using a token
 
-### Vehicles
+### Authenticated account endpoints
 
-- `GET /vehicles` — list all vehicles
-- `GET /vehicles/{vehicleId}` — get one vehicle by ID
-- `GET /vehicles/filter` — filter vehicles by query parameters
-- `POST /vehicles` — **[Requires Authentication]** create a new vehicle
-- `PUT /vehicles/{vehicleId}` — **[Requires Authentication]** fully update an existing vehicle
-- `PATCH /vehicles/{vehicleId}` — **[Requires Authentication]** partially update an existing vehicle
-- `DELETE /vehicles/{vehicleId}` — **[Requires Authentication]** delete a vehicle by ID
+- `GET /auth/me` — return the signed-in user
+- `PATCH /auth/me` — update first name, last name, or email
 
-Common filter query parameters for `GET /vehicles/filter`:
+## Vehicles
+
+### Public
+
+- `GET /vehicles` — list vehicles
+- `GET /vehicles/{vehicleId}` — get one vehicle
+- `GET /vehicles/filter` — filter vehicles through query parameters
+- `GET /reviews/vehicles/{vehicleId}` — list vehicle reviews
+- `GET /vehicle-history/vehicles/{vehicleId}` — list public vehicle-history notes
+
+Common vehicle filter parameters:
 
 - `brand`, `make`, `model`, `color`
-- `year` (exact match)
-- `minYear`, `maxYear` (range; ignored when `year` is provided)
+- `year`, `minYear`, `maxYear`
 - `minPrice`, `maxPrice`
 - `isOnSale`, `isInStock`
 
-### Search History
+### Authenticated
 
-- `GET /users/{userId}/search-history` — list all search history entries for a user
-- `GET /users/{userId}/search-history/{searchHistoryId}` — get one search history entry for a user
-- `POST /users/{userId}/search-history` — create a new search history entry for a user
-- `DELETE /users/{userId}/search-history/{searchHistoryId}` — delete one search history entry for a user
-- `DELETE /users/{userId}/search-history` — delete all search history entries for a user
+- `POST /vehicles/compare` — compare two or three vehicles
 
-### Vehicle History
+Example:
 
-- `GET /users/{userId}/vehicle-history` — list all vehicle history entries for a user
-- `GET /users/{userId}/vehicle-history/{vehicleHistoryId}` — get one vehicle history entry for a user
-- `POST /users/{userId}/vehicle-history` — create a new vehicle history entry for a user
-- `DELETE /users/{userId}/vehicle-history/{vehicleHistoryId}` — delete one vehicle history entry for a user
-- `DELETE /users/{userId}/vehicle-history` — delete all vehicle history entries for a user
-- `GET /vehicle-history` — list all vehicle history entries across all users and vehicles
-- `GET /vehicle-history/vehicles/{vehicleId}` — list all vehicle history entries for a specific vehicle
-- `DELETE /vehicle-history/vehicles/{vehicleId}` — delete all vehicle history entries for a specific vehicle
-- `DELETE /vehicle-history` — delete all vehicle history entries from the database
+```json
+{
+  "vehicleIds": [1, 2, 3]
+}
+```
 
-### Reviews
+### Administrator
 
-- `GET /users/{userId}/reviews` — list all reviews created by a specific user (newest first)
-- `GET /users/{userId}/reviews/{reviewId}` — get one specific review for a user
-- `POST /users/{userId}/reviews` — create a new review for a vehicle by a user
-- `PATCH /users/{userId}/reviews/{reviewId}` — update the comments for a specific review
-- `DELETE /users/{userId}/reviews/{reviewId}` — delete one specific review for a user
-- `DELETE /users/{userId}/reviews` — delete all reviews created by a specific user
-- `GET /reviews` — list all reviews across all vehicles and users (newest first)
-- `GET /reviews/vehicles/{vehicleId}` — list all reviews for a specific vehicle (newest first)
-- `DELETE /reviews` — delete all reviews across all vehicles and users
-- `DELETE /reviews/vehicles/{vehicleId}` — delete all reviews for a specific vehicle
+- `POST /vehicles` — create a vehicle
+- `PUT /vehicles/{vehicleId}` — replace editable vehicle data
+- `PATCH /vehicles/{vehicleId}` — partially update a vehicle
+- `DELETE /vehicles/{vehicleId}` — delete a vehicle
 
-### Favourites
+## Favorites
 
-- `GET /users/{userId}/favourites` — list all favourite vehicles for a user (newest first)
-- `GET /users/{userId}/favourites/{vehicleId}` — get one specific favourite vehicle for a user
-- `POST /users/{userId}/favourites` — add a vehicle to a user's favourites
-- `DELETE /users/{userId}/favourites/{vehicleId}` — remove a vehicle from a user's favourites
+The frontend label uses **Favorites**. The backend endpoint uses the existing British spelling `favourites`.
 
-### Carts
+- `GET /users/{userId}/favourites` — list saved vehicles
+- `GET /users/{userId}/favourites/{vehicleId}` — get one saved vehicle
+- `POST /users/{userId}/favourites` — save a vehicle
+- `DELETE /users/{userId}/favourites/{vehicleId}` — remove a saved vehicle
 
-- `GET /carts` — list all carts
-- `GET /carts/{cartId}` — get one cart by ID
-- `GET /carts/status/{cartStatusId}` — list all carts with a specific cart status
-- `POST /carts` — create a new cart for a user, optionally with vehicles
-- `PUT /carts/{cartId}` — update editable cart fields
-- `DELETE /carts/{cartId}` — delete a cart by ID
+Example create body:
 
-### User Carts
+```json
+{
+  "userId": 7,
+  "vehicleId": 12
+}
+```
 
-- `GET /users/{userId}/carts` — list all carts created by a specific user
-- `GET /users/{userId}/carts/active` — get the latest ACTIVE cart for a specific user
-- `POST /users/{userId}/carts` — create a new cart for a specific user
+## Reviews and Star Ratings
 
-### Cart Lines (Per-Vehicle Financing)
+- `GET /users/{userId}/reviews` — list a user’s reviews
+- `GET /users/{userId}/reviews/{reviewId}` — get one review
+- `POST /users/{userId}/reviews` — create a review
+- `PATCH /users/{userId}/reviews/{reviewId}` — edit a review
+- `DELETE /users/{userId}/reviews/{reviewId}` — delete one review
+- `DELETE /users/{userId}/reviews` — delete all reviews by a user
+- `GET /reviews` — list all reviews
+- `GET /reviews/vehicles/{vehicleId}` — list reviews for a vehicle
+- `DELETE /reviews` — administrator: delete all reviews
+- `DELETE /reviews/vehicles/{vehicleId}` — administrator: delete reviews for one vehicle
 
-- `GET /carts/{cartId}/cart-lines` — list all vehicles attached to a cart
-- `POST /carts/{cartId}/cart-lines` — add a vehicle to a cart with optional financing
-- `DELETE /carts/{cartId}/cart-lines/{vehicleId}` — remove a vehicle from a cart
+Create or update requests include a comment and a rating from 1 to 5:
 
-`POST /carts/{cartId}/cart-lines` request body:
+```json
+{
+  "userId": 7,
+  "vehicleId": 12,
+  "reviewComments": "Comfortable and easy to drive.",
+  "rating": 5
+}
+```
+
+Users may create multiple reviews for the same vehicle. Older reviews without ratings are still supported.
+
+## Search History
+
+- `GET /users/{userId}/search-history`
+- `GET /users/{userId}/search-history/{searchHistoryId}`
+- `POST /users/{userId}/search-history`
+- `DELETE /users/{userId}/search-history/{searchHistoryId}`
+- `DELETE /users/{userId}/search-history`
+
+## Vehicle History
+
+### User-scoped endpoints
+
+- `GET /users/{userId}/vehicle-history`
+- `GET /users/{userId}/vehicle-history/{vehicleHistoryId}`
+- `POST /users/{userId}/vehicle-history`
+- `DELETE /users/{userId}/vehicle-history/{vehicleHistoryId}`
+- `DELETE /users/{userId}/vehicle-history`
+
+### Global and administrator endpoints
+
+- `GET /vehicle-history`
+- `GET /vehicle-history/vehicles/{vehicleId}`
+- `DELETE /vehicle-history`
+- `DELETE /vehicle-history/vehicles/{vehicleId}`
+
+The project also contains legacy user-scoped vehicle-history deletion routes for administrator maintenance.
+
+## Customer Carts
+
+Use the authenticated-user routes for the customer frontend:
+
+- `GET /users/me/carts` — list the signed-in user’s carts
+- `GET /users/me/carts/active` — get the latest ACTIVE cart
+- `POST /users/me/carts` — create or return an active cart
+
+The backend also contains general cart-management endpoints:
+
+- `GET /carts`
+- `GET /carts/{cartId}`
+- `GET /carts/status/{cartStatusId}`
+- `POST /carts`
+- `PUT /carts/{cartId}`
+- `DELETE /carts/{cartId}`
+
+## Cart Lines and Per-Vehicle Financing
+
+- `GET /carts/{cartId}/cart-lines` — list cart lines
+- `POST /carts/{cartId}/cart-lines` — add a cash or financed line
+- `DELETE /carts/{cartId}/cart-lines/{cartLineId}` — remove one specific line
+
+Example financed line:
 
 ```json
 {
   "vehicleId": 12,
-  "quantity": 2,
+  "quantity": 1,
   "financingSelected": true,
   "downPayment": 5000.00,
   "annualRate": 6.5,
@@ -228,258 +444,405 @@ Common filter query parameters for `GET /vehicles/filter`:
 }
 ```
 
-If `financingSelected` is `false`, only `vehicleId` is required.
-
-`quantity` is optional and defaults to `1`. Re-adding the same `vehicleId` to the same cart increments that line's quantity instead of returning a conflict.
-
-### Checkout and Orders
-
-- `POST /carts/{cartId}/checkout` — create an order from the cart using cart-line totals
-- `GET /orders` — list all orders
-- `GET /orders/{orderId}` — get one order by ID
-- `GET /orders/status/{orderStatusId}` — list all orders with a specific status
-- `PUT /orders/{orderId}` — update editable order fields
-- `PATCH /orders/{orderId}/status` — update only the order status
-- `DELETE /orders/{orderId}` — delete an unpaid order
-- `GET /users/{userId}/orders` — list all orders for a user
-
-### Legacy Utility Endpoint
-
-- `GET /orders/{orderId}/loan` — read-only loan calculator for an already-created order
-
-For the new flow, financing is configured per vehicle before checkout through cart lines.
-
-### Payments
-
-- `GET /payments` — list all payments
-- `GET /payments/{paymentId}` — get one payment by ID
-- `GET /payments/status/{paymentStatusId}` — list all payments with a specific payment status
-- `POST /payments` — create a new payment for an order
-- `PUT /payments/{paymentId}` — update editable payment fields
-- `PATCH /payments/{paymentId}/status` — update only the payment status
-- `DELETE /payments/{paymentId}` — delete a payment by ID
-
-### Order Payments
-
-- `GET /orders/{orderId}/payment` — get the payment attached to a specific order
-- `POST /orders/{orderId}/payment` — create a payment for a specific order
-- `DELETE /orders/{orderId}/payment` — delete the payment attached to a specific order
-
-### User Payments
-
-- `GET /users/{userId}/payments` — list all payments for orders owned by a specific user
-
-### Payment Statuses
-
-- `GET /payment-statuses` — list all payment statuses
-- `GET /payment-statuses/{paymentStatusId}` — get one payment status by ID
-- `POST /payment-statuses` — create a reusable payment status such as PENDING, PAID, FAILED, or REFUNDED
-
-### Cart Statuses
-
-- `GET /cart-statuses` — list all cart statuses
-- `GET /cart-statuses/{cartStatusId}` — get one cart status by ID
-- `POST /cart-statuses` — create a reusable cart status such as ACTIVE, CHECKED_OUT, or ABANDONED
-
-## End-to-End Testing Flow (Registration to Checkout)
-
-Use this sequence to test the primary purchase path from account creation to order creation.
-
-### Variables to save between steps
-
-- `userId`
-- `verificationToken`
-- `token` (JWT)
-- `vehicleId` (and optional `vehicleId2`)
-- `cartId`
-- `orderId`
-
-### 1) Register
-
-- `POST /auth/register`
+Example cash line:
 
 ```json
 {
-  "firstName": "Mark",
-  "lastName": "Tester",
-  "email": "mark.tester@example.com",
-  "password": "TestPass123!"
-}
-```
-
-Save from response:
-
-- `user.userId` -> `userId`
-- `emailVerificationToken` -> `verificationToken`
-
-### 2) Verify Email
-
-- `GET /auth/verify-email?token={verificationToken}`
-
-### 3) Login
-
-- `POST /auth/login`
-
-```json
-{
-  "email": "mark.tester@example.com",
-  "password": "TestPass123!"
-}
-```
-
-Save from response:
-
-- `token` -> `token`
-
-For all remaining secured calls, send:
-
-```text
-Authorization: Bearer {token}
-Content-Type: application/json
-```
-
-### 4) Create Vehicle 1
-
-- `POST /vehicles`
-
-```json
-{
-  "brand": "Toyota",
-  "make": "Corolla",
-  "model": "XSE",
-  "year": 2024,
-  "color": "Blue",
-  "doors": 4,
-  "seats": 5,
-  "emissionScore": 7.5,
-  "fuelUsage": 6.4,
-  "mileage": 15.0,
-  "isOnSale": true,
-  "isInStock": true,
-  "amountInStock": 3,
-  "price": 28999.99
-}
-```
-
-Save from response:
-
-- `vehicleId` -> `vehicleId`
-
-### 5) (Optional) Create Vehicle 2
-
-- `POST /vehicles`
-
-```json
-{
-  "brand": "Honda",
-  "make": "Civic",
-  "model": "Sport Touring",
-  "year": 2023,
-  "color": "Black",
-  "doors": 4,
-  "seats": 5,
-  "emissionScore": 8.1,
-  "fuelUsage": 6.1,
-  "mileage": 18250.0,
-  "isOnSale": false,
-  "isInStock": true,
-  "amountInStock": 2,
-  "price": 27450.00
-}
-```
-
-Save from response:
-
-- `vehicleId` -> `vehicleId2`
-
-### 6) Create User Cart
-
-- `POST /users/{userId}/carts`
-
-```json
-{}
-```
-
-Save from response:
-
-- `cartId` -> `cartId`
-
-### 7) Add Financed Vehicle to Cart
-
-- `POST /carts/{cartId}/cart-lines`
-
-```json
-{
-  "vehicleId": 1,
-  "financingSelected": true,
-  "downPayment": 5000.00,
-  "annualRate": 6.5,
-  "termMonths": 60
-}
-```
-
-Replace `vehicleId` with your saved `vehicleId`.
-
-### 8) (Optional) Add Non-Financed Vehicle to Cart
-
-- `POST /carts/{cartId}/cart-lines`
-
-```json
-{
-  "vehicleId": 2,
+  "vehicleId": 12,
+  "quantity": 1,
   "financingSelected": false
 }
 ```
 
-Replace `vehicleId` with your saved `vehicleId2`.
+Important behaviour:
 
-### 9) Inspect Cart Before Checkout
+- `quantity` defaults to `1`.
+- Stock is validated across all lines for the same vehicle.
+- Re-adding a vehicle creates another cart line. This allows different financing scenarios for the same vehicle.
+- The frontend estimates financing immediately.
+- The backend recalculates and stores the financing snapshot before saving the line.
 
-- `GET /carts/{cartId}`
+## Checkout and Orders
 
-Verify each line contains financing fields and that financed items have a computed `lineTotalCost`.
+- `POST /carts/{cartId}/checkout` — create an order from an active cart
+- `GET /users/{userId}/orders` — list a user’s orders
+- `DELETE /users/{userId}/orders/{orderId}` — delete an eligible order owned by the user
+- `GET /orders` — administrator: list all orders
+- `GET /orders/{orderId}` — get one order
+- `GET /orders/status/{orderStatusId}` — list orders by status
+- `GET /orders/{orderId}/loan` — read an order-level loan calculation
+- `PUT /orders/{orderId}` — update editable order data
+- `PATCH /orders/{orderId}/status` — update order status
+- `DELETE /orders/{orderId}` — administrator: delete an order
 
-### 10) Checkout Cart
+Checkout copies each cart line into an order line, preserves financing values, updates inventory, and marks the cart as checked out.
 
-- `POST /carts/{cartId}/checkout`
+The visible checkout form is simulated. It does not send card details to a real payment processor.
 
-Save from response:
+## Order Lines
 
-- `orderId` -> `orderId`
+- `GET /orders/{orderId}/order-lines`
+- `POST /orders/{orderId}/order-lines`
+- `DELETE /orders/{orderId}/order-lines/{orderLineId}`
 
-### 11) Inspect Created Order
+## Payments
 
-- `GET /orders/{orderId}`
-- `GET /users/{userId}/orders`
+Payment endpoints support project payment records. They are not connected to the customer card form or a real payment gateway.
 
-Verify:
+- `GET /payments`
+- `GET /payments/{paymentId}`
+- `GET /payments/status/{paymentStatusId}`
+- `POST /payments`
+- `PUT /payments/{paymentId}`
+- `PATCH /payments/{paymentId}/status`
+- `DELETE /payments/{paymentId}`
 
-- each `orderLine` keeps the financing snapshot from cart lines
-- `totalAmount` equals the sum of order-line totals (not just raw vehicle prices)
+### Order payments
+
+- `GET /orders/{orderId}/payment`
+- `POST /orders/{orderId}/payment`
+- `DELETE /orders/{orderId}/payment`
+
+### User payments
+
+- `GET /users/{userId}/payments`
+
+## Status Endpoints
+
+### Cart statuses
+
+- `GET /cart-statuses`
+- `GET /cart-statuses/{cartStatusId}`
+- `POST /cart-statuses`
+
+### Order statuses
+
+- `GET /order-statuses`
+- `GET /order-statuses/{orderStatusId}`
+- `POST /order-statuses`
+
+### Payment statuses
+
+- `GET /payment-statuses`
+- `GET /payment-statuses/{paymentStatusId}`
+- `POST /payment-statuses`
+
+## Administrator User Management
+
+All routes require the `ADMIN` role.
+
+- `GET /admin/users` — list users
+- `PATCH /admin/users/{userId}/role` — update `USER` or `ADMIN`
+- `PATCH /admin/users/{userId}/restrict` — set or clear a temporary restriction
+- `DELETE /admin/users/{userId}` — delete a user and related project data
+
+## Amp Chatbot
+
+- `POST /api/chatbot/messages` — public chatbot endpoint
+
+Example request:
+
+```json
+{
+  "message": "How do I save a vehicle?",
+  "history": []
+}
+```
+
+Example response:
+
+```json
+{
+  "message": "..."
+}
+```
+
+Amp uses a customer-facing knowledge file at:
+
+```text
+apexauto/src/main/resources/chatbot/apexauto-site-knowledge.txt
+```
+
+See `CHATBOT_SETUP.md` for detailed chatbot setup and test cases.
+
+# End-to-End API Testing Flow
+
+The browser frontend is the recommended way to test the complete system. The following flow is useful for Postman or `curl.exe`.
+
+## Authentication with a cookie jar
+
+### 1) Register
+
+```powershell
+curl.exe -X POST "http://localhost:8080/auth/register" `
+  -H "Content-Type: application/json" `
+  -d '{\"firstName\":\"Mark\",\"lastName\":\"Tester\",\"email\":\"mark.tester@example.com\",\"password\":\"TestPass123!\"}'
+```
+
+The registration response currently contains `emailVerificationToken`, and the backend also sends the token through SMTP.
+
+### 2) Verify the email
+
+```powershell
+curl.exe "http://localhost:8080/auth/verify-email?token=YOUR_TOKEN"
+```
+
+### 3) Login and save the JWT cookie
+
+```powershell
+curl.exe -X POST "http://localhost:8080/auth/login" `
+  -H "Content-Type: application/json" `
+  -c cookies.txt `
+  -d '{\"email\":\"mark.tester@example.com\",\"password\":\"TestPass123!\"}'
+```
+
+### 4) Confirm the signed-in user
+
+```powershell
+curl.exe "http://localhost:8080/auth/me" -b cookies.txt
+```
+
+Save the returned `userId`.
+
+## Primary customer flow
+
+### 5) Get a vehicle
+
+```powershell
+curl.exe "http://localhost:8080/vehicles"
+```
+
+Use an existing `vehicleId`. Enable optional sample data before starting the backend if the database has no vehicles.
+
+### 6) Create or retrieve an active cart
+
+```powershell
+curl.exe -X POST "http://localhost:8080/users/me/carts" `
+  -H "Content-Type: application/json" `
+  -b cookies.txt
+```
+
+Save the returned `cartId`.
+
+### 7) Add a financed vehicle
+
+```powershell
+curl.exe -X POST "http://localhost:8080/carts/CART_ID/cart-lines" `
+  -H "Content-Type: application/json" `
+  -b cookies.txt `
+  -d '{\"vehicleId\":1,\"quantity\":1,\"financingSelected\":true,\"downPayment\":5000,\"annualRate\":6.5,\"termMonths\":60}'
+```
+
+Replace `CART_ID` and `vehicleId`.
+
+### 8) Inspect the cart
+
+```powershell
+curl.exe "http://localhost:8080/carts/CART_ID" -b cookies.txt
+```
+
+### 9) Checkout
+
+```powershell
+curl.exe -X POST "http://localhost:8080/carts/CART_ID/checkout" `
+  -b cookies.txt
+```
+
+Save the returned `orderId`.
+
+### 10) View customer orders
+
+```powershell
+curl.exe "http://localhost:8080/users/USER_ID/orders" -b cookies.txt
+```
+
+Verify that order lines preserve the financing snapshot from the cart.
 
 # ApexAuto Frontend Local Development
 
-The frontend is a React + Vite + TypeScript app located in the `frontend/` directory.
+The React frontend is located in the `frontend/` directory.
 
 ## Prerequisites
 
-- Node.js 18+
-- npm 9+
+- Node.js 22.x
+- npm included with Node.js
+- The Spring Boot backend running locally or at a configured remote URL
 
-## 1) Install dependencies
+The project declares Node `22.x` in `frontend/package.json`. Other Node versions may produce an engine warning.
+
+## 1) Configure the frontend API URL
+
+### PowerShell
+
+```powershell
+cd frontend
+Copy-Item .env.example .env.local
+```
+
+### macOS or Linux
 
 ```bash
 cd frontend
-npm install
+cp .env.example .env.local
 ```
 
-## 2) Start the Development Server
+For local development:
+
+```text
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+The frontend falls back to `http://localhost:8080` during development. Production builds require `VITE_API_BASE_URL`.
+
+## 2) Install dependencies
+
+Use the locked dependency versions:
+
+```bash
+npm ci
+```
+
+Use `npm install` only when intentionally changing dependencies.
+
+## 3) Run frontend checks
+
+```bash
+npm run lint
+npm run build
+```
+
+## 4) Start the development server
+
 ```bash
 npm run dev
 ```
 
-The app will be available at http://localhost:5173 by default.
+Vite normally starts at:
 
-## Gemini chatbot
+```text
+http://localhost:5173
+```
 
-Amp calls Gemini through the Spring Boot backend. Setup and test steps are in `CHATBOT_SETUP.md`; keep `GEMINI_API_KEY` in `apexauto/.env`.
+## 5) Preview a production build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Recommended Local Startup Order
+
+1. Start MySQL.
+2. Start the Spring Boot backend on port `8080`.
+3. Start the Vite frontend on port `5173`.
+4. Open `http://localhost:5173`.
+5. Register, verify the email, sign in, and test customer features.
+
+# Gemini Chatbot
+
+Amp sends messages from the React frontend to the Spring Boot backend. The backend validates the request, loads the ApexAuto customer knowledge file, and calls Google Gemini.
+
+Main files:
+
+```text
+frontend/src/pages/ChatbotPage.tsx
+frontend/src/services/chatbotApi.ts
+apexauto/src/main/java/com/example/apexauto/chatbot/
+apexauto/src/main/resources/chatbot/apexauto-site-knowledge.txt
+```
+
+Required backend value:
+
+```text
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+```
+
+Optional settings:
+
+```text
+GEMINI_MODEL=gemini-3.1-flash-lite
+CHATBOT_MAX_OUTPUT_TOKENS=300
+```
+
+If the key is missing, the backend still starts, but the chatbot endpoint returns a controlled configuration error.
+
+For setup steps, example requests, manual checks, and common errors, see:
+
+```text
+CHATBOT_SETUP.md
+```
+
+# Deployment Notes
+
+## Vercel frontend
+
+- Set the Vercel root directory to `frontend`.
+- Set `VITE_API_BASE_URL` to the public Railway backend HTTPS origin.
+- `frontend/vercel.json` rewrites client-side routes to `index.html`.
+
+## Railway backend and database
+
+- The backend is built from `apexauto/Dockerfile`.
+- The Dockerfile uses a Maven build stage and a Java 21 runtime stage.
+- The runtime container uses a non-root `spring` user.
+- Add all backend environment variables to the Railway backend service.
+- The MySQL database is provisioned as a separate managed service in the same Railway project.
+- `railway.json` uses `/health` for deployment health checks and restarts the backend after failures.
+
+## Production cookie and CORS example
+
+```text
+CORS_ALLOWED_ORIGINS=https://apexauto-beta.vercel.app
+AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_SAME_SITE=None
+```
+
+Use the exact deployed Vercel origin. Add preview origins only when they are intentionally supported.
+
+# Troubleshooting
+
+## Backend does not start
+
+Check:
+
+- Java 21 is active: `java -version`
+- MySQL is running
+- The database exists
+- `.env` is next to `apexauto/pom.xml`
+- `JWT_SECRET_KEY`, mail settings, and datasource values are present
+
+## Frontend cannot reach the backend
+
+Check:
+
+- The backend is running on port `8080`
+- `VITE_API_BASE_URL` points to the correct origin
+- `CORS_ALLOWED_ORIGINS` includes the frontend origin
+- Protected frontend requests use cookies and the backend cookie settings match HTTP or HTTPS
+
+## Login succeeds but protected pages return 401
+
+Check:
+
+- The email has been verified
+- The browser accepted the `jwt` cookie
+- Local development uses `AUTH_COOKIE_SECURE=false`
+- Cross-site production uses HTTPS and compatible SameSite settings
+
+## Amp returns 503
+
+Check:
+
+- `GEMINI_API_KEY` is configured
+- The Gemini project has available quota
+- The configured model is available
+- Spring Boot was restarted after editing `.env`
+
+## Email verification or password reset does not send
+
+Check:
+
+- SMTP host, port, username, and password
+- STARTTLS support
+- Gmail accounts use an App Password when required
+- The mail provider has not blocked the sign-in attempt
