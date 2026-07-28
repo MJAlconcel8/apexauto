@@ -7,6 +7,8 @@ import { VehicleCard, Reveal, Footer } from '../components'
 import type { Vehicle } from '../components'
 import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
+import { getAllReviews } from '../services/reviewApi'
+import { addReviewSummaries } from '../utils/reviewUtils'
 
 const CATEGORIES = ['All', 'Sedan', 'Sports', 'SUV', 'Luxury'] as const
 
@@ -131,19 +133,22 @@ export default function Catalogue() {
   const [showFilter, setShowFilter] = useState(true)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/vehicles`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load vehicles.')
-        return res.json() as Promise<VehicleApiResponse[]>
-      })
-      .then((data) => {
-        setVehicles(data.map(mapVehicle))
-        setLoading(false)
-      })
-      .catch(() => {
+    const loadCatalogue = async () => {
+      try {
+        const vehicleResponse = await fetch(`${API_BASE_URL}/vehicles`)
+        if (!vehicleResponse.ok) throw new Error('Failed to load vehicles.')
+
+        const vehicleData = await vehicleResponse.json() as VehicleApiResponse[]
+        const reviews = await getAllReviews().catch(() => [])
+        setVehicles(addReviewSummaries(vehicleData.map(mapVehicle), reviews))
+      } catch {
         setFetchError('Could not load vehicles. Please try again later.')
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+
+    void loadCatalogue()
   }, [])
 
   const reset = () => {

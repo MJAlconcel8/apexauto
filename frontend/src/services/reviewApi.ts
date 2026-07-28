@@ -5,8 +5,16 @@ export interface ReviewData {
   userId: number
   vehicleId: number
   reviewComments: string
+  rating: number | null
   userFirstName: string
   userLastName: string
+}
+
+// GET /reviews — authenticated, newest first
+export async function getAllReviews(): Promise<ReviewData[]> {
+  const res = await fetch(`${API_BASE_URL}/reviews`, { credentials: 'include' })
+  if (!res.ok) throw new Error('Failed to load reviews')
+  return res.json() as Promise<ReviewData[]>
 }
 
 // GET /reviews/vehicles/{vehicleId} — public, newest first
@@ -21,28 +29,30 @@ export async function createReview(
   userId: number,
   vehicleId: number,
   reviewComments: string,
+  rating: number,
 ): Promise<ReviewData> {
   const res = await fetch(`${API_BASE_URL}/users/${userId}/reviews`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ vehicleId, reviewComments }),
+    body: JSON.stringify({ vehicleId, reviewComments, rating }),
   })
   if (!res.ok) throw new Error('Failed to create review')
   return res.json() as Promise<ReviewData>
 }
 
-// PATCH /users/{userId}/reviews/{reviewId} — authenticated, update comment
+// PATCH /users/{userId}/reviews/{reviewId} — authenticated, update comment and rating
 export async function updateReview(
   userId: number,
   reviewId: number,
   reviewComments: string,
+  rating: number,
 ): Promise<ReviewData> {
   const res = await fetch(`${API_BASE_URL}/users/${userId}/reviews/${reviewId}`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ reviewComments }),
+    body: JSON.stringify({ reviewComments, rating }),
   })
   if (!res.ok) throw new Error('Failed to update review')
   return res.json() as Promise<ReviewData>

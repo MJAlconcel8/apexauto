@@ -293,9 +293,20 @@ export default function AdminListings() {
                 <ShieldCheck size={16} /> Admin only
               </div>
               <h1 className="mt-2 font-heading text-3xl font-bold">Car Inventory</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {stats.total} {stats.total === 1 ? 'vehicle' : 'vehicles'} · {stats.inStock} in stock · {stats.outOfStock} out of stock · {stats.totalUnits} units on hand
-              </p>
+              <div className="mt-2 flex flex-wrap gap-2 font-mono text-[11px] text-muted-foreground">
+                <span className="whitespace-nowrap rounded-full border border-card-border px-2.5 py-1">
+                  {stats.total} {stats.total === 1 ? 'vehicle' : 'vehicles'}
+                </span>
+                <span className="whitespace-nowrap rounded-full border border-green-500/25 bg-green-500/5 px-2.5 py-1 text-green-400">
+                  {stats.inStock} in stock
+                </span>
+                <span className="whitespace-nowrap rounded-full border border-red-500/25 bg-red-500/5 px-2.5 py-1 text-red-400">
+                  {stats.outOfStock} out of stock
+                </span>
+                <span className="whitespace-nowrap rounded-full border border-card-border px-2.5 py-1">
+                  {stats.totalUnits} units on hand
+                </span>
+              </div>
             </div>
             <button
               type="button"
@@ -330,7 +341,7 @@ export default function AdminListings() {
         ) : (
           <section className="mx-auto max-w-6xl px-6 py-8">
             <div className="overflow-x-auto rounded-xl border border-card-border bg-card">
-              <table className="w-full text-left text-sm">
+              <table className="min-w-[980px] w-full table-auto text-left text-sm">
                 <thead>
                   <tr className="border-b border-card-border text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-5 py-3">Vehicle</th>
@@ -338,8 +349,8 @@ export default function AdminListings() {
                     <th className="px-5 py-3">Color</th>
                     <th className="px-5 py-3">Category</th>
                     <th className="px-5 py-3">Price</th>
-                    <th className="px-5 py-3">Stock</th>
-                    <th className="px-5 py-3">Sale</th>
+                    <th className="whitespace-nowrap px-5 py-3">Stock</th>
+                    <th className="whitespace-nowrap px-5 py-3">Sale</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -361,26 +372,26 @@ export default function AdminListings() {
                                   e.currentTarget.src = FALLBACK_IMG
                                 }}
                               />
-                              <div>
-                                <p className="font-medium text-foreground">
+                              <div className="min-w-0">
+                                <p className="whitespace-nowrap font-medium text-foreground">
                                   {vehicle.brand} {vehicle.model}
                                 </p>
-                                <p className="text-xs text-muted-foreground">{vehicle.make}</p>
+                                <p className="whitespace-nowrap text-xs text-muted-foreground">{vehicle.make}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-5 py-4 text-muted-foreground">{vehicle.year}</td>
                           <td className="px-5 py-4 text-muted-foreground">{vehicle.color}</td>
                           <td className="px-5 py-4 text-muted-foreground">{vehicle.category}</td>
-                          <td className="px-5 py-4 font-semibold text-[#0066ff]">{fmtCAD(vehicle.price)}</td>
+                          <td className="whitespace-nowrap px-5 py-4 font-semibold text-[#0066ff]">{fmtCAD(vehicle.price)}</td>
                           <td className="px-5 py-4">
-                            <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${badge.className}`}>
+                            <span className={`inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] ${badge.className}`}>
                               {badge.label}
                             </span>
                           </td>
                           <td className="px-5 py-4 text-muted-foreground">
                             {vehicle.onSale ? (
-                              <span className="rounded-full border border-[#0066ff]/30 bg-[#0066ff]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#7eb3ff]">
+                              <span className="inline-flex whitespace-nowrap rounded-full border border-[#0066ff]/30 bg-[#0066ff]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] text-[#7eb3ff]">
                                 On Sale
                               </span>
                             ) : (

@@ -39,4 +39,10 @@ public class Review {
     @Getter
     @Setter
     private String reviewComments;
+
+    // Existing reviews may be unrated, while new and edited reviews are validated as 1–5 in the service layer.
+    @Column
+    @Getter
+    @Setter
+    private Integer rating;
 }

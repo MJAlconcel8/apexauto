@@ -8,7 +8,7 @@ const toneClass = {
 
 export function Badge({ badge }: BadgeProps) {
   return (
-    <span className={`font-mono text-[10px] tracking-widest uppercase font-semibold px-[9px] py-[4px] rounded-full ${toneClass[badge.tone]}`}>
+    <span className={`whitespace-nowrap font-mono text-[10px] tracking-widest uppercase font-semibold px-[9px] py-[4px] rounded-full ${toneClass[badge.tone]}`}>
       {badge.label}
     </span>
   );
