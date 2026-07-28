@@ -1,29 +1,28 @@
 # ApexAuto
 
-ApexAuto is a full-stack educational vehicle marketplace. It provides public vehicle browsing and a simulated customer purchase flow, including account registration, favorites, comparison, financing estimates, cart management, checkout, orders, reviews with 1–5 star ratings, and the Amp chatbot.
+ApexAuto is an educational full-stack vehicle marketplace built with React, Spring Boot, and MySQL. It supports public vehicle browsing and a simulated purchase workflow with accounts, favorites, vehicle comparison, financing estimates, carts, checkout, orders, reviews with 1–5 star ratings, and the Amp chatbot.
 
-> **Simulation notice:** ApexAuto is a project demonstration. Vehicle inventory, financing, checkout, payment fields, orders, delivery estimates, and payment records are simulated. Do not enter real payment-card information.
+> **Simulation notice:** ApexAuto is a course project. Inventory, financing, checkout, payment fields, orders, delivery estimates, and payment records are simulated. Do not enter real payment-card information.
 
-## Current Features
+## Features
 
 ### Public features
 
-- Landing page and guest vehicle catalogue
-- Vehicle search, category filters, price filters, and sorting
-- Vehicle details, reviews, star-rating averages, and vehicle-history notes
-- Account registration, email verification, login, logout, and password reset
+- Landing page and public vehicle catalogue
+- Vehicle search, category and price filters, and sorting
+- Vehicle details, reviews, average star ratings, and vehicle-history notes
+- Account registration, email verification, sign-in, and password reset
 - Amp chatbot powered by Google Gemini
 
 ### Registered customer features
 
-- Save and remove favorite vehicles
-- View a dedicated Favorites page
+- Save and remove vehicles from Favorites
 - Compare two or three vehicles
 - Estimate financing with adjustable down payment, term, and annual rate
 - Add cash or financed vehicle lines to a cart
 - Complete simulated checkout and view orders
 - Create, edit, and delete reviews with 1–5 star ratings
-- Update account details and password
+- Update account details, change the password, and sign out
 
 ### Administrator features
 
@@ -62,8 +61,9 @@ ApexAuto is a full-stack educational vehicle marketplace. It provides public veh
 - Frontend: Vercel
 - Backend: Railway Docker service
 - Database: Railway-managed MySQL
-- Source collaboration: shared team GitHub repository
-- Deployment: personal GitHub fork and `deploy/vercel-railway` branch
+- Shared team repository: `MJAlconcel8/apexauto`
+- Deployment fork: `TuLe1212/apexauto`
+- Deployment branch: `deploy/vercel-railway`
 - Live frontend: `https://apexauto-beta.vercel.app`
 
 ## Repository Structure
@@ -91,6 +91,26 @@ apexauto/
 ├── railway.json
 └── README.md
 ```
+
+## Quick Start
+
+The detailed setup sections below explain each step. For a standard Windows setup, the basic flow is:
+
+```powershell
+# Backend
+cd apexauto
+Copy-Item env.example .env
+# Update .env, create the MySQL database, then run:
+.\mvnw.cmd spring-boot:run
+
+# Frontend, in a second terminal
+cd frontend
+Copy-Item .env.example .env.local
+npm ci
+npm run dev
+```
+
+Open `http://localhost:5173`. The backend runs on `http://localhost:8080` by default.
 
 # ApexAuto Backend Local Development
 
@@ -146,6 +166,7 @@ Update `.env` for your local database and services.
 | `GEMINI_API_KEY` | For Amp | Server-side Gemini API key |
 | `GEMINI_MODEL` | No | Defaults to `gemini-3.1-flash-lite` |
 | `CHATBOT_MAX_OUTPUT_TOKENS` | No | Defaults to `300` |
+| `APP_SEED_ENABLED` | No | Set to `true` to add missing sample statuses and vehicles at startup |
 
 Generate a JWT secret:
 
@@ -567,7 +588,7 @@ See `CHATBOT_SETUP.md` for detailed chatbot setup and test cases.
 
 # End-to-End API Testing Flow
 
-The browser frontend is the recommended way to test the complete system. The following flow is useful for Postman or `curl.exe`.
+The browser is the simplest way to test the complete system. The following API flow is useful for Postman or `curl.exe`.
 
 ## Authentication with a cookie jar
 
@@ -740,7 +761,7 @@ npm run preview
 
 # Gemini Chatbot
 
-Amp sends messages from the React frontend to the Spring Boot backend. The backend validates the request, loads the ApexAuto customer knowledge file, and calls Google Gemini.
+Amp sends messages from the React frontend to the Spring Boot backend. The backend validates each request, loads the ApexAuto customer guide, and calls Google Gemini. The Gemini key remains on the server.
 
 Main files:
 
