@@ -9,6 +9,7 @@ import Logo from './Logo'
 const signedInNavLinks = [
   { label: 'Home', view: '/home' },
   { label: 'Catalogue', view: '/catalogue' },
+  { label: 'Favorites', view: '/favorites' },
   { label: 'Compare', view: '/compare' },
   { label: 'Loan Calc', view: '/finance' },
 ]
@@ -92,7 +93,7 @@ export default function Nav({ onNavigate }: NavProps) {
       style={{ background: 'rgba(3,12,26,0.92)', backdropFilter: 'blur(20px)' }}
     >
       <div className="h-full px-4 sm:px-6 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+        <div className="flex min-w-0 items-center gap-5 xl:gap-8">
           <button onClick={() => go(isAuthenticated ? '/home' : '/')} className="group flex items-center gap-2.5">
             <div className="scale-[0.67] origin-left transition-shadow">
               <Logo />
@@ -103,12 +104,12 @@ export default function Nav({ onNavigate }: NavProps) {
             </span>
           </button>
 
-          <ul className="hidden lg:flex items-center gap-1 text-sm font-medium">
+          <ul className="hidden xl:flex items-center gap-0.5 text-[13px] xl:gap-1 xl:text-sm font-medium">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <button
                   onClick={() => go(link.view)}
-                  className={`px-3 py-1.5 rounded transition-colors ${
+                  className={`whitespace-nowrap px-2.5 py-1.5 rounded transition-colors xl:px-3 ${
                     isActive(link.view)
                       ? 'bg-[#0066ff]/10 text-[#7eb3ff]'
                       : 'hover:text-white'
@@ -224,7 +225,7 @@ export default function Nav({ onNavigate }: NavProps) {
 
           <button
             onClick={() => setMobileOpen((open) => !open)}
-            className="lg:hidden hover:text-white transition-colors ml-1"
+            className="xl:hidden hover:text-white transition-colors ml-1"
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
@@ -242,7 +243,7 @@ export default function Nav({ onNavigate }: NavProps) {
 
       {mobileOpen && (
         <div
-          className="lg:hidden border-t border-card-border px-4 py-3 flex flex-col gap-1 text-sm"
+          className="xl:hidden border-t border-card-border px-4 py-3 flex flex-col gap-1 text-sm"
           style={{ background: 'rgba(3,12,26,0.97)', backdropFilter: 'blur(20px)' }}
         >
           {navLinks.map((link) => (

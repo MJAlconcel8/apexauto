@@ -14,13 +14,15 @@ import {
   Palette,
   Lock,
   History as HistoryIcon,
+  Heart,
 } from 'lucide-react'
 import Nav from '../components/Nav'
-import { Badge, RangeGauge, SpecReadout, Btn, Footer } from '../components'
+import { Badge, RangeGauge, SpecReadout, Btn, Footer, StarRating } from '../components'
 import type { Vehicle } from '../components'
 import { fmtCAD, mapVehicle } from '../utils/vehicleUtils'
 import type { VehicleApiResponse } from '../utils/vehicleUtils'
 import { useAuth } from '../auth/AuthContext'
+import { useFavorites } from '../favorites/FavoritesContext'
 import {
   type ReviewData,
   getVehicleReviews,
@@ -42,21 +44,22 @@ interface ReviewCardProps {
   canEdit: boolean
   canDelete: boolean
   onDelete: () => void
-  onSave: (newText: string) => Promise<void>
+  onSave: (newText: string, newRating: number) => Promise<void>
 }
 
 function ReviewCard({ review, canEdit, canDelete, onDelete, onSave }: ReviewCardProps) {
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState(review.reviewComments)
+  const [editRating, setEditRating] = useState(review.rating ?? 0)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleSave = async () => {
-    if (!editText.trim()) return
+    if (!editText.trim() || editRating < 1) return
     setSaving(true)
     setSaveError(null)
     try {
-      await onSave(editText.trim())
+      await onSave(editText.trim(), editRating)
       setEditing(false)
     } catch {
       setSaveError('Failed to save changes.')
@@ -77,6 +80,12 @@ function ReviewCard({ review, canEdit, canDelete, onDelete, onSave }: ReviewCard
           </p>
           {editing ? (
             <>
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <StarRating value={editRating || null} onChange={setEditRating} size={19} label="Edit review rating" />
+                <span className="whitespace-nowrap font-mono text-[11px]" style={{ color: 'rgba(126,179,255,0.55)' }}>
+                  {editRating > 0 ? `${editRating} out of 5` : 'Select a rating'}
+                </span>
+              </div>
               <textarea
                 value={editText}
                 onChange={e => setEditText(e.target.value)}
@@ -90,13 +99,18 @@ function ReviewCard({ review, canEdit, canDelete, onDelete, onSave }: ReviewCard
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleSave}
-                  disabled={saving || !editText.trim()}
+                  disabled={saving || !editText.trim() || editRating < 1}
                   className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border bg-[#0066ff] text-white border-[#0066ff] hover:bg-[#0052cc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
                 <button
-                  onClick={() => { setEditing(false); setEditText(review.reviewComments) }}
+                  onClick={() => {
+                    setEditing(false)
+                    setEditText(review.reviewComments)
+                    setEditRating(review.rating ?? 0)
+                    setSaveError(null)
+                  }}
                   className="font-mono text-[11px] tracking-widest uppercase px-3 py-1.5 rounded border transition-colors hover:bg-[rgba(30,58,95,0.3)]"
                   style={{ color: 'rgba(126,179,255,0.6)', borderColor: 'rgba(30,58,95,0.8)' }}
                 >
@@ -105,9 +119,25 @@ function ReviewCard({ review, canEdit, canDelete, onDelete, onSave }: ReviewCard
               </div>
             </>
           ) : (
-            <p className="font-body text-[14px] leading-relaxed" style={{ color: 'rgba(126,179,255,0.8)' }}>
-              {review.reviewComments}
-            </p>
+            <>
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                {review.rating != null ? (
+                  <>
+                    <StarRating value={review.rating} readOnly size={15} label="Review rating" />
+                    <span className="whitespace-nowrap font-mono text-[10px]" style={{ color: 'rgba(126,179,255,0.5)' }}>
+                      {review.rating} out of 5
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(126,179,255,0.4)' }}>
+                    Unrated review
+                  </span>
+                )}
+              </div>
+              <p className="font-body text-[14px] leading-relaxed" style={{ color: 'rgba(126,179,255,0.8)' }}>
+                {review.reviewComments}
+              </p>
+            </>
           )}
         </div>
         {!editing && (canEdit || canDelete) && (
@@ -194,6 +224,15 @@ interface StatBlockProps {
   label: string
   value: string
 }
+function vehicleHeadingFontSize(model: string) {
+  if (model.length <= 16) return 40
+  if (model.length <= 22) return 34
+  if (model.length <= 28) return 30
+  if (model.length <= 36) return 26
+  if (model.length <= 44) return 22
+  return 18
+}
+
 function StatBlock({ icon, label, value }: StatBlockProps) {
   return (
     <div
@@ -218,6 +257,7 @@ export default function VehicleInfoPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated, user, isAdmin } = useAuth()
+  const { isFavorite, isPending, isLoading: favoritesLoading, toggleFavorite } = useFavorites()
   const hideNav = (location.state as { hideNav?: boolean } | null)?.hideNav ?? false
   const stateVehicle = (location.state as { vehicle?: Vehicle } | null)?.vehicle ?? null
 
@@ -226,9 +266,11 @@ export default function VehicleInfoPage() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [addingToCart, setAddingToCart] = useState(false)
   const [cartMsg, setCartMsg] = useState<string | null>(null)
+  const [favoriteError, setFavoriteError] = useState<string | null>(null)
 
   const [reviews, setReviews] = useState<ReviewData[]>([])
   const [newReviewText, setNewReviewText] = useState('')
+  const [newReviewRating, setNewReviewRating] = useState(0)
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
 
@@ -280,13 +322,19 @@ export default function VehicleInfoPage() {
   }, [vehicle])
 
   const handleSubmitReview = async () => {
-    if (!user || !vehicle || !newReviewText.trim()) return
+    if (!user || !vehicle || !newReviewText.trim() || newReviewRating < 1) return
     setSubmittingReview(true)
     setReviewError(null)
     try {
-      const created = await createReview(user.userId, Number(vehicle.id), newReviewText.trim())
+      const created = await createReview(
+        user.userId,
+        Number(vehicle.id),
+        newReviewText.trim(),
+        newReviewRating,
+      )
       setReviews(prev => [created, ...prev])
       setNewReviewText('')
+      setNewReviewRating(0)
     } catch {
       setReviewError('Failed to submit review. Please try again.')
     } finally {
@@ -303,8 +351,13 @@ export default function VehicleInfoPage() {
     }
   }
 
-  const handleUpdateReview = async (reviewId: number, reviewUserId: number, newText: string) => {
-    const updated = await updateReview(reviewUserId, reviewId, newText)
+  const handleUpdateReview = async (
+    reviewId: number,
+    reviewUserId: number,
+    newText: string,
+    newRating: number,
+  ) => {
+    const updated = await updateReview(reviewUserId, reviewId, newText, newRating)
     setReviews(prev => prev.map(r => r.reviewId === reviewId ? updated : r))
   }
 
@@ -340,6 +393,22 @@ export default function VehicleInfoPage() {
       setVehicleHistory([])
     } catch {
       setVehicleHistoryError('Failed to clear vehicle history.')
+    }
+  }
+
+  const handleToggleFavorite = async () => {
+    if (!vehicle) return
+    setFavoriteError(null)
+
+    if (!isAuthenticated) {
+      navigate('/login', { state: { returnTo: `/vehicle/${vehicle.id}` } })
+      return
+    }
+
+    try {
+      await toggleFavorite(Number(vehicle.id))
+    } catch {
+      setFavoriteError('Could not update this favorite. Please try again.')
     }
   }
 
@@ -395,6 +464,15 @@ export default function VehicleInfoPage() {
       setAddingToCart(false)
     }
   }
+
+  const ratedReviews = reviews.filter((review) => review.rating != null)
+  const averageRating = ratedReviews.length > 0
+    ? ratedReviews.reduce((total, review) => total + (review.rating ?? 0), 0) / ratedReviews.length
+    : null
+  const vehicleIsFavorite = vehicle ? isFavorite(Number(vehicle.id)) : false
+  const favoritePending = vehicle
+    ? isPending(Number(vehicle.id)) || (isAuthenticated && favoritesLoading)
+    : false
 
   if (loading) {
     return (
@@ -492,12 +570,40 @@ export default function VehicleInfoPage() {
               >
                 {vehicle.marque}
               </p>
-              <h1 className="font-heading font-bold text-4xl text-white leading-tight">
-                {vehicle.model}
-              </h1>
-              <p className="font-mono text-[13px] mt-1" style={{ color: 'rgba(126,179,255,0.55)' }}>
-                {vehicle.history}
-              </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <h1
+                  className="min-w-0 whitespace-nowrap font-heading font-bold text-white leading-tight tracking-[-0.03em]"
+                  style={{ fontSize: `${vehicleHeadingFontSize(vehicle.model)}px` }}
+                >
+                  {vehicle.model}
+                </h1>
+                <button
+                  type="button"
+                  aria-label={vehicleIsFavorite ? `Remove ${vehicle.marque} ${vehicle.model} from favorites` : `Add ${vehicle.marque} ${vehicle.model} to favorites`}
+                  aria-pressed={vehicleIsFavorite}
+                  disabled={favoritePending}
+                  onClick={() => void handleToggleFavorite()}
+                  className="av-focus inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-card-border bg-card text-white transition hover:border-[#7eb3ff] hover:text-[#7eb3ff] disabled:cursor-wait disabled:opacity-60"
+                >
+                  <Heart size={20} className={vehicleIsFavorite ? 'fill-[#ff4d6d] text-[#ff4d6d]' : ''} />
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <p className="whitespace-nowrap font-mono text-[12px]" style={{ color: 'rgba(126,179,255,0.55)' }}>
+                  {vehicle.history}
+                </p>
+                {averageRating != null && (
+                  <div className="flex items-center gap-2">
+                    <StarRating value={Math.round(averageRating)} readOnly size={14} label={`${vehicle.marque} ${vehicle.model} average rating`} />
+                    <span className="whitespace-nowrap font-mono text-[11px]" style={{ color: 'rgba(126,179,255,0.55)' }}>
+                      {averageRating.toFixed(1)} from {ratedReviews.length} rating{ratedReviews.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {favoriteError && (
+                <p className="mt-2 text-sm text-red-400">{favoriteError}</p>
+              )}
               <div className="mt-4">
                 <span className="font-mono text-[32px] font-semibold text-white">
                   {fmtCAD(vehicle.price)}
@@ -673,6 +779,17 @@ export default function VehicleInfoPage() {
                     >
                       Write a Review
                     </p>
+                    <div className="mb-4 flex flex-wrap items-center gap-3">
+                      <StarRating
+                        value={newReviewRating || null}
+                        onChange={setNewReviewRating}
+                        size={22}
+                        label="New review rating"
+                      />
+                      <span className="whitespace-nowrap font-mono text-[11px]" style={{ color: 'rgba(126,179,255,0.55)' }}>
+                        {newReviewRating > 0 ? `${newReviewRating} out of 5` : 'Select 1 to 5 stars'}
+                      </span>
+                    </div>
                     <textarea
                       value={newReviewText}
                       onChange={e => setNewReviewText(e.target.value)}
@@ -691,7 +808,7 @@ export default function VehicleInfoPage() {
                         variant="primary"
                         size="sm"
                         onClick={handleSubmitReview}
-                        disabled={submittingReview || !newReviewText.trim()}
+                        disabled={submittingReview || !newReviewText.trim() || newReviewRating < 1}
                       >
                         {submittingReview ? 'Submitting…' : 'Submit Review'}
                       </Btn>
@@ -715,7 +832,12 @@ export default function VehicleInfoPage() {
                         canEdit={user?.userId === review.userId}
                         canDelete={user?.userId === review.userId || isAdmin}
                         onDelete={() => handleDeleteReview(review.reviewId, review.userId)}
-                        onSave={(newText) => handleUpdateReview(review.reviewId, review.userId, newText)}
+                        onSave={(newText, newRating) => handleUpdateReview(
+                          review.reviewId,
+                          review.userId,
+                          newText,
+                          newRating,
+                        )}
                       />
                     ))}
                   </div>
