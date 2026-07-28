@@ -151,11 +151,15 @@ export function VehicleCard({
           </span>
         </div>
 
-        <div className={`flex items-center gap-3 py-3 border-t border-b ${dark ? 'border-card-border' : 'border-apex-line'}`}>
+        <div className={`flex items-center gap-2.5 py-3 border-t border-b ${dark ? 'border-card-border' : 'border-apex-line'}`}>
           <div className="shrink-0">
             <RangeGauge value={v.mileage} size={74} dark={dark} />
           </div>
-          <div className="grid min-w-0 grid-cols-3 gap-2 flex-1">
+          <div
+            className={`grid min-w-0 flex-1 grid-cols-3 divide-x overflow-hidden ${
+              dark ? 'divide-card-border' : 'divide-apex-line'
+            }`}
+          >
             <SpecReadout label="Emission" value={v.emissionScore} unit="g/km" dark={dark} />
             <SpecReadout label="Fuel Use" value={v.fuelUsage.toFixed(1)} unit="L/100" dark={dark} />
             <SpecReadout label="Seats" value={v.seats} dark={dark} />
