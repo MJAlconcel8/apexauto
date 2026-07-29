@@ -9,7 +9,7 @@ ApexAuto is an educational full-stack vehicle marketplace built with React, Spri
 ### Public features
 
 - Landing page and public vehicle catalogue
-- Vehicle search, category and price filters, and sorting
+- Vehicle search, category, price, and Hot Deals filters, plus sorting
 - Vehicle details, reviews, average star ratings, and vehicle-history notes
 - Account registration, email verification, sign-in, and password reset
 - Amp chatbot powered by Google Gemini

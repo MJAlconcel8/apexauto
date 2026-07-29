@@ -35,17 +35,17 @@ const CAR_IMAGES = {
 const VEHICLES: Vehicle[] = [
   {
     id: "v-kestrel", marque: "Aster", model: "Kestrel EV Sport", year: 2024, img: 'https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=800&q=75',
-    price: 58900, mileage: 402, emissionScore: 77, seats: 5, fuelUsage: 4.6, stock: 4,
+    price: 58900, onSale: false, mileage: 402, emissionScore: 77, seats: 5, fuelUsage: 4.6, stock: 4,
     history: "Clean · 1 owner", ext: "Voltage Blue", badge: { label: "EV", tone: "voltage" },
   },
   {
     id: "v-lumen", marque: "Halcyon", model: "Volen Lumen", year: 2024, img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=75',
-    price: 74500, mileage: 512, emissionScore: 90, seats: 5, fuelUsage: 3.9, stock: 2,
+    price: 74500, onSale: false, mileage: 512, emissionScore: 90, seats: 5, fuelUsage: 3.9, stock: 2,
     history: "Clean", ext: "Pearl White", badge: { label: "2 left", tone: "amber" },
   },
   {
     id: "v-bolt", marque: "Meridian", model: "Meridian Bolt", year: 2023, img: 'https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&w=800&q=75',
-    price: 44900, was: 47900, mileage: 389, emissionScore: 64, seats: 5, fuelUsage: 5.4, stock: 9,
+    price: 44900, onSale: true, was: 47900, mileage: 389, emissionScore: 64, seats: 5, fuelUsage: 5.4, stock: 9,
     history: "Clean · minor panel", ext: "Graphite", badge: { label: "Hot deal", tone: "hot" },
   },
 ];
@@ -67,6 +67,7 @@ const DEFAULT_HERO_VEHICLE: Vehicle = {
   category: "Sports",
   img: CAR_IMAGES.roadster,
   price: 89900,
+  onSale: false,
   mileage: 540,
   emissionScore: 58,
   seats: 4,
