@@ -1,0 +1,81 @@
+@startuml
+title ApexAuto Cloud Deployment Diagram
+
+top to bottom direction
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment center
+skinparam linetype ortho
+
+actor "Customer" as Customer
+
+node "User Device" as Device {
+    artifact "Web Browser" as Browser
+}
+
+node "GitHub Platform" as GitHub {
+    artifact "Shared Team Repository\nMJAlconcel8/apexauto" as SharedRepository
+    artifact "Personal Deployment Fork\nTuLe1212/apexauto\nBranch: deploy/vercel-railway" as DeploymentRepository
+
+    SharedRepository -down-> DeploymentRepository : Forked from shared team repository\nTeam changes synchronized
+}
+
+cloud "Vercel Cloud Platform" as Vercel {
+    node "Static Frontend Hosting" as FrontendHosting {
+        artifact "ApexAuto Frontend\nReact 19\nTypeScript\nVite 8\nProduction SPA" as Frontend
+    }
+}
+
+cloud "Railway Cloud Platform" as Railway {
+    node "Backend Service\nDocker Container" as BackendNode {
+        artifact "ApexAuto Spring Boot API\nJava 21\nSpring Boot 4.1\nSpring Security\nSpring Data JPA\nModular Monolith" as Backend
+    }
+
+    database "Railway Managed MySQL\nApplication Database" as Database
+}
+
+cloud "Google Gemini API" as Gemini
+cloud "External SMTP Service" as SMTP
+
+Customer --> Browser : Uses ApexAuto
+Browser --> Frontend : HTTPS\nLoads the web application
+Frontend --> Backend : HTTPS REST / JSON\nHTTP-only JWT cookie
+
+Backend --> Database : JDBC / MySQL\nPrivate Railway connection
+Backend --> Gemini : HTTPS\nChatbot requests
+Backend --> SMTP : SMTP + STARTTLS\nVerification and reset emails
+
+DeploymentRepository --> FrontendHosting : Vercel builds and deploys\nthe frontend
+DeploymentRepository --> BackendNode : Railway builds the Docker image\nand deploys the backend
+
+note right of SharedRepository
+Shared repository used by the
+project team for collaboration.
+end note
+
+note right of DeploymentRepository
+Personal fork used for deployment
+testing and production deployment.
+end note
+
+note right of Frontend
+Frontend configuration:
+VITE_API_BASE_URL
+end note
+
+note right of Backend
+Railway environment variables:
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+JWT_SECRET
+JWT_EXPIRATION_TIME
+GEMINI_API_KEY
+MAIL_HOST
+MAIL_PORT
+MAIL_USERNAME
+MAIL_PASSWORD
+end note
+
+@enduml

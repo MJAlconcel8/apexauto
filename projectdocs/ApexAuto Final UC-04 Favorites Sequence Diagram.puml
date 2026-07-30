@@ -1,0 +1,53 @@
+@startuml
+title UC-04 — Save Vehicle to Favorites
+
+hide footbox
+autonumber
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 18
+skinparam BoxPadding 10
+skinparam maxMessageSize 68
+
+actor "Registered Customer" as Customer
+
+box "React Frontend" #EEF5FF
+boundary "Vehicle Card or\nVehicle Details Page" as UI
+control "FavoritesProvider" as Favorites
+end box
+
+box "Spring Boot Backend" #F4F4F4
+control "JWT Authentication Filter" as Security
+control "FavouritesController" as Controller
+control "FavouritesService" as Service
+end box
+
+database "JPA Repositories /\nRailway MySQL" as Data
+
+Customer -> UI : Select the empty heart button
+UI -> Favorites : toggleFavorite(vehicleId)
+Favorites -> Favorites : Fill the heart optimistically
+
+Favorites -> Security : POST /users/{userId}/favourites\nJWT cookie and vehicle ID
+Security -> Controller : Forward authenticated request
+Controller -> Service : addFavourite(userId, vehicleId)
+Service -> Data : Load user and vehicle,\ncheck for an existing favorite
+
+alt User and vehicle are valid and no duplicate exists
+  Data --> Service : Valid records
+  Service -> Data : Save favorite
+  Data --> Service : Saved favorite
+  Service --> Controller : Favorite created
+  Controller --> Favorites : 201 Created
+  Favorites --> UI : Keep the heart filled
+  UI --> Customer : Vehicle is shown as saved
+else Validation or persistence fails
+  Data --> Service : Error
+  Service --> Controller : Favorite not created
+  Controller --> Favorites : Error response
+  Favorites -> Favorites : Restore the previous state
+  Favorites --> UI : Display an update error
+end
+
+@enduml

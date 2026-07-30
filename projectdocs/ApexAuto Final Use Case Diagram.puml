@@ -1,0 +1,80 @@
+@startuml
+title ApexAuto Final Use Case Diagram
+
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+skinparam actorStyle awesome
+skinparam nodesep 55
+skinparam ranksep 65
+
+actor "Guest / Visitor" as Guest
+actor "Registered Customer" as Customer
+actor "Administrator" as Admin
+
+Customer --|> Guest
+Admin --|> Customer
+
+rectangle "ApexAuto E-Commerce System" {
+
+  package "Catalogue & Discovery" {
+    usecase "UC-01\nBrowse, Search and\nFilter Catalogue" as UC01
+    usecase "UC-03\nView Vehicle Details,\nReviews and History" as UC03
+    usecase "UC-13\nCompare Vehicles" as UC13
+    usecase "UC-11\nAsk Amp Chatbot" as UC11
+  }
+
+  package "Account Access" {
+    usecase "UC-05\nRegister and Verify Account" as UC05
+    usecase "UC-06\nLogin and Session Handling" as UC06
+    usecase "UC-16\nReset Forgotten Password" as UC16
+  }
+
+  package "Shopping & Orders" {
+    usecase "UC-04\nManage Favorite Vehicles" as UC04
+    usecase "UC-18\nCalculate Financing" as UC18
+    usecase "UC-08\nAdd Vehicle to Cart" as UC08
+    usecase "UC-19\nManage Cart and\nComplete Simulated Checkout" as UC19
+    usecase "UC-21\nView or Delete Own Orders" as UC21
+  }
+
+  package "Reviews & Profile" {
+    usecase "UC-09\nCreate, Edit or Delete\nReviews and Star Ratings" as UC09
+    usecase "UC-17\nManage Account Profile\nand Password" as UC17
+    usecase "UC-07\nSign Out" as UC07
+  }
+
+  package "Administration" {
+    usecase "UC-22\nView Dashboard and\nPayment Summary" as UC22
+    usecase "UC-23\nManage Vehicle Inventory\nand Vehicle History" as UC23
+    usecase "UC-24\nManage Users, Roles\nand Restrictions" as UC24
+    usecase "UC-25\nManage Orders\nand Order Status" as UC25
+    usecase "UC-10\nModerate Vehicle Reviews" as UC10
+  }
+}
+
+Guest --> UC01
+Guest --> UC03
+Guest --> UC05
+Guest --> UC06
+Guest --> UC16
+Guest --> UC11
+
+Customer --> UC04
+Customer --> UC13
+Customer --> UC18
+Customer --> UC08
+Customer --> UC19
+Customer --> UC21
+Customer --> UC09
+Customer --> UC17
+Customer --> UC07
+
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+Admin --> UC25
+Admin --> UC10
+
+@enduml

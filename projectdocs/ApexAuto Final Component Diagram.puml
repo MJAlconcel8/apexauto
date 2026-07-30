@@ -1,0 +1,82 @@
+@startuml
+title ApexAuto Final Component Diagram
+
+top to bottom direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 55
+skinparam defaultTextAlignment center
+
+actor "Guest, Registered Customer\nor Administrator" as User
+
+package "React 19 Frontend — TypeScript, Vite 8 and React Router" as Frontend {
+  component "Routing and Access Control\nReact Router, ProtectedRoute\nand GuestOnlyRoute" as Router
+
+  component "Page Components\nLanding, Authentication, Catalogue, Vehicle Details,\nFavorites, Compare, Loan Calc, Cart, Checkout, Orders,\nAccount, Amp Chatbot and Administration" as Pages
+
+  component "Shared UI Components\nNavigation, Vehicle Cards, Forms, Star Ratings,\nModals, Cart Items and Footer" as SharedUI
+
+  component "Client State Providers\nAuthProvider and FavoritesProvider" as ClientState
+
+  component "Frontend API Access\nFeature service modules and page-level fetch requests" as FrontendAPI
+
+  Router -[hidden]down-> Pages
+  Pages -[hidden]down-> SharedUI
+  SharedUI -[hidden]down-> ClientState
+  ClientState -[hidden]down-> FrontendAPI
+}
+
+interface "HTTPS REST / JSON API" as RestAPI
+
+package "Spring Boot 4.1 Modular Monolith — Java 21" as Backend {
+  component "Security Layer\nCORS, SecurityFilterChain, JWTAuthenticationFilter,\nJWTService, AuthenticationProvider and BCrypt" as Security
+
+  component "REST Controllers\nAuthentication, Vehicles, Favorites, Reviews, History,\nCarts, Orders, Payments, Chatbot and Administration" as Controllers
+
+  component "Domain Services\nAuthentication, Users, Vehicles, Favorites, Reviews,\nCart, Financing, Orders, Payments and Email" as Services
+
+  component "Chatbot Module\nChatbotService, SiteKnowledgeService\nand GeminiChatClient" as Chatbot
+
+  artifact "Customer Knowledge Resource\nchatbot/apexauto-site-knowledge.txt" as Knowledge
+
+  component "Persistence Layer\nSpring Data JPA Repositories, Hibernate ORM\nand MySQL Connector/J" as Persistence
+
+  component "Domain and API Model\nJPA Entities, DTOs and Mappers" as Model
+
+  Security -[hidden]down-> Controllers
+  Controllers -[hidden]down-> Services
+  Services -[hidden]right-> Chatbot
+  Services -[hidden]down-> Persistence
+  Persistence -[hidden]down-> Model
+}
+
+database "Railway Managed MySQL\nApplication Data" as MySQL
+cloud "Google Gemini API" as Gemini
+cloud "External SMTP Service" as SMTP
+
+User --> Router : Uses ApexAuto
+Router --> Pages : Resolves public, customer\nand administrator routes
+Pages --> SharedUI : Uses reusable interface elements
+Pages --> ClientState : Reads authentication\nand favorites state
+Pages --> FrontendAPI : Sends feature requests
+ClientState --> FrontendAPI : Refreshes user and favorites data
+
+FrontendAPI --> RestAPI : HTTPS requests
+RestAPI --> Security : Public or protected endpoint
+Security --> Controllers : Authenticated request
+Security --> Persistence : Loads user during JWT validation
+Controllers --> Services : Invokes business operations
+Services --> Persistence : Reads and writes application data
+Services --> Model : Uses entities, DTOs and mappers
+Persistence --> Model : Maps relational data
+Persistence --> MySQL : JDBC / SQL
+
+Controllers --> Chatbot : Passes chatbot requests
+Chatbot --> Knowledge : Loads customer-facing project facts
+Chatbot --> Gemini : HTTPS generateContent request
+Services --> SMTP : Verification and password-reset email
+
+@enduml
