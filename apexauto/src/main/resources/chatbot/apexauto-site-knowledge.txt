@@ -66,6 +66,7 @@ Vehicle Catalogue
 - Search models… filters by the vehicle make and model shown on the card.
 - Category choices include All, Sedan, Sports, SUV, and Luxury.
 - Max Price changes the maximum displayed vehicle price.
+- Hot Deals shows only vehicles currently marked On Sale. It can be combined with search, category, price, and sorting controls.
 - Sort By includes Featured and price-order choices.
 - Hide Filters hides the filter panel, and Show Filters displays it again.
 - Reset Filters clears the current catalogue filters.

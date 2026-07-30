@@ -53,6 +53,7 @@ function mapVehicle(v: VehicleApiResponse): Vehicle {
     category: v.category,
     img: resolveVehicleImage(v.imageUrl, v.make, v.model),
     price: v.price,
+    onSale: v.onSale,
     mileage: v.mileage,
     emissionScore: v.emissionScore,
     seats: v.seats,

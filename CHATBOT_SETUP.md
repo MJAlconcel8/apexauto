@@ -1,8 +1,8 @@
-# Gemini Chatbot Setup
+# Amp Chatbot Setup
 
-Amp sends chat messages from the React frontend to the Spring Boot backend. The backend adds a customer-facing ApexAuto guide and calls Gemini. The guide uses the same menu, button, tab, icon, and section names shown in the interface. The Gemini API key is only used by the backend.
+Amp is the customer-facing chatbot in ApexAuto. The React frontend sends a question and recent chat history to the Spring Boot backend. The backend adds the ApexAuto customer guide, calls Google Gemini, and returns the answer to the browser. The Gemini API key is never sent to the frontend.
 
-## Files used by the chatbot
+## Implementation files
 
 Backend:
 
@@ -18,7 +18,7 @@ frontend/src/pages/ChatbotPage.tsx
 frontend/src/services/chatbotApi.ts
 ```
 
-The route and navigation link are added in:
+Routing and entry points:
 
 ```text
 frontend/src/App.tsx
@@ -26,21 +26,38 @@ frontend/src/components/Nav.tsx
 frontend/src/pages/ApexAutoLanding.tsx
 ```
 
-## Before starting
+## How the request flows
 
-Make sure the existing ApexAuto backend and frontend can run normally. The database, JWT, and email settings are unchanged; use the main `README.md` for those values.
+1. The user enters a question in the Amp interface.
+2. `ChatbotPage.tsx` sends the question and up to six recent messages to `POST /api/chatbot/messages`.
+3. `ChatbotService` validates the message and cleans the history.
+4. `SiteKnowledgeService` loads `apexauto-site-knowledge.txt` from the application classpath.
+5. `GeminiChatClient` combines the conversation, project guide, and chatbot instructions, then calls Gemini over HTTPS.
+6. The backend returns a `ChatbotResponseDTO`, and the frontend displays the answer.
 
-You also need a Gemini API key from Google AI Studio.
+The endpoint returns `Cache-Control: no-store`. Amp can explain customer features, visible buttons, the project architecture, and general EV topics. It cannot access accounts, carts, orders, payments, or live database records.
+
+## Requirements
+
+Before testing Amp, complete the backend and frontend setup in the main `README.md`. You also need a Gemini API key from Google AI Studio.
 
 ## Backend configuration
 
-From the `apexauto` folder, copy the example environment file if you do not already have a local `.env`:
+From the `apexauto` directory, create a local environment file if one does not already exist.
+
+### PowerShell
 
 ```powershell
 Copy-Item env.example .env
 ```
 
-Add the chatbot values to `.env`:
+### macOS or Linux
+
+```bash
+cp env.example .env
+```
+
+Add the chatbot settings to `.env`:
 
 ```text
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
@@ -48,22 +65,33 @@ GEMINI_MODEL=gemini-3.1-flash-lite
 CHATBOT_MAX_OUTPUT_TOKENS=300
 ```
 
-Do not add the real API key to `env.example`, the frontend environment file, or Git.
+`GEMINI_API_KEY` is required to receive answers. The model and output-token settings are optional. Output tokens are limited to a value between 50 and 500 by the backend.
 
-Run the backend tests and start the application:
+Do not place the real API key in `env.example`, a frontend environment file, or Git.
+
+Run the backend tests and start Spring Boot:
+
+### PowerShell
 
 ```powershell
 .\mvnw.cmd test
 .\mvnw.cmd spring-boot:run
 ```
 
-The chatbot endpoint is:
+### macOS or Linux
+
+```bash
+./mvnw test
+./mvnw spring-boot:run
+```
+
+The local endpoint is:
 
 ```text
 POST http://localhost:8080/api/chatbot/messages
 ```
 
-Example request from PowerShell:
+Example PowerShell request:
 
 ```powershell
 $body = @{
@@ -78,7 +106,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-A successful request returns:
+A successful response has this form:
 
 ```json
 {
@@ -88,65 +116,86 @@ A successful request returns:
 
 ## Frontend configuration
 
-The frontend uses `http://localhost:8080` by default. From the `frontend` folder, copy the example file if you need to use another backend address:
+The frontend uses `http://localhost:8080` during local development. To set the backend address explicitly, create `frontend/.env.local`.
+
+### PowerShell
 
 ```powershell
-Copy-Item .env.example .env
+cd frontend
+Copy-Item .env.example .env.local
 ```
 
-Then update:
+### macOS or Linux
+
+```bash
+cd frontend
+cp .env.example .env.local
+```
+
+Set:
 
 ```text
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-Install the frontend dependencies and run the checks:
+Install dependencies, run the checks, and start Vite:
 
-```powershell
+```bash
 npm ci
 npm run lint
 npm run build
 npm run dev
 ```
 
-Open the Vite address shown in the terminal, then go to `/chatbot` or use the **Chat with Amp** link.
+Open the Vite address shown in the terminal. Amp is available from the **Chat with Amp** button on the landing page, the Amp icon in the main navigation, or the `/chatbot` route.
+
+## Request limits and error handling
+
+- User messages are limited to 1,000 characters.
+- The frontend and backend keep up to six recent history messages.
+- Individual history entries are trimmed to 2,000 characters by the backend.
+- Gemini uses a 10-second connection timeout and a 30-second read timeout.
+- The default output limit is 300 tokens.
+
+| Result | Meaning |
+|---|---|
+| HTTP `400` | The message is missing or longer than 1,000 characters. |
+| HTTP `503` | The Gemini key is missing or the API quota has been reached. |
+| HTTP `502` | Gemini rejected the request, could not be reached, timed out, or returned an invalid response. |
+
+Restart Spring Boot after changing backend environment variables or the knowledge file.
 
 ## Manual checks
 
-1. Open the chatbot from the landing page and navigation menu.
-2. Send a suggested question and confirm that only one message is submitted.
-3. Ask a follow-up question to confirm that recent chat history is included.
-4. Clear the conversation and send a new message.
-5. Ask “How do I save a vehicle?” and confirm Amp directs the user to the visible heart button and **Favorites** navigation item without relying on an internal route.
-6. Ask “How do Compare and Loan Calc work?” and confirm Amp uses the visible button and section names.
-7. Ask “Is checkout a real payment?” and confirm Amp clearly describes checkout, financing, orders, delivery, and payment fields as simulations.
-8. Ask about the architecture and confirm Amp explains React, TypeScript, Vite, Spring Boot, MySQL, Vercel, Railway, and the server-side Gemini connection.
-9. Ask whether Amp can see a cart, payment, password, or account details. It should explain that it has no access to private or live data.
-10. Ask for an administrator workflow. Amp should explain that its guide is limited to customer-facing features.
-11. Stop the backend and confirm that the frontend shows an error instead of failing silently.
+1. Open Amp from the landing page or main navigation.
+2. Send one of the suggested questions and confirm that only one request is submitted.
+3. Ask a follow-up question and confirm that the earlier conversation is understood.
+4. Select **Clear** and confirm that the conversation resets.
+5. Ask how to save a vehicle and confirm that Amp refers to the heart button and **Favorites**.
+6. Ask how **Compare**, **Loan Calc**, **Finance**, and **Add to Cart** work.
+7. Ask whether checkout is real and confirm that Amp identifies payments, financing, orders, stock, and delivery as simulations.
+8. Ask about the project stack and confirm that Amp explains React, TypeScript, Vite, Spring Boot, MySQL, Vercel, Railway, and Gemini.
+9. Ask Amp to view an account or change a cart. It should explain that it cannot access private or live data.
+10. Stop the backend and confirm that the frontend displays an error instead of failing silently.
 
-## Common errors
+## Railway deployment
 
-| Result | Likely cause |
-|---|---|
-| HTTP `400` | The message is blank or longer than 1,000 characters. |
-| HTTP `503` | The Gemini key is missing or the API quota has been reached. |
-| HTTP `502` | Gemini rejected the key/model, could not be reached, or returned an invalid response. |
+Add these variables to the Railway backend service:
 
-Restart Spring Boot after changing `.env`.
+```text
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+GEMINI_MODEL=gemini-3.1-flash-lite
+CHATBOT_MAX_OUTPUT_TOKENS=300
+```
 
-## Deployment note
+The endpoint is currently public so guests can use Amp during the project demo. A production system should add rate limiting or require authentication to protect the Gemini quota.
 
-`/api/chatbot/messages` currently allows requests without signing in. This is convenient for the project demo, but a public deployment should add login protection or a simple request limit so the Gemini quota cannot be used freely.
+## Updating the ApexAuto guide
 
-## Updating ApexAuto information
-
-Amp reads its project information from:
+Amp reads project information from:
 
 ```text
 apexauto/src/main/resources/chatbot/apexauto-site-knowledge.txt
 ```
 
-Update this file whenever a customer-facing feature, visible label, navigation item, or technology choice changes. Describe navigation using the exact labels customers see, such as **Catalogue**, **Favorites**, **Finance**, and **Add to Cart**. Avoid internal route paths unless they are needed for a technical architecture explanation.
-
-Keep the guide limited to implemented customer features. Clearly identify simulated payments, financing, orders, stock, and delivery. Do not add administrator instructions, secrets, credentials, payment data, or user information. Restart the backend after editing the knowledge file.
+Update this file when a customer-facing feature, visible label, or technology changes. Use the labels shown in the interface, such as **Catalogue**, **Favorites**, **Compare**, **Loan Calc**, **Finance**, **Add to Cart**, and **Place Order**. Keep administrator instructions, credentials, private user information, and payment data out of the guide.

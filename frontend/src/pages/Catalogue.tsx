@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../config/api'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, Car, RotateCcw, Loader2 } from 'lucide-react'
+import { Search, SlidersHorizontal, Car, RotateCcw, Loader2, Flame } from 'lucide-react'
 import Nav from '../components/Nav'
 import { VehicleCard, Reveal, Footer } from '../components'
 import type { Vehicle } from '../components'
@@ -32,6 +32,8 @@ interface FilterRailProps {
   setCat: (c: string) => void
   priceMax: number
   setPriceMax: (n: number) => void
+  hotDealsOnly: boolean
+  setHotDealsOnly: (enabled: boolean) => void
   sort: SortKey
   setSort: (s: SortKey) => void
   onReset: () => void
@@ -48,7 +50,17 @@ function pillClass(active: boolean) {
   }`
 }
 
-function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset }: FilterRailProps) {
+function FilterRail({
+  cat,
+  setCat,
+  priceMax,
+  setPriceMax,
+  hotDealsOnly,
+  setHotDealsOnly,
+  sort,
+  setSort,
+  onReset,
+}: FilterRailProps) {
   return (
     <aside className="w-full lg:w-60 shrink-0 flex flex-col gap-8">
       {/* Category */}
@@ -61,6 +73,20 @@ function FilterRail({ cat, setCat, priceMax, setPriceMax, sort, setSort, onReset
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Hot deals */}
+      <div>
+        <div className={groupLabel} style={groupLabelColor}>Deals</div>
+        <button
+          type="button"
+          onClick={() => setHotDealsOnly(!hotDealsOnly)}
+          aria-pressed={hotDealsOnly}
+          className={`av-focus flex items-center gap-2 ${pillClass(hotDealsOnly)}`}
+        >
+          <Flame size={14} aria-hidden="true" />
+          Hot Deals
+        </button>
       </div>
 
       {/* Max price */}
@@ -128,6 +154,7 @@ export default function Catalogue() {
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [priceMax, setPriceMax] = useState<number>(PRICE_MAX)
+  const [hotDealsOnly, setHotDealsOnly] = useState(false)
   const [sort, setSort] = useState<SortKey>('featured')
   const [query, setQuery] = useState('')
   const [showFilter, setShowFilter] = useState(true)
@@ -156,6 +183,7 @@ export default function Catalogue() {
     nextParams.delete('category')
     setSearchParams(nextParams, { replace: true })
     setPriceMax(PRICE_MAX)
+    setHotDealsOnly(false)
     setSort('featured')
     setQuery('')
   }
@@ -166,6 +194,7 @@ export default function Catalogue() {
       (v) =>
         (cat === 'All' || v.category === cat) &&
         v.price <= priceMax &&
+        (!hotDealsOnly || v.onSale) &&
         (q === '' || `${v.marque} ${v.model}`.toLowerCase().includes(q)),
     )
     const sorted = [...list]
@@ -177,7 +206,7 @@ export default function Catalogue() {
       default: break
     }
     return sorted
-  }, [vehicles, cat, priceMax, sort, query])
+  }, [vehicles, cat, priceMax, hotDealsOnly, sort, query])
 
   if (loading) {
     return (
@@ -246,6 +275,7 @@ export default function Catalogue() {
             <FilterRail
               cat={cat} setCat={setCat}
               priceMax={priceMax} setPriceMax={setPriceMax}
+              hotDealsOnly={hotDealsOnly} setHotDealsOnly={setHotDealsOnly}
               sort={sort} setSort={setSort}
               onReset={reset}
             />

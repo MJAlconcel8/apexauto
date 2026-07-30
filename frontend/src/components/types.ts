@@ -19,6 +19,7 @@ export interface Vehicle {
   category?: string;
   img: string;
   price: number;
+  onSale: boolean;
   was?: number;
   mileage: number;
   emissionScore: number;
